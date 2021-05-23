@@ -54,34 +54,36 @@ tasks.named<Test>("test") {
   useJUnitPlatform()
 }
 
-sourceSets {
-  test {
-    java {
-      // Add the generated test sources directory to the "java test" source set
-      srcDir(generatedTestSourcesDir)
-    }
-  }
-}
-
-// This task uses the generator itself to generate the test sources, supports up-to-date checking
-tasks.register<JavaExec>("generateTestSources") {
-
-  val contractSourcesDir = "src/test/contract"
-
-  inputs.files(fileTree(contractSourcesDir))
-  inputs.property("generatedTestSourcesDir", generatedTestSourcesDir)
-  outputs.dir(generatedTestSourcesDir)
-
-  classpath = sourceSets.main.get().runtimeClasspath
-  main = "de.rk42.openapi.codegen.MainKt"
-
-  args = listOf("--contract", "$contractSourcesDir/petstore-simple.yaml", "--output-dir", generatedTestSourcesDir, "--package", "generated")
-}
-
-// Make sure to generate the test sources before test compilation
-tasks.named<KotlinCompile>("compileTestKotlin").configure {
-  dependsOn.add(tasks.named("generateTestSources"))
-}
+// For now, disable generating test output into generated sources.
+//
+//sourceSets {
+//  test {
+//    java {
+//      // Add the generated test sources directory to the "java test" source set
+//      srcDir(generatedTestSourcesDir)
+//    }
+//  }
+//}
+//
+//// This task uses the generator itself to generate the test sources, supports up-to-date checking
+//tasks.register<JavaExec>("generateTestSources") {
+//
+//  val contractSourcesDir = "src/test/contract"
+//
+//  inputs.files(fileTree(contractSourcesDir))
+//  inputs.property("generatedTestSourcesDir", generatedTestSourcesDir)
+//  outputs.dir(generatedTestSourcesDir)
+//
+//  classpath = sourceSets.main.get().runtimeClasspath
+//  main = "de.rk42.openapi.codegen.MainKt"
+//
+//  args = listOf("--contract", "$contractSourcesDir/petstore-simple.yaml", "--output-dir", generatedTestSourcesDir, "--package", "generated")
+//}
+//
+//// Make sure to generate the test sources before test compilation
+//tasks.named<KotlinCompile>("compileTestKotlin").configure {
+//  dependsOn.add(tasks.named("generateTestSources"))
+//}
 
 tasks.wrapper {
   gradleVersion = "7.0.1"

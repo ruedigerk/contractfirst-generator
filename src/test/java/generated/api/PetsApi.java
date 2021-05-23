@@ -1,11 +1,15 @@
 package generated.api;
 
-import generated.api.support.*;
-import generated.model.Error;
-import generated.model.*;
-import java.util.*;
-import javax.ws.rs.*;
-import javax.ws.rs.core.*;
+import generated.api.support.ResponseWrapper;
+import generated.model.Pet;
+import java.util.List;
+import javax.ws.rs.GET;
+import javax.ws.rs.POST;
+import javax.ws.rs.Path;
+import javax.ws.rs.PathParam;
+import javax.ws.rs.Produces;
+import javax.ws.rs.QueryParam;
+import javax.ws.rs.core.Response;
 
 @Path("/pets")
 public interface PetsApi {

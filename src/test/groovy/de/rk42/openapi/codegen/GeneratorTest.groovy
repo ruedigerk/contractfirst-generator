@@ -29,7 +29,7 @@ class GeneratorTest extends Specification {
     def expected = reference.text
     def actual = generated.text
 
-    assert actual == expected
+    actual == expected
     
     where:
     file << referenceFiles

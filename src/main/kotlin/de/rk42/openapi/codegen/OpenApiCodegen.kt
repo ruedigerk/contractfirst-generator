@@ -9,9 +9,9 @@ object OpenApiCodegen {
     val contract = Parser.parse(configuration.contractFile.toString())
     val codeUnits = ModelTransformer.transform(contract)
     
-    ServerStubGenerator.generateCode(codeUnits, configuration)
-    ModelGenerator.generateCode(codeUnits, configuration)
-
     println("Paths of spec: ${contract.paths.joinToString()}")
+    
+    ServerStubGenerator(configuration).generateCode(codeUnits)
+    ModelGenerator.generateCode(codeUnits, configuration)
   }
 }

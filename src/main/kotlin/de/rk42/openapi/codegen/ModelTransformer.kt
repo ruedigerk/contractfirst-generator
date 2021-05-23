@@ -1,9 +1,6 @@
 package de.rk42.openapi.codegen
 
-import de.rk42.openapi.codegen.model.CodeUnitModel
-import de.rk42.openapi.codegen.model.ContractModel
-import de.rk42.openapi.codegen.model.OperationModel
-import de.rk42.openapi.codegen.model.PathModel
+import de.rk42.openapi.codegen.model.*
 
 /**
  * Transforms the parsed model into a representation suitable for code generation. This includes the following transformation steps:
@@ -12,14 +9,28 @@ import de.rk42.openapi.codegen.model.PathModel
  */
 object ModelTransformer {
 
-  fun transform(contract: ContractModel): List<CodeUnitModel> {
+  fun transform(contract: ContractModel): List<CodeUnit> {
     return groupOperationsByCodeUnits(contract.paths)
   }
 
-  private fun groupOperationsByCodeUnits(paths: List<PathModel>): List<CodeUnitModel> = paths
+  private fun groupOperationsByCodeUnits(paths: List<PathModel>): List<CodeUnit> = paths
       .flatMap { path -> path.operations.map { operation -> OperationAndPath(operation, path) } }
-      .groupBy(::determineCodeUnitName) { it.operation }
-      .map { (name, operations) -> CodeUnitModel(name, operations) }
+      .groupBy(::determineCodeUnitName) { toCodeOperation(it) }
+      .map { (name, operations) -> CodeUnit(name, operations) }
+
+  private fun toCodeOperation(operationAndPath: OperationAndPath): CodeOperation {
+    val operation = operationAndPath.operation
+
+    return CodeOperation(
+        operationAndPath.path.path,
+        operation.method,
+        operation.tags,
+        operation.summary,
+        operation.description,
+        operation.operationId,
+        operation.parameters
+    )
+  }
 
   private fun determineCodeUnitName(operationAndPath: OperationAndPath): String {
     return operationAndPath.operation.tags.firstOrNull() ?: operationAndPath.path.path
