@@ -54,6 +54,11 @@ tasks.named<Test>("test") {
   useJUnitPlatform()
 }
 
+// Workaround for Bug in IntelliJ Kotlin Plugin and Gradle 7
+tasks.withType<org.gradle.jvm.tasks.Jar>{
+  duplicatesStrategy = DuplicatesStrategy.EXCLUDE
+}
+
 // For now, disable generating test output into generated sources.
 //
 //sourceSets {
