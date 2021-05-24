@@ -6,5 +6,6 @@ data class CtrOperation(
     val summary: String,
     val description: String,
     val operationId: String,
-    val parameters: List<CtrParameter>
+    val parameters: List<CtrParameter>,
+    val responses: List<CtrResponse>
 )
