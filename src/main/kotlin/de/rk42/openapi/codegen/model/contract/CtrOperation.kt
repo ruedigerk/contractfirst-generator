@@ -1,11 +1,10 @@
-package de.rk42.openapi.codegen.model
+package de.rk42.openapi.codegen.model.contract
 
-data class CodeOperation(
-    val path: String,
+data class CtrOperation(
     val method: String,
     val tags: List<String>,
     val summary: String,
     val description: String,
     val operationId: String,
-    val parameters: List<ParameterModel>
+    val parameters: List<CtrParameter>
 )

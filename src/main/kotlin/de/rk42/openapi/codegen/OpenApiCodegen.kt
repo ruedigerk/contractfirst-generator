@@ -5,13 +5,14 @@ package de.rk42.openapi.codegen
  */
 object OpenApiCodegen {
 
-  fun generate(configuration: Configuration) {
-    val contract = Parser.parse(configuration.contractFile.toString())
-    val codeUnits = ModelTransformer.transform(contract)
+  fun generate(configuration: CliConfiguration) {
+    val ctrSpecification = Parser.parse(configuration.contractFile)
+    val itmSpecification = ContractToIntermediateModelTransformer().transform(ctrSpecification)
+    val javaSpecification = IntermediateToJavaModelTransformer().transform(itmSpecification)
     
-    println("Paths of spec: ${contract.paths.joinToString()}")
+    println("Paths of spec: ${ctrSpecification.pathItems.joinToString()}")
     
-    ServerStubGenerator(configuration).generateCode(codeUnits)
-    ModelGenerator.generateCode(codeUnits, configuration)
+    ServerStubGenerator(configuration).generateCode(javaSpecification)
+    ModelGenerator(configuration).generateCode(javaSpecification)
   }
 }

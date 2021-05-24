@@ -11,10 +11,34 @@ import javax.ws.rs.Produces;
 import javax.ws.rs.QueryParam;
 import javax.ws.rs.core.Response;
 
-@Path("/pets")
+@Path("")
 public interface PetsApi {
+  @GET
+  @Path("/pets")
+  @Produces({"application/json"})
+  ListPetsResponse listPets(@QueryParam("limit") Integer limit);
+
+  class ListPetsResponse extends ResponseWrapper {
+
+    private ListPetsResponse(Response delegate) {
+      super(delegate);
+    }
+
+    public static ListPetsResponse with200ApplicationJson(List<Pet> entity) {
+      return new ListPetsResponse(Response.status(200).header("Content-Type", "application/json").entity(entity).build());
+    }
+
+    public static ListPetsResponse with200ApplicationJson(Error entity) {
+      return new ListPetsResponse(Response.status(200).header("Content-Type", "application/json").entity(entity).build());
+    }
+
+    public static ListPetsResponse withCustomResponse(Response response) {
+      return new ListPetsResponse(response);
+    }
+  }
 
   @POST
+  @Path("/pets")
   @Produces({"application/json"})
   CreatePetsResponse createPets();
 
@@ -38,30 +62,7 @@ public interface PetsApi {
   }
 
   @GET
-  @Produces({"application/json"})
-  ListPetsResponse listPets(@QueryParam("limit") Integer limit);
-
-  class ListPetsResponse extends ResponseWrapper {
-
-    private ListPetsResponse(Response delegate) {
-      super(delegate);
-    }
-
-    public static ListPetsResponse with200ApplicationJson(List<Pet> entity) {
-      return new ListPetsResponse(Response.status(200).header("Content-Type", "application/json").entity(entity).build());
-    }
-
-    public static ListPetsResponse with200ApplicationJson(Error entity) {
-      return new ListPetsResponse(Response.status(200).header("Content-Type", "application/json").entity(entity).build());
-    }
-
-    public static ListPetsResponse withCustomResponse(Response response) {
-      return new ListPetsResponse(response);
-    }
-  }
-
-  @GET
-  @Path("/{petId}")
+  @Path("/pets/{petId}")
   @Produces({"application/json"})
   ShowPetByIdResponse showPetById(@PathParam("petId") String petId);
 
