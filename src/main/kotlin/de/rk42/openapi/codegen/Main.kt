@@ -1,7 +1,6 @@
 package de.rk42.openapi.codegen
 
 import com.xenomachina.argparser.ArgParser
-import de.rk42.openapi.codegen.Parser.ParserException
 
 /**
  * The Command Line Interface application for invoking OpenApiCodegen.

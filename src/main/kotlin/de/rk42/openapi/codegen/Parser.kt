@@ -3,15 +3,16 @@ package de.rk42.openapi.codegen
 import de.rk42.openapi.codegen.model.ParameterLocation
 import de.rk42.openapi.codegen.model.contract.CtrOperation
 import de.rk42.openapi.codegen.model.contract.CtrParameter
-import de.rk42.openapi.codegen.model.contract.CtrPathItem
 import de.rk42.openapi.codegen.model.contract.CtrPrimitiveType
 import de.rk42.openapi.codegen.model.contract.CtrResponse
 import de.rk42.openapi.codegen.model.contract.CtrResponseContent
 import de.rk42.openapi.codegen.model.contract.CtrSchema
 import de.rk42.openapi.codegen.model.contract.CtrSchemaArray
 import de.rk42.openapi.codegen.model.contract.CtrSchemaEnum
+import de.rk42.openapi.codegen.model.contract.CtrSchemaNonRef
 import de.rk42.openapi.codegen.model.contract.CtrSchemaObject
 import de.rk42.openapi.codegen.model.contract.CtrSchemaPrimitive
+import de.rk42.openapi.codegen.model.contract.CtrSchemaProperty
 import de.rk42.openapi.codegen.model.contract.CtrSchemaRef
 import de.rk42.openapi.codegen.model.contract.CtrSpecification
 import de.rk42.openapi.codegen.model.contract.DefaultStatusCode
@@ -32,41 +33,44 @@ import io.swagger.v3.parser.core.models.SwaggerParseResult
 /**
  * Parser implementation based on swagger-parser.
  */
-object Parser {
+class Parser {
+
+  private lateinit var schemaParser: SchemaParser
 
   fun parse(specFilePath: String): CtrSpecification {
-    val parseResult = runSwaggerParser(specFilePath)
+    val swaggerParseResult = runSwaggerParser(specFilePath)
 
-    if (parseResult.messages.isNotEmpty()) {
-      throw ParserException(parseResult.messages)
+    if (swaggerParseResult.messages.isNotEmpty()) {
+      throw ParserException(swaggerParseResult.messages)
     }
 
-    return toContract(parseResult.openAPI!!)
+    return toContract(swaggerParseResult.openAPI!!)
   }
 
   private fun runSwaggerParser(specFile: String): SwaggerParseResult {
-    val parseOptions = ParseOptions()
-    parseOptions.isFlatten = true
+    val parseOptions = ParseOptions().apply {
+      isResolve = true
+      isFlatten = true
+      isFlattenComposedSchemas = true
+    }
 
     return OpenAPIParser().readLocation(specFile, null, parseOptions)
   }
 
   private fun toContract(openApi: OpenAPI): CtrSpecification {
-    return CtrSpecification(
-        toPaths(openApi.paths),
-        toSchemas(openApi.components.schemas)
-    )
+    schemaParser = SchemaParser(openApi.components.schemas)
+
+    val operations = toOperations(openApi.paths)
+    val referencedSchemas = schemaParser.determineAndResolveReferencedSchemas()
+
+    return CtrSpecification(operations, referencedSchemas)
   }
 
-  private fun toPaths(pathItemMap: Map<String, PathItem>): List<CtrPathItem> {
-    return pathItemMap.entries.map { (path, pathItem) -> toPath(path, pathItem) }
+  private fun toOperations(pathItemMap: Map<String, PathItem>): List<CtrOperation> {
+    return pathItemMap.entries.flatMap { (path, pathItem) -> toOperations(path, pathItem) }
   }
 
-  private fun toPath(path: String, pathItem: PathItem): CtrPathItem {
-    return CtrPathItem(path, pathItem.summary ?: "", pathItem.description ?: "", toOperations(pathItem))
-  }
-
-  private fun toOperations(pathItem: PathItem): List<CtrOperation> {
+  private fun toOperations(path: String, pathItem: PathItem): List<CtrOperation> {
     val commonParameters = (pathItem.parameters ?: emptyList()).map(::toParameter)
 
     val operationsAsMap = mapOf(
@@ -82,10 +86,11 @@ object Parser {
 
     return operationsAsMap
         .filterValues { it != null }
-        .map { (method, operation) -> toOperation(method, operation, commonParameters) }
+        .map { (method, operation) -> toOperation(path, method, operation, commonParameters) }
   }
 
-  private fun toOperation(method: String, operation: Operation, commonParameters: List<CtrParameter>): CtrOperation = CtrOperation(
+  private fun toOperation(path: String, method: String, operation: Operation, commonParameters: List<CtrParameter>): CtrOperation = CtrOperation(
+      path,
       method,
       operation.tags.nullToEmpty(),
       operation.summary.nullToEmpty(),
@@ -102,8 +107,13 @@ object Parser {
     return pathParametersAsMap.plus(operationParametersAsMap).values.toList()
   }
 
-  private fun toParameter(parameter: Parameter): CtrParameter =
-      CtrParameter(parameter.name, toParameterLocation(parameter.`in`), parameter.description, parameter.required ?: false)
+  private fun toParameter(parameter: Parameter): CtrParameter = CtrParameter(
+      parameter.name,
+      toParameterLocation(parameter.`in`),
+      parameter.description,
+      parameter.required ?: false,
+      schemaParser.resolveSchema(parameter.schema)
+  )
 
   private fun toParameterLocation(location: String?): ParameterLocation {
     return when (location) {
@@ -125,15 +135,25 @@ object Parser {
   }
 
   private fun toResponseContents(content: Content): List<CtrResponseContent> = content.map { (mediaType, content) ->
-    // As swagger-parser is run with option "flatten", we know that all schemas are referenced at this point and not inlined
-    CtrResponseContent(mediaType, CtrSchemaRef(content.schema.`$ref`))
+    CtrResponseContent(mediaType, schemaParser.resolveSchema(content.schema))
   }
+}
 
-  private fun toSchemas(schemas: Map<String, Schema<Any>>): Map<CtrSchemaRef, CtrSchema> = schemas
+private class SchemaParser(topLevelSchemas: Map<String, Schema<Any>>) {
+
+  private val referencedSchemas: MutableSet<CtrSchemaNonRef> = mutableSetOf()
+
+  // Top level schemas are the schemas of the components section of the contract. Only they can be referenced by a $ref.
+  private val topLevelSchemas: Map<CtrSchemaRef, CtrSchemaNonRef> = toTopLevelSchemas(topLevelSchemas)
+
+  private fun toTopLevelSchemas(schemas: Map<String, Schema<Any>>): Map<CtrSchemaRef, CtrSchemaNonRef> = schemas
       .mapKeys { CtrSchemaRef("#/components/schemas/${it.key}") }
-      .mapValues { toSchema(it.value) }
+      .mapValues { toTopLevelSchema(it.value) }
 
-  private fun toSchema(schema: Schema<Any>): CtrSchema {
+  private fun toTopLevelSchema(schema: Schema<Any>): CtrSchemaNonRef =
+      (parseSchema(schema) as? CtrSchemaNonRef) ?: throw ParserException("Unsupported schema reference in #/components/schemas: $schema")
+
+  private fun parseSchema(schema: Schema<Any>): CtrSchema {
     if (schema.`$ref` != null) {
       return CtrSchemaRef(schema.`$ref`)
     }
@@ -159,7 +179,7 @@ object Parser {
 
   @Suppress("UNCHECKED_CAST")
   private fun toArraySchema(schema: ArraySchema): CtrSchemaArray {
-    return CtrSchemaArray(schema.title.nullToEmpty(), toSchema(schema.items as Schema<Any>))
+    return CtrSchemaArray(schema.title.nullToEmpty(), parseSchema(schema.items as Schema<Any>))
   }
 
   private fun toPrimitiveSchema(schema: Schema<Any>): CtrSchemaPrimitive {
@@ -175,19 +195,76 @@ object Parser {
   }
 
   private fun toObjectSchema(schema: Schema<Any>): CtrSchemaObject {
+    val requiredProperties = schema.required.toSet()
+
     return CtrSchemaObject(
         schema.title.nullToEmpty(),
-        schema.properties.mapValues { toSchema(it.value) },
-        schema.required.toSet()
+        schema.properties.map { (name, schema) -> CtrSchemaProperty(name, requiredProperties.contains(name), parseSchema(schema)) }
     )
   }
 
-  private fun <T> List<T>?.nullToEmpty(): List<T> = this ?: emptyList()
+  fun resolveSchema(schema: Schema<Any>): CtrSchema {
+    return when (val parsed = parseSchema(schema)) {
+      is CtrSchemaRef -> lookupSchemaRef(parsed)
+      is CtrSchemaNonRef -> {
+        referencedSchemas.add(parsed)
+        parsed
+      }
+    }
+  }
 
-  private fun String?.nullToEmpty(): String = this ?: ""
+  private fun lookupSchemaRef(schema: CtrSchemaRef): CtrSchemaNonRef =
+      (topLevelSchemas[schema] ?: throw ParserException("Unresolvable schema reference $schema"))
+          .also { referencedSchemas.add(it) }
 
-  class ParserException(val messages: List<String>) : RuntimeException() {
+  /**
+   * Return all schemas actually being used in the contract.
+   */
+  fun determineAndResolveReferencedSchemas(): List<CtrSchemaNonRef> {
+    if (referencedSchemas.isEmpty()) {
+      throw IllegalStateException("resolveReferencedSchemas must be called after parsing the contract's operations")
+    }
 
-    constructor(msg: String) : this(listOf(msg))
+    // Iteratively resolve all schemas
+    val resolvedSchemas = mutableSetOf<CtrSchemaNonRef>()
+    var schemasForResolving = referencedSchemas.toSet()
+
+    do {
+      schemasForResolving.forEach(::resolveSchemaComponents)
+      resolvedSchemas.addAll(schemasForResolving)
+      schemasForResolving = referencedSchemas - resolvedSchemas
+    } while (schemasForResolving.isNotEmpty())
+
+    return referencedSchemas.toList()
+  }
+
+  private fun resolveSchemaComponents(schema: CtrSchemaNonRef) {
+    when (schema) {
+      is CtrSchemaObject -> resolveObjectProperties(schema)
+      is CtrSchemaArray -> resolveArrayItems(schema)
+      else -> {
+        // do nothing 
+      }
+    }
+  }
+
+  private fun resolveObjectProperties(schema: CtrSchemaObject) {
+    schema.properties.forEach { property ->
+      when (val propertySchema = property.schema) {
+        is CtrSchemaRef -> property.schema = lookupSchemaRef(propertySchema)
+        is CtrSchemaNonRef -> referencedSchemas.add(propertySchema)
+      }
+    }
+  }
+
+  private fun resolveArrayItems(schema: CtrSchemaArray) {
+    when (val itemSchema = schema.itemSchema) {
+      is CtrSchemaRef -> schema.itemSchema = lookupSchemaRef(itemSchema)
+      is CtrSchemaNonRef -> referencedSchemas.add(itemSchema)
+    }
   }
 }
+
+private fun <T> List<T>?.nullToEmpty(): List<T> = this ?: emptyList()
+
+private fun String?.nullToEmpty(): String = this ?: ""

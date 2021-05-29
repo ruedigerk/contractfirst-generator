@@ -1,29 +1,29 @@
 package de.rk42.openapi.codegen
 
+import de.rk42.openapi.codegen.model.contract.CtrOperation
 import de.rk42.openapi.codegen.model.contract.CtrParameter
-import de.rk42.openapi.codegen.model.intermediate.ItmOperation
-import de.rk42.openapi.codegen.model.intermediate.ItmSpecification
+import de.rk42.openapi.codegen.model.contract.CtrSpecification
 import de.rk42.openapi.codegen.model.java.JavaOperation
 import de.rk42.openapi.codegen.model.java.JavaOperationGroup
 import de.rk42.openapi.codegen.model.java.JavaParameter
 import de.rk42.openapi.codegen.model.java.JavaSpecification
 
 /**
- * Transforms the intermediate model into a Java-specific model for code generation.
+ * Transforms the model into a Java-specific model for code generation.
  */
 class IntermediateToJavaModelTransformer {
 
-  fun transform(specification: ItmSpecification): JavaSpecification {
+  fun transform(specification: CtrSpecification): JavaSpecification {
     return JavaSpecification(groupOperations(specification.operations))
   }
 
-  private fun groupOperations(operations: List<ItmOperation>): List<JavaOperationGroup> = operations
+  private fun groupOperations(operations: List<CtrOperation>): List<JavaOperationGroup> = operations
       .groupBy { it.tags.firstOrNull() ?: DEFAULT_GROUP_NAME }
       .mapKeys { it.key.toJavaTypeIdentifier() + GROUP_NAME_SUFFIX }
       .mapValues { it.value.map(::toJavaOperation) }
       .map { (groupJavaIdentifier, operations) -> JavaOperationGroup(groupJavaIdentifier, operations) }
 
-  private fun toJavaOperation(operation: ItmOperation): JavaOperation {
+  private fun toJavaOperation(operation: CtrOperation): JavaOperation {
     return JavaOperation(
         operation.operationId.toJavaIdentifier(),
         operation.path,

@@ -1,6 +1,7 @@
 package de.rk42.openapi.codegen.model.contract
 
 data class CtrOperation(
+    val path: String,
     val method: String,
     val tags: List<String>,
     val summary: String,
