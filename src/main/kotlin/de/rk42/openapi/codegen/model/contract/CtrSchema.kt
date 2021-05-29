@@ -22,31 +22,10 @@ data class CtrSchemaProperty(
 data class CtrSchemaArray(
     val title: String,
     var itemSchema: CtrSchema
-    
-    
-) : CtrSchemaNonRef {
-
-  override fun equals(other: Any?): Boolean {
-    if (this === other) return true
-    if (javaClass != other?.javaClass) return false
-
-    other as CtrSchemaArray
-
-    if (title != other.title) return false
-    if (itemSchema != other.itemSchema) return false
-
-    return true
-  }
-
-  override fun hashCode(): Int {
-    var result = title.hashCode()
-    result = 31 * result + itemSchema.hashCode()
-    return result
-  }
-}
+) : CtrSchemaNonRef
 
 /**
- * Currently Enums are always asumed to habe type "string".
+ * Currently Enums are always assumed to habe type "string".
  */
 data class CtrSchemaEnum(
     val title: String,
@@ -59,7 +38,7 @@ data class CtrSchemaPrimitive(
 ) : CtrSchemaNonRef
 
 /**
- * Type "null" is currently not supported
+ * Type "null" is currently not supported.
  */
 enum class CtrPrimitiveType {
 

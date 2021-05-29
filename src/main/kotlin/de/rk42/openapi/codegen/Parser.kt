@@ -121,7 +121,7 @@ class Parser {
       "header" -> ParameterLocation.HEADER
       "path" -> ParameterLocation.PATH
       "cookie" -> ParameterLocation.COOKIE
-      else -> throw InvalidContractException("parameter.in must be one of query, header, path, cookie, but was $location")
+      else -> throw InvalidContractException("parameter.in must be one of query, header, path or cookie, but was $location")
     }
   }
 
@@ -141,6 +141,7 @@ class Parser {
 
 private class SchemaParser(topLevelSchemas: Map<String, Schema<Any>>) {
 
+  // All schemas actually being used/referenced in the contract.
   private val referencedSchemas: MutableSet<CtrSchemaNonRef> = mutableSetOf()
 
   // Top level schemas are the schemas of the components section of the contract. Only they can be referenced by a $ref.
