@@ -204,19 +204,22 @@ private class SchemaParser(topLevelSchemas: Map<String, Schema<Any>>) {
     )
   }
 
-  fun resolveSchema(schema: Schema<Any>): CtrSchema {
-    return when (val parsed = parseSchema(schema)) {
-      is CtrSchemaRef -> lookupSchemaRef(parsed)
-      is CtrSchemaNonRef -> {
-        referencedSchemas.add(parsed)
-        parsed
-      }
+  fun resolveSchema(schema: Schema<Any>): CtrSchema = when (val parsed = parseSchema(schema)) {
+    is CtrSchemaRef -> lookupSchemaRef(parsed)
+    is CtrSchemaNonRef -> {
+      referencedSchemas.add(parsed)
+      parsed
     }
   }
 
-  private fun lookupSchemaRef(schema: CtrSchemaRef): CtrSchemaNonRef =
-      (topLevelSchemas[schema] ?: throw ParserException("Unresolvable schema reference $schema"))
-          .also { referencedSchemas.add(it) }
+  private fun lookupSchemaRef(schema: CtrSchemaRef): CtrSchemaNonRef {
+    val referencedSchema = topLevelSchemas[schema] ?: throw ParserException("Unresolvable schema reference $schema")
+    
+    referencedSchema.reference = schema
+    referencedSchemas.add(referencedSchema)
+    
+    return referencedSchema
+  }
 
   /**
    * Return all schemas actually being used in the contract.

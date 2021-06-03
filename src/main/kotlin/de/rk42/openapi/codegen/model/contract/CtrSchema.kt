@@ -4,13 +4,24 @@ sealed interface CtrSchema
 
 data class CtrSchemaRef(
     val reference: String
-) : CtrSchema
+) : CtrSchema {
 
-sealed interface CtrSchemaNonRef : CtrSchema
+  fun referencedName(): String {
+    val lastSlashIndex = reference.lastIndexOf('/')
+    return reference.substring(lastSlashIndex + 1)
+  }
+}
+
+sealed interface CtrSchemaNonRef : CtrSchema {
+
+  /** The reference this schema is referenced by. Optional */
+  var reference: CtrSchemaRef?
+}
 
 data class CtrSchemaObject(
     val title: String,
     val properties: List<CtrSchemaProperty>,
+    override var reference: CtrSchemaRef? = null
 ) : CtrSchemaNonRef
 
 data class CtrSchemaProperty(
@@ -21,7 +32,8 @@ data class CtrSchemaProperty(
 
 data class CtrSchemaArray(
     val title: String,
-    var itemSchema: CtrSchema
+    var itemSchema: CtrSchema,
+    override var reference: CtrSchemaRef? = null
 ) : CtrSchemaNonRef
 
 /**
@@ -29,12 +41,14 @@ data class CtrSchemaArray(
  */
 data class CtrSchemaEnum(
     val title: String,
-    val values: List<String>
+    val values: List<String>,
+    override var reference: CtrSchemaRef? = null
 ) : CtrSchemaNonRef
 
 data class CtrSchemaPrimitive(
     val type: CtrPrimitiveType,
     val title: String,
+    override var reference: CtrSchemaRef? = null
 ) : CtrSchemaNonRef
 
 /**

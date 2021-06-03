@@ -3,7 +3,7 @@ package de.rk42.openapi.codegen.model.java
 sealed interface JavaType
 
 data class JavaClass(
-    val javaIdentifier: String,
+    val className: String,
     val title: String,
     val properties: List<JavaProperty>,
 ) : JavaType
@@ -12,14 +12,8 @@ data class JavaProperty(
     val javaIdentifier: String,
     val name: String,
     val required: Boolean,
-    var type: JavaType
+    var type: JavaReference
 )
-
-data class JavaCollection(
-    val title: String,
-    val collectionType: String,
-    var itemType: JavaType
-) : JavaType
 
 data class JavaEnum(
     val javaIdentifier: String,
@@ -30,3 +24,8 @@ data class JavaEnum(
 data class JavaBuiltIn(
     val typeName: String
 ) : JavaType
+
+data class JavaReference(
+    val typeName: String,
+    val typeParameterName: String? = null
+)

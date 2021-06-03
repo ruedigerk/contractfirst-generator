@@ -46,6 +46,7 @@ class ServerStubGenerator(private val configuration: CliConfiguration) {
         .build()
 
     return JavaFile.builder(apiPackage(), interfaceSpec)
+        .skipJavaLangImports(true)
         .build()
   }
 
@@ -62,7 +63,7 @@ class ServerStubGenerator(private val configuration: CliConfiguration) {
   }
 
   private fun toParameterSpec(parameter: JavaParameter): ParameterSpec {
-    return ParameterSpec.builder(ClassName.get("java.lang", "Object"), parameter.javaIdentifier)
+    return ParameterSpec.builder(ClassName.bestGuess(parameter.javaType.typeName), parameter.javaIdentifier)
         .addAnnotation(paramAnnotation(parameter))
         .build()
   }

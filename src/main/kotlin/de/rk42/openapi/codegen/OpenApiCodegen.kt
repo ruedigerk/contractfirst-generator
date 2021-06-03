@@ -7,7 +7,7 @@ object OpenApiCodegen {
 
   fun generate(configuration: CliConfiguration) {
     val ctrSpecification = Parser().parse(configuration.contractFile)
-    val javaSpecification = IntermediateToJavaModelTransformer().transform(ctrSpecification)
+    val javaSpecification = JavaTransformer().transform(ctrSpecification)
     
     ServerStubGenerator(configuration).generateCode(javaSpecification)
     ModelGenerator(configuration).generateCode(javaSpecification)

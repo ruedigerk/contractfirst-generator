@@ -7,5 +7,6 @@ data class JavaParameter(
     val name: String,
     val location: ParameterLocation,
     val description: String,
-    val required: Boolean
+    val required: Boolean,
+    val javaType: JavaReference
 )

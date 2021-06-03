@@ -7,5 +7,6 @@ data class JavaOperation(
     val tags: List<String>,
     val summary: String,
     val description: String,
-    val parameters: List<JavaParameter>
+    val parameters: List<JavaParameter>,
+    val responses: List<JavaResponse>
 )
