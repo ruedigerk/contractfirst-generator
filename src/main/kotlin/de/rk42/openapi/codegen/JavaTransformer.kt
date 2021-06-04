@@ -1,5 +1,7 @@
 package de.rk42.openapi.codegen
 
+import de.rk42.openapi.codegen.Names.toJavaIdentifier
+import de.rk42.openapi.codegen.Names.toJavaTypeIdentifier
 import de.rk42.openapi.codegen.model.contract.CtrOperation
 import de.rk42.openapi.codegen.model.contract.CtrParameter
 import de.rk42.openapi.codegen.model.contract.CtrPrimitiveType.BOOLEAN
@@ -31,13 +33,13 @@ import de.rk42.openapi.codegen.model.java.JavaType
 /**
  * Transforms the model into a Java-specific model for code generation.
  */
-class JavaTransformer {
+class JavaTransformer(configuration: CliConfiguration) {
 
-  private val schemaTransformer = JavaSchemaTransformer()
+  private val schemaTransformer = JavaSchemaTransformer(configuration)
 
   fun transform(specification: CtrSpecification): JavaSpecification {
     val javaTypes = schemaTransformer.parseSchemas(specification.schemas)
-    
+
     return JavaSpecification(
         groupOperations(specification.operations),
         javaTypes
@@ -91,17 +93,19 @@ class JavaTransformer {
   }
 }
 
-private class JavaSchemaTransformer {
+private class JavaSchemaTransformer(configuration: CliConfiguration) {
+
+  private val modelPackage = "${configuration.sourcePackage}.model"
+  private val referencesLookup: MutableMap<CtrSchema, JavaReference> = mutableMapOf()
 
   private var uniqueNameCounter: Int = 1
-  private val referencesLookup: MutableMap<CtrSchema, JavaReference> = mutableMapOf()
 
   fun parseSchemas(schemas: List<CtrSchemaNonRef>): List<JavaType> {
     referencesLookup.putAll(createReferencesToSchemaMap(schemas))
     return schemas.mapNotNull(::toJavaType)
   }
 
-  fun lookupReference(schema: CtrSchema): JavaReference = 
+  fun lookupReference(schema: CtrSchema): JavaReference =
       referencesLookup[schema] ?: throw IllegalArgumentException("Schema not in referencesLookup: $schema")
 
   private fun createReferencesToSchemaMap(schemas: List<CtrSchemaNonRef>): Map<out CtrSchema, JavaReference> =
@@ -114,13 +118,15 @@ private class JavaSchemaTransformer {
     is CtrSchemaPrimitive -> toJavaBuiltInReference(schema)
   }
 
-  private fun toJavaReference(name: String): JavaReference = JavaReference(
-      if (name.isEmpty()) {
-        createUniqueTypeName()
-      } else {
-        name.toJavaTypeIdentifier()
-      }
-  )
+  private fun toJavaReference(name: String): JavaReference {
+    val typeName = if (name.isEmpty()) {
+      createUniqueTypeName()
+    } else {
+      name.toJavaTypeIdentifier()
+    }
+
+    return JavaReference("$modelPackage.$typeName")
+  }
 
   private fun toJavaCollectionReference(schema: CtrSchemaArray): JavaReference {
     val itemSchema = schema.itemSchema as? CtrSchemaNonRef ?: throw IllegalArgumentException("Unexpected SchemaRef in $schema")
@@ -163,15 +169,3 @@ private class JavaSchemaTransformer {
     return JavaEnum(className, schema.title, constants)
   }
 }
-
-private val INVALID_IDENTIFIER_PATTERN = Regex("[^_a-zA-Z0-9]")
-private val CONSECUTIVE_UNDERSCORES = Regex("[_]{2,}")
-
-private fun String.toJavaIdentifier(): String = this
-    .replace(INVALID_IDENTIFIER_PATTERN, "_")
-    .replace(CONSECUTIVE_UNDERSCORES, "_")
-    .let { if (it.first().isDigit()) "_$it" else it }
-
-private fun String.toJavaTypeIdentifier(): String = this
-    .toJavaIdentifier()
-    .replaceFirstChar(Char::uppercase)
