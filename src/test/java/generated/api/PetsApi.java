@@ -15,7 +15,10 @@ import javax.ws.rs.core.Response;
 public interface PetsApi {
   @GET
   @Path("/pets")
-  @Produces({"application/json"})
+  @Produces({
+      "application/json",
+      "application/xml"
+  })
   ListPetsResponse listPets(@QueryParam("limit") Integer limit);
 
   class ListPetsResponse extends ResponseWrapper {
@@ -39,7 +42,7 @@ public interface PetsApi {
 
   @POST
   @Path("/pets")
-  @Produces({"application/json"})
+  @Produces("application/json")
   CreatePetsResponse createPets();
 
   class CreatePetsResponse extends ResponseWrapper {
@@ -63,7 +66,7 @@ public interface PetsApi {
 
   @GET
   @Path("/pets/{petId}")
-  @Produces({"application/json"})
+  @Produces("application/json")
   ShowPetByIdResponse showPetById(@PathParam("petId") String petId);
 
   class ShowPetByIdResponse extends ResponseWrapper {

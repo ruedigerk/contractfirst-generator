@@ -4,5 +4,5 @@ import de.rk42.openapi.codegen.model.contract.ResponseStatusCode
 
 data class JavaResponse(
     val statusCode: ResponseStatusCode,
-    val content: List<JavaResponseContent>
+    val contents: List<JavaResponseContent>
 )

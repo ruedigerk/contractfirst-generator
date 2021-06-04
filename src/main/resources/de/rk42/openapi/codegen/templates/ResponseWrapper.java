@@ -1,5 +1,3 @@
-package generated.api.support;
-
 import java.lang.annotation.Annotation;
 import java.net.URI;
 import java.util.Date;
