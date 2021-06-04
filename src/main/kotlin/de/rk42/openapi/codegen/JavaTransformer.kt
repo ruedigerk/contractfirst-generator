@@ -125,23 +125,38 @@ private class JavaSchemaTransformer(configuration: CliConfiguration) {
       name.toJavaTypeIdentifier()
     }
 
-    return JavaReference("$modelPackage.$typeName")
+    return JavaReference(typeName, modelPackage, true)
   }
 
   private fun toJavaCollectionReference(schema: CtrSchemaArray): JavaReference {
     val itemSchema = schema.itemSchema as? CtrSchemaNonRef ?: throw IllegalArgumentException("Unexpected SchemaRef in $schema")
     val itemReference = toReference(itemSchema)
-    return JavaReference("java.util.List", itemReference.typeName)
+    return JavaReference("List", "java.util", false, itemReference)
   }
 
-  private fun toJavaBuiltInReference(schema: CtrSchemaPrimitive): JavaReference = JavaReference(
-      when (schema.type) {
-        BOOLEAN -> "java.lang.Boolean"
-        INTEGER -> "java.lang.Integer"
-        NUMBER -> "java.lang.Double"
-        STRING -> "java.lang.String"
-      }
-  )
+  /**
+   * TODO: Support the following string formats:
+   *  - "byte": base64 encoded characters
+   *  - "binary": any sequence of octets
+   */
+  private fun toJavaBuiltInReference(schema: CtrSchemaPrimitive): JavaReference = when (schema.type) {
+    BOOLEAN -> JavaReference("Boolean", "java.lang", false)
+    INTEGER -> when (schema.format) {
+      "int32" -> JavaReference("Integer", "java.lang", false)
+      "int64" -> JavaReference("Long", "java.lang", false)
+      else -> JavaReference("BigInteger", "java.math", false)
+    }
+    NUMBER -> when (schema.format) {
+      "float" -> JavaReference("Float", "java.lang", false)
+      "double" -> JavaReference("Double", "java.lang", false)
+      else -> JavaReference("BigDecimal", "java.math", false)
+    }
+    STRING -> when (schema.format) {
+      "date" -> JavaReference("LocalDate", "java.time", false)
+      "date-time" -> JavaReference("OffsetDateTime", "java.time", false)
+      else -> JavaReference("String", "java.lang", false)
+    }
+  }
 
   private fun createUniqueTypeName(): String = "Type$uniqueNameCounter"
 
@@ -153,7 +168,8 @@ private class JavaSchemaTransformer(configuration: CliConfiguration) {
   }
 
   private fun toJavaClass(schema: CtrSchemaObject): JavaClass {
-    val className = referencesLookup[schema]?.typeName ?: throw IllegalArgumentException("Schema not in referencesLookup: $schema")
+    val reference = referencesLookup[schema] ?: throw IllegalArgumentException("Schema not in referencesLookup: $schema")
+    val className = reference.typeName
     val properties = schema.properties.map(::toJavaProperty)
     return JavaClass(className, schema.title, properties)
   }

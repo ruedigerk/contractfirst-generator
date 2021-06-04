@@ -46,8 +46,6 @@ class GeneratorTest extends Specification {
     dir.eachFileRecurse(FileType.FILES) {
       def relativePath = it.toString().substring(prefixLength)
       result.add(relativePath)
-
-      println relativePath
     }
 
     result

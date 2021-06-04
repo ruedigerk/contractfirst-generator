@@ -5,9 +5,8 @@ import com.squareup.javapoet.ClassName
 import com.squareup.javapoet.JavaFile
 import com.squareup.javapoet.MethodSpec
 import com.squareup.javapoet.ParameterSpec
-import com.squareup.javapoet.ParameterizedTypeName
-import com.squareup.javapoet.TypeName
 import com.squareup.javapoet.TypeSpec
+import de.rk42.openapi.codegen.JavaTypes.toTypeName
 import de.rk42.openapi.codegen.Names.capitalize
 import de.rk42.openapi.codegen.model.ParameterLocation.COOKIE
 import de.rk42.openapi.codegen.model.ParameterLocation.HEADER
@@ -17,7 +16,6 @@ import de.rk42.openapi.codegen.model.contract.StatusCode
 import de.rk42.openapi.codegen.model.java.JavaOperation
 import de.rk42.openapi.codegen.model.java.JavaOperationGroup
 import de.rk42.openapi.codegen.model.java.JavaParameter
-import de.rk42.openapi.codegen.model.java.JavaReference
 import de.rk42.openapi.codegen.model.java.JavaResponse
 import de.rk42.openapi.codegen.model.java.JavaResponseContent
 import de.rk42.openapi.codegen.model.java.JavaSpecification
@@ -33,23 +31,18 @@ import javax.lang.model.element.Modifier.STATIC
  */
 class ServerStubGenerator(private val configuration: CliConfiguration) {
 
+  private val outputDir = File(configuration.outputDir)
   private val apiPackage = "${configuration.sourcePackage}.$API_PACKAGE"
   private val supportPackage = "$apiPackage.support"
 
   fun generateCode(specification: JavaSpecification) {
-    val javaFiles = specification.operationGroups.map(::toJavaInterface)
-    writeFiles(javaFiles)
+    outputDir.mkdirs()
+    
+    specification.operationGroups.asSequence()
+        .map(::toJavaInterface)
+        .forEach { it.writeTo(outputDir) }
 
     writeResponseWrapperFile()
-  }
-
-  private fun writeFiles(files: List<JavaFile>) {
-    val outputDir = File(configuration.outputDir)
-    outputDir.mkdirs()
-
-    files.forEach {
-      it.writeTo(outputDir)
-    }
   }
 
   private fun toJavaInterface(operationGroup: JavaOperationGroup): JavaFile {
@@ -175,20 +168,6 @@ class ServerStubGenerator(private val configuration: CliConfiguration) {
         .build()
   }
 
-  private fun String.toTypeName(): ClassName = ClassName.bestGuess(this)
-
-  private fun JavaReference.toTypeName(): TypeName {
-    val baseType = ClassName.bestGuess(this.typeName)
-    val typeParameter = this.typeParameterName
-
-    return if (typeParameter == null) {
-      baseType
-    } else {
-      val typeArgument = typeParameter.toTypeName()
-      ParameterizedTypeName.get(baseType, typeArgument)
-    }
-  }
-
   private fun writeResponseWrapperFile() {
     val outputDirectory = File(configuration.outputDir)
     val supportDirectory = File(outputDirectory, supportPackage.replace('.', '/'))
@@ -207,7 +186,7 @@ class ServerStubGenerator(private val configuration: CliConfiguration) {
 
   private fun loadResource(location: String): InputStream = javaClass.getResourceAsStream(location)
       ?: throw IllegalStateException("Resource file $location not found")
-  
+
   companion object {
 
     const val API_PACKAGE = "api"

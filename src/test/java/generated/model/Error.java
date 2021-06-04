@@ -1,14 +1,11 @@
 package generated.model;
 
-import java.util.*;
-import javax.validation.*;
-import javax.validation.constraints.*;
+import java.util.Objects;
+import javax.validation.constraints.NotNull;
 
 public class Error {
-
-  @Valid
   private Integer code;
-  @Valid
+
   private String message;
 
   public Error code(Integer code) {
@@ -40,16 +37,12 @@ public class Error {
   }
 
   @Override
-  public boolean equals(Object o) {
-    if (this == o) {
-      return true;
-    }
-    if (o == null || getClass() != o.getClass()) {
-      return false;
-    }
-    Error error = (Error) o;
-    return Objects.equals(this.code, error.code) &&
-        Objects.equals(this.message, error.message);
+  public boolean equals(Object other) {
+    if (other == this) return true;
+    if (other == null || getClass() != other.getClass()) return false;
+    Error o = (Error) other;
+    return Objects.equals(code, o.code)
+        && Objects.equals(message, o.message);
   }
 
   @Override
@@ -59,23 +52,9 @@ public class Error {
 
   @Override
   public String toString() {
-    StringBuilder sb = new StringBuilder();
-    sb.append("class Error {\n");
-
-    sb.append("    code: ").append(toIndentedString(code)).append("\n");
-    sb.append("    message: ").append(toIndentedString(message)).append("\n");
-    sb.append("}");
-    return sb.toString();
-  }
-
-  /**
-   * Convert the given object to string with each line indented by 4 spaces (except the first line).
-   */
-  private String toIndentedString(Object o) {
-    if (o == null) {
-      return "null";
-    }
-    return o.toString().replace("\n", "\n    ");
+    StringBuilder builder = new StringBuilder();
+    builder.append(", code=").append(code);
+    builder.append(", message=").append(message);
+    return builder.replace(0, 2, "Error{").append('}').toString();
   }
 }
-

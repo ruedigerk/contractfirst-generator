@@ -14,7 +14,7 @@ data class CtrSchemaRef(
 
 sealed interface CtrSchemaNonRef : CtrSchema {
 
-  /** The reference this schema is referenced by. Optional */
+  /** The reference this schema is referenced by (optional) */
   var reference: CtrSchemaRef?
 }
 
@@ -47,6 +47,7 @@ data class CtrSchemaEnum(
 
 data class CtrSchemaPrimitive(
     val type: CtrPrimitiveType,
+    val format: String?,
     val title: String,
     override var reference: CtrSchemaRef? = null
 ) : CtrSchemaNonRef

@@ -1,16 +1,13 @@
 package generated.model;
 
-import java.util.*;
-import javax.validation.*;
-import javax.validation.constraints.*;
+import java.util.Objects;
+import javax.validation.constraints.NotNull;
 
 public class Pet {
-
-  @Valid
   private Long id;
-  @Valid
+
   private String name;
-  @Valid
+
   private String tag;
 
   public Pet id(Long id) {
@@ -27,9 +24,6 @@ public class Pet {
     this.id = id;
   }
 
-  /**
-   *
-   **/
   public Pet name(String name) {
     this.name = name;
     return this;
@@ -58,17 +52,13 @@ public class Pet {
   }
 
   @Override
-  public boolean equals(Object o) {
-    if (this == o) {
-      return true;
-    }
-    if (o == null || getClass() != o.getClass()) {
-      return false;
-    }
-    Pet pet = (Pet) o;
-    return Objects.equals(this.id, pet.id) &&
-        Objects.equals(this.name, pet.name) &&
-        Objects.equals(this.tag, pet.tag);
+  public boolean equals(Object other) {
+    if (other == this) return true;
+    if (other == null || getClass() != other.getClass()) return false;
+    Pet o = (Pet) other;
+    return Objects.equals(id, o.id)
+        && Objects.equals(name, o.name)
+        && Objects.equals(tag, o.tag);
   }
 
   @Override
@@ -78,24 +68,10 @@ public class Pet {
 
   @Override
   public String toString() {
-    StringBuilder sb = new StringBuilder();
-    sb.append("class Pet {\n");
-
-    sb.append("    id: ").append(toIndentedString(id)).append("\n");
-    sb.append("    name: ").append(toIndentedString(name)).append("\n");
-    sb.append("    tag: ").append(toIndentedString(tag)).append("\n");
-    sb.append("}");
-    return sb.toString();
-  }
-
-  /**
-   * Convert the given object to string with each line indented by 4 spaces (except the first line).
-   */
-  private String toIndentedString(Object o) {
-    if (o == null) {
-      return "null";
-    }
-    return o.toString().replace("\n", "\n    ");
+    StringBuilder builder = new StringBuilder();
+    builder.append(", id=").append(id);
+    builder.append(", name=").append(name);
+    builder.append(", tag=").append(tag);
+    return builder.replace(0, 2, "Pet{").append('}').toString();
   }
 }
-

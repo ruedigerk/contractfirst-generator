@@ -27,5 +27,7 @@ data class JavaBuiltIn(
 
 data class JavaReference(
     val typeName: String,
-    val typeParameterName: String? = null
+    val packageName: String,
+    val isGeneratedType: Boolean,
+    val typeParameter: JavaReference? = null,
 )
