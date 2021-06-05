@@ -1,4 +1,4 @@
-package generated.api.support;
+package petstoresimple.api.support;
 
 import java.lang.annotation.Annotation;
 import java.net.URI;

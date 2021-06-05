@@ -196,11 +196,11 @@ private class SchemaParser(topLevelSchemas: Map<String, Schema<Any>>) {
   }
 
   private fun toObjectSchema(schema: Schema<Any>): CtrSchemaObject {
-    val requiredProperties = schema.required.toSet()
+    val requiredProperties = schema.required.nullToEmpty().toSet()
 
     return CtrSchemaObject(
         schema.title.nullToEmpty(),
-        schema.properties.map { (name, schema) -> CtrSchemaProperty(name, requiredProperties.contains(name), parseSchema(schema)) }
+        schema.properties.nullToEmpty().map { (name, schema) -> CtrSchemaProperty(name, requiredProperties.contains(name), parseSchema(schema)) }
     )
   }
 
@@ -214,10 +214,10 @@ private class SchemaParser(topLevelSchemas: Map<String, Schema<Any>>) {
 
   private fun lookupSchemaRef(schema: CtrSchemaRef): CtrSchemaNonRef {
     val referencedSchema = topLevelSchemas[schema] ?: throw ParserException("Unresolvable schema reference $schema")
-    
+
     referencedSchema.reference = schema
     referencedSchemas.add(referencedSchema)
-    
+
     return referencedSchema
   }
 
@@ -270,5 +270,7 @@ private class SchemaParser(topLevelSchemas: Map<String, Schema<Any>>) {
 }
 
 private fun <T> List<T>?.nullToEmpty(): List<T> = this ?: emptyList()
+
+private fun <K, V> Map<K, V>?.nullToEmpty(): Map<K, V> = this ?: emptyMap()
 
 private fun String?.nullToEmpty(): String = this ?: ""

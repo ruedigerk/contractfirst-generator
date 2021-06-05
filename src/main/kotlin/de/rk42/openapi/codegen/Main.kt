@@ -8,7 +8,7 @@ import com.xenomachina.argparser.ArgParser
 fun main(args: Array<String>) {
   val configuration = ArgParser(args).parseInto(::CliConfiguration)
 
-  println("Generating code for contract '${configuration.contractFile}' in output directory '${configuration.outputDir}'")
+  println("Generating code for contract '${configuration.contractFile}' in output directory '${configuration.outputDir}', package '${configuration.sourcePackage}'")
 
   try {
     OpenApiCodegen.generate(configuration)

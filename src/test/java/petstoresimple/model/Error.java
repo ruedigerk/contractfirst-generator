@@ -1,4 +1,4 @@
-package generated.model;
+package petstoresimple.model;
 
 import java.util.Objects;
 import javax.validation.constraints.NotNull;

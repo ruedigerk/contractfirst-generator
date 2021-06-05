@@ -1,4 +1,4 @@
-package generated.model;
+package petstoresimple.model;
 
 import com.google.gson.annotations.SerializedName;
 
