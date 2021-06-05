@@ -4,35 +4,97 @@ import spock.lang.Specification
 
 class NamesTest extends Specification {
 
+  def "toJavaIdentifier"() {
+    expect:
+    Names.toJavaIdentifier(input) == expected
+
+    where:
+    input                    | expected
+    "1Abcd"                  | "_1abcd"
+    "Abcd"                   | "abcd"
+    "abcd"                   | "abcd"
+    " ab cd ef "             | "abCdEf"
+    "some-value-here"        | "someValueHere"
+    "some_value_here"        | "someValueHere"
+    "some2value/for.testing" | "some2ValueForTesting"
+    "\$type"                 | "\$type"
+    "123"                    | "_123"
+    "\$123"                  | "\$123"
+  }
+
+  def "toJavaTypeIdentifier"() {
+    expect:
+    Names.toJavaTypeIdentifier(input) == expected
+
+    where:
+    input                    | expected
+    "1Abcd"                  | "_1Abcd"
+    "Abcd"                   | "Abcd"
+    "abcd"                   | "Abcd"
+    " ab cd ef "             | "AbCdEf"
+    "some-value-here"        | "SomeValueHere"
+    "some_value_here"        | "SomeValueHere"
+    "some2value/for.testing" | "Some2ValueForTesting"
+    "\$type"                 | "\$Type"
+    "123"                    | "_123"
+    "\$123"                  | "\$123"
+  }
+
   def "mediaTypeToJavaIdentifier"() {
     expect:
-    Names.mediaTypeToJavaIdentifier("application/json") == "ApplicationJson"
-    Names.mediaTypeToJavaIdentifier("application/xml") == "ApplicationXml"
-    Names.mediaTypeToJavaIdentifier("application/*") == "ApplicationStar"
-    Names.mediaTypeToJavaIdentifier("*/*") == "StarStar"
-    Names.mediaTypeToJavaIdentifier("application/json; charset=UTF-8") == "ApplicationJsonCharsetUTF8"
+    Names.mediaTypeToJavaIdentifier(input) == expected
+
+    where:
+    input                             | expected
+    "application/json"                | "ApplicationJson"
+    "application/xml"                 | "ApplicationXml"
+    "application/*"                   | "ApplicationStar"
+    "*/*"                             | "StarStar"
+    "application/json; charset=UTF-8" | "ApplicationJsonCharsetUTF8"
   }
-  
+
   def "capitalize"() {
     expect:
-    Names.capitalize("test") == "Test"
-    Names.capitalize(" test") == " test"
-    Names.capitalize("") == ""
-    Names.capitalize("Test") == "Test"
+    Names.capitalize(input) == expected
+
+    where:
+    input   | expected
+    "test"  | "Test"
+    " test" | " test"
+    ""      | ""
+    "Test"  | "Test"
   }
-  
+
   def "camelize"() {
     expect:
-    Names.camelize("abcd", false) == "Abcd"
-    Names.camelize("some-value", false) == "SomeValue"
-    Names.camelize("some_value", false) == "SomeValue"
-    Names.camelize("\$type", false) == "\$Type"
-    Names.camelize("abcd", true) == "abcd"
-    Names.camelize("some-value", true) == "someValue"
-    Names.camelize("some_value", true) == "someValue"
-    Names.camelize("Abcd", true) == "abcd"
-    Names.camelize("\$type", true) == "\$type"
-    Names.camelize("123", true) == "123"
-    Names.camelize("\$123", true) == "\$123"
+    Names.camelize(input, uppercaseFirstLetter) == expected
+
+    where:
+    input                    | uppercaseFirstLetter | expected
+    "Abcd"                   | true                 | "Abcd"
+    "abcd"                   | true                 | "Abcd"
+    "HTTPUrl"                | true                 | "HTTPUrl"
+    "AbCdEf"                 | true                 | "AbCdEf"
+    "abCdEf"                 | true                 | "AbCdEf"
+    " ab cd ef "             | true                 | "AbCdEf"
+    "some-value-here"        | true                 | "SomeValueHere"
+    "some_value_here"        | true                 | "SomeValueHere"
+    "some2value/for.testing" | true                 | "Some2ValueForTesting"
+    "\$type"                 | true                 | "\$Type"
+    "123"                    | true                 | "123"
+    "\$123"                  | true                 | "\$123"
+
+    "Abcd"                   | false                | "abcd"
+    "abcd"                   | false                | "abcd"
+    "HTTPUrl"                | false                | "hTTPUrl"
+    "AbCdEf"                 | false                | "abCdEf"
+    "abCdEf"                 | false                | "abCdEf"
+    " ab cd ef "             | false                | "abCdEf"
+    "some-value-here"        | false                | "someValueHere"
+    "some_value_here"        | false                | "someValueHere"
+    "some2value/for.testing" | false                | "some2ValueForTesting"
+    "\$type"                 | false                | "\$type"
+    "123"                    | false                | "123"
+    "\$123"                  | false                | "\$123"
   }
 }
