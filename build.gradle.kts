@@ -37,6 +37,7 @@ dependencies {
   // Dependencies of the generated Code
   testImplementation("javax.ws.rs:javax.ws.rs-api:2.1.1")
   testImplementation("javax.validation:validation-api:1.1.0.Final")
+  testImplementation("com.google.code.gson:gson:2.8.7")
 
   // Allows mocking of classes in Spock (in addition to interfaces).
   testRuntimeOnly("net.bytebuddy:byte-buddy:1.11.0")

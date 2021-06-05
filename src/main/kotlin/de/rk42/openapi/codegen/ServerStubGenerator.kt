@@ -7,7 +7,9 @@ import com.squareup.javapoet.MethodSpec
 import com.squareup.javapoet.ParameterSpec
 import com.squareup.javapoet.TypeSpec
 import de.rk42.openapi.codegen.JavaTypes.toTypeName
+import de.rk42.openapi.codegen.JavapoetHelper.toAnnotation
 import de.rk42.openapi.codegen.Names.capitalize
+import de.rk42.openapi.codegen.Names.mediaTypeToJavaIdentifier
 import de.rk42.openapi.codegen.model.ParameterLocation.COOKIE
 import de.rk42.openapi.codegen.model.ParameterLocation.HEADER
 import de.rk42.openapi.codegen.model.ParameterLocation.PATH
@@ -87,26 +89,20 @@ class ServerStubGenerator(private val configuration: CliConfiguration) {
       PATH -> "PathParam"
       COOKIE -> "CookieParam"
     }
-
-    return AnnotationSpec.builder(ClassName.get("javax.ws.rs", annotationName))
-        .addMember("value", "\$S", parameter.name)
-        .build()
+    
+    return toAnnotation("javax.ws.rs.$annotationName", parameter.name)
   }
 
-  private fun pathAnnotation(path: String) = AnnotationSpec.builder("javax.ws.rs.Path".toTypeName())
-      .addMember("value", "\$S", path)
-      .build()
+  private fun pathAnnotation(path: String) = toAnnotation("javax.ws.rs.Path", path)
 
-  private fun httpMethodAnnotation(method: String) = AnnotationSpec.builder(ClassName.get("javax.ws.rs", method.uppercase())).build()
+  private fun httpMethodAnnotation(method: String) = toAnnotation("javax.ws.rs.${method.uppercase()}")
 
   private fun producesAnnotation(responses: List<JavaResponse>): AnnotationSpec {
     val mediaTypes = responses.flatMap { response -> response.contents.map { it.mediaType } }
         .sorted()
         .distinct()
 
-    val builder = AnnotationSpec.builder("javax.ws.rs.Produces".toTypeName())
-    mediaTypes.forEach { builder.addMember("value", "\$S", it) }
-    return builder.build()
+    return toAnnotation("javax.ws.rs.Produces", mediaTypes)
   }
 
   private fun toTypesafeResponseClass(operation: JavaOperation): TypeSpec {
@@ -146,7 +142,7 @@ class ServerStubGenerator(private val configuration: CliConfiguration) {
 
   private fun toTypesafeResponseMethod(response: JavaResponse, content: JavaResponseContent, className: String): MethodSpec {
     val statusCode = (response.statusCode as StatusCode).code
-    val mediaTypeAsIdentifier = Names.mediaTypeToJavaIdentifier(content.mediaType)
+    val mediaTypeAsIdentifier = content.mediaType.mediaTypeToJavaIdentifier()
     val methodName = "with$statusCode$mediaTypeAsIdentifier"
 
     return MethodSpec.methodBuilder(methodName)

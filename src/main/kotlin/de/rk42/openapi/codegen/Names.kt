@@ -3,51 +3,67 @@ package de.rk42.openapi.codegen
 object Names {
 
   @JvmStatic
-  fun String.toJavaIdentifier(): String = camelize(false).adjustFirstCharacter()
+  fun String.toJavaIdentifier(): String = toCamelCase(false).prefixUnderscoreIfFirstCharIsNotValid()
 
   @JvmStatic
-  fun String.toJavaTypeIdentifier(): String = camelize().adjustFirstCharacter()
+  fun String.toJavaTypeIdentifier(): String = toCamelCase().prefixUnderscoreIfFirstCharIsNotValid()
 
-  private fun String.adjustFirstCharacter(): String = if (this.isEmpty() || this[0].isJavaIdentifierStart()) this else "_$this"
+  @JvmStatic
+  fun String.toJavaConstant(): String = toUpperSnakeCase().prefixUnderscoreIfFirstCharIsNotValid()
+
+  @JvmStatic
+  fun String.mediaTypeToJavaIdentifier(): String = this
+      .replace("*", "Star")
+      .toJavaTypeIdentifier()
+
+  private fun String.prefixUnderscoreIfFirstCharIsNotValid(): String = if (this.isEmpty() || this[0].isJavaIdentifierStart()) this else "_$this"
 
   @JvmStatic
   fun String.capitalize(): String = if (this.isEmpty() || !this[0].isLowerCase()) this else this[0].uppercase() + this.substring(1)
 
   @JvmStatic
-  fun mediaTypeToJavaIdentifier(mediaType: String): String = mediaType
-      .replace("*", "Star")
-      .toJavaTypeIdentifier()
+  fun String.toCamelCase(uppercaseFirstLetter: Boolean = true): String {
+    var firstTransition = true
 
-  @JvmStatic
-  fun String.camelize(uppercaseFirstLetter: Boolean = true): String {
+    return rewriteCase { char, transition, _ ->
+      val stringToInsert = if (transition && (!firstTransition || uppercaseFirstLetter)) char.uppercase() else char.lowercase()
+
+      if (transition) {
+        firstTransition = false
+      }
+      
+      stringToInsert
+    }
+  }
+
+  private fun String.toUpperSnakeCase() = rewriteCase { char, transition, index ->
+    val upper = char.uppercase()
+    if (transition && index > 0) "_$upper" else upper
+  }
+
+  private fun String.rewriteCase(transformer: (Char, Boolean, Int) -> String): String {
     val builder = StringBuilder(this.length)
 
     var lastWasLetter = false
-    var nextIsUpper = uppercaseFirstLetter
+    var lastWasUppercase = false
 
-    for (char in this) {
+    for (index in this.indices) {
+      val char = this[index]
+
       val valid = char != '_' && Character.isJavaIdentifierPart(char)
       val letter = valid && char.isLetter()
+      val uppercase = letter && char.isUpperCase()
 
       if (valid) {
-        val charToInsert = if (lastWasLetter) {
-          char
-        } else {
-          if (nextIsUpper) char.uppercase() else char.lowercase()
-        }
+        val nextIsLowercase = index < this.lastIndex && this[index + 1].isLowerCase()
+        val transition = !lastWasLetter && letter || !lastWasUppercase && uppercase || lastWasUppercase && uppercase && nextIsLowercase
+        val stringToInsert = transformer(char, transition, index)
         
-        builder.append(charToInsert)
-      }
-
-      if (letter) {
-        nextIsUpper = false
-      }
-
-      if (!letter && lastWasLetter) {
-        nextIsUpper = true
+        builder.append(stringToInsert)
       }
 
       lastWasLetter = letter
+      lastWasUppercase = uppercase
     }
 
     return builder.toString()

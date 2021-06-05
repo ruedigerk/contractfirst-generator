@@ -40,6 +40,26 @@ class NamesTest extends Specification {
     "\$123"                  | "\$123"
   }
 
+  def "toJavaConstant"() {
+    expect:
+    Names.toJavaConstant(input) == expected
+
+    where:
+    input                    | expected
+    "Abcd"                   | "ABCD"
+    "abcd"                   | "ABCD"
+    "HTTPUrl"                | "HTTP_URL"
+    "AbCdEf"                 | "AB_CD_EF"
+    "abCdEf"                 | "AB_CD_EF"
+    " ab cd ef "             | "_AB_CD_EF"
+    "some-value-here"        | "SOME_VALUE_HERE"
+    "some_value_here"        | "SOME_VALUE_HERE"
+    "some2value/for.testing" | "SOME2_VALUE_FOR_TESTING"
+    "\$type"                 | "\$_TYPE"
+    "123"                    | "_123"
+    "\$123"                  | "\$123"
+  }
+
   def "mediaTypeToJavaIdentifier"() {
     expect:
     Names.mediaTypeToJavaIdentifier(input) == expected
@@ -50,7 +70,7 @@ class NamesTest extends Specification {
     "application/xml"                 | "ApplicationXml"
     "application/*"                   | "ApplicationStar"
     "*/*"                             | "StarStar"
-    "application/json; charset=UTF-8" | "ApplicationJsonCharsetUTF8"
+    "application/json; charset=UTF-8" | "ApplicationJsonCharsetUtf8"
   }
 
   def "capitalize"() {
@@ -67,13 +87,13 @@ class NamesTest extends Specification {
 
   def "camelize"() {
     expect:
-    Names.camelize(input, uppercaseFirstLetter) == expected
+    Names.toCamelCase(input, uppercaseFirstLetter) == expected
 
     where:
     input                    | uppercaseFirstLetter | expected
     "Abcd"                   | true                 | "Abcd"
     "abcd"                   | true                 | "Abcd"
-    "HTTPUrl"                | true                 | "HTTPUrl"
+    "HTTPUrl"                | true                 | "HttpUrl"
     "AbCdEf"                 | true                 | "AbCdEf"
     "abCdEf"                 | true                 | "AbCdEf"
     " ab cd ef "             | true                 | "AbCdEf"
@@ -86,7 +106,7 @@ class NamesTest extends Specification {
 
     "Abcd"                   | false                | "abcd"
     "abcd"                   | false                | "abcd"
-    "HTTPUrl"                | false                | "hTTPUrl"
+    "HTTPUrl"                | false                | "httpUrl"
     "AbCdEf"                 | false                | "abCdEf"
     "abCdEf"                 | false                | "abCdEf"
     " ab cd ef "             | false                | "abCdEf"

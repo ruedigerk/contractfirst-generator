@@ -7,6 +7,7 @@ import com.squareup.javapoet.NameAllocator
 import com.squareup.javapoet.TypeName
 import com.squareup.javapoet.TypeSpec
 import de.rk42.openapi.codegen.JavaTypes.toTypeName
+import de.rk42.openapi.codegen.JavapoetHelper.toAnnotation
 import de.rk42.openapi.codegen.Names.capitalize
 import de.rk42.openapi.codegen.model.java.JavaBuiltIn
 import de.rk42.openapi.codegen.model.java.JavaClass
@@ -21,7 +22,7 @@ import javax.lang.model.element.Modifier.PUBLIC
 
 /**
  * Generates the code for the model classes.
- * 
+ *
  * TODO: Properly use NameAllocator with scopes, see https://github.com/square/wire/blob/d48be72904d7f6e1458b762cd936b1a7069c2813/wire-java-generator/src/main/java/com/squareup/wire/java/JavaGenerator.java#L1278-L1403
  */
 class ModelGenerator(configuration: CliConfiguration) {
@@ -30,7 +31,7 @@ class ModelGenerator(configuration: CliConfiguration) {
   private val modelPackage = "${configuration.sourcePackage}.model"
 
   fun generateCode(specification: JavaSpecification) {
-    outputDir.mkdirs()
+    //    outputDir.mkdirs()
 
     specification.typesToGenerate.asSequence()
         .map(::toJavaFile)
@@ -108,7 +109,7 @@ class ModelGenerator(configuration: CliConfiguration) {
       // Required fields are annotated with @NotNull.
       getterBuilder.addAnnotation("javax.validation.constraints.NotNull".toTypeName())
     }
-    if (property.type.isGeneratedType) {
+    if (property.type.isClass) {
       // Fields of generated types (e.g. not java.lang.String) are annotated with @Valid.
       getterBuilder.addAnnotation("javax.validation.Valid".toTypeName())
     }
@@ -191,7 +192,7 @@ class ModelGenerator(configuration: CliConfiguration) {
    *  public String toString() {
    *    StringBuilder sb = new StringBuilder();
    *    sb.append("class Pet {\n");
-   *  
+   *
    *    sb.append("    id: ").append(toIndentedString(id)).append("\n");
    *    sb.append("    name: ").append(toIndentedString(name)).append("\n");
    *    sb.append("    tag: ").append(toIndentedString(tag)).append("\n");
@@ -230,6 +231,16 @@ class ModelGenerator(configuration: CliConfiguration) {
   }
 
   private fun toJavaEnum(enum: JavaEnum): TypeSpec {
-    TODO("Not yet implemented")
+    val builder = TypeSpec.enumBuilder(enum.className)
+        .addModifiers(PUBLIC)
+
+    enum.values.forEach { enumConstant ->
+      val serializedNameAnnotation = toAnnotation("com.google.gson.annotations.SerializedName", enumConstant.originalName)
+      val typeSpec = TypeSpec.anonymousClassBuilder("").addAnnotation(serializedNameAnnotation).build()
+      
+      builder.addEnumConstant(enumConstant.javaIdentifier, typeSpec)
+    }
+
+    return builder.build()
   }
 }

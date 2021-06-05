@@ -16,10 +16,15 @@ data class JavaProperty(
 )
 
 data class JavaEnum(
-    val javaIdentifier: String,
+    val className: String,
     val title: String,
-    val values: List<String>
+    val values: List<EnumConstant>
 ) : JavaType
+
+data class EnumConstant(
+    val originalName: String,
+    val javaIdentifier: String
+)
 
 data class JavaBuiltIn(
     val typeName: String
@@ -28,6 +33,6 @@ data class JavaBuiltIn(
 data class JavaReference(
     val typeName: String,
     val packageName: String,
-    val isGeneratedType: Boolean,
+    val isClass: Boolean,
     val typeParameter: JavaReference? = null,
 )

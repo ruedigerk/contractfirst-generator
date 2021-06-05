@@ -1,5 +1,6 @@
 package de.rk42.openapi.codegen
 
+import de.rk42.openapi.codegen.Names.toJavaConstant
 import de.rk42.openapi.codegen.Names.toJavaIdentifier
 import de.rk42.openapi.codegen.Names.toJavaTypeIdentifier
 import de.rk42.openapi.codegen.model.contract.CtrOperation
@@ -18,6 +19,7 @@ import de.rk42.openapi.codegen.model.contract.CtrSchemaObject
 import de.rk42.openapi.codegen.model.contract.CtrSchemaPrimitive
 import de.rk42.openapi.codegen.model.contract.CtrSchemaProperty
 import de.rk42.openapi.codegen.model.contract.CtrSpecification
+import de.rk42.openapi.codegen.model.java.EnumConstant
 import de.rk42.openapi.codegen.model.java.JavaClass
 import de.rk42.openapi.codegen.model.java.JavaEnum
 import de.rk42.openapi.codegen.model.java.JavaOperation
@@ -112,20 +114,20 @@ private class JavaSchemaTransformer(configuration: CliConfiguration) {
       schemas.associateWith { toReference(it) }
 
   private fun toReference(schema: CtrSchemaNonRef): JavaReference = when (schema) {
-    is CtrSchemaObject -> toJavaReference(schema.reference?.referencedName() ?: schema.title)
-    is CtrSchemaEnum -> toJavaReference(schema.reference?.referencedName() ?: schema.title)
+    is CtrSchemaObject -> toJavaReference(schema.reference?.referencedName() ?: schema.title, true)
+    is CtrSchemaEnum -> toJavaReference(schema.reference?.referencedName() ?: schema.title, false)
     is CtrSchemaArray -> toJavaCollectionReference(schema)
     is CtrSchemaPrimitive -> toJavaBuiltInReference(schema)
   }
 
-  private fun toJavaReference(name: String): JavaReference {
+  private fun toJavaReference(name: String, isClass: Boolean): JavaReference {
     val typeName = if (name.isEmpty()) {
       createUniqueTypeName()
     } else {
       name.toJavaTypeIdentifier()
     }
 
-    return JavaReference(typeName, modelPackage, true)
+    return JavaReference(typeName, modelPackage, isClass)
   }
 
   private fun toJavaCollectionReference(schema: CtrSchemaArray): JavaReference {
@@ -181,7 +183,7 @@ private class JavaSchemaTransformer(configuration: CliConfiguration) {
 
   private fun toJavaEnum(schema: CtrSchemaEnum): JavaEnum {
     val className = referencesLookup[schema]?.typeName ?: throw IllegalArgumentException("Schema not in referencesLookup: $schema")
-    val constants = schema.values.map { it.toJavaIdentifier().uppercase() }
+    val constants = schema.values.map { EnumConstant(it, it.toJavaConstant()) }
     return JavaEnum(className, schema.title, constants)
   }
 }

@@ -96,6 +96,15 @@ components:
           type: string
         tag:
           type: string
+        species:
+          $ref: "#/components/schemas/Species"
+    Species:
+      type: string
+      enum:
+        - Cat
+        - Dog
+        - Mouse
+        - Common Boar
     Pets:
       type: array
       items:
