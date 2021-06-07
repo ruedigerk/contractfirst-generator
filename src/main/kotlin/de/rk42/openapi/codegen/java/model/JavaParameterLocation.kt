@@ -1,4 +1,4 @@
-package de.rk42.openapi.codegen.model.java
+package de.rk42.openapi.codegen.java.model
 
 import de.rk42.openapi.codegen.model.ParameterLocation
 

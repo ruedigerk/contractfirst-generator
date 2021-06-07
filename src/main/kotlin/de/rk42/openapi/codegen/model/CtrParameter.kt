@@ -1,6 +1,4 @@
-package de.rk42.openapi.codegen.model.contract
-
-import de.rk42.openapi.codegen.model.ParameterLocation
+package de.rk42.openapi.codegen.model
 
 data class CtrParameter(
     val name: String,

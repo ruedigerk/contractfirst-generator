@@ -1,12 +1,12 @@
-package de.rk42.openapi.codegen
+package de.rk42.openapi.codegen.java
 
 import com.squareup.javapoet.ClassName
 import com.squareup.javapoet.ParameterizedTypeName
 import com.squareup.javapoet.TypeName
-import de.rk42.openapi.codegen.model.java.JavaBasicReference
-import de.rk42.openapi.codegen.model.java.JavaCollectionReference
-import de.rk42.openapi.codegen.model.java.JavaMapReference
-import de.rk42.openapi.codegen.model.java.JavaReference
+import de.rk42.openapi.codegen.java.model.JavaBasicReference
+import de.rk42.openapi.codegen.java.model.JavaCollectionReference
+import de.rk42.openapi.codegen.java.model.JavaMapReference
+import de.rk42.openapi.codegen.java.model.JavaReference
 
 object JavaTypes {
 

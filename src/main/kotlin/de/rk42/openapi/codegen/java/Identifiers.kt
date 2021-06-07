@@ -1,6 +1,6 @@
-package de.rk42.openapi.codegen
+package de.rk42.openapi.codegen.java
 
-object Names {
+object Identifiers {
 
   @JvmStatic
   fun String.toJavaIdentifier(): String = toCamelCase(false).prefixUnderscoreIfFirstCharIsNotValid()

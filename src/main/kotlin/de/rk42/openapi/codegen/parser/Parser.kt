@@ -1,25 +1,26 @@
-package de.rk42.openapi.codegen
+package de.rk42.openapi.codegen.parser
 
+import de.rk42.openapi.codegen.NotSupportedException
+import de.rk42.openapi.codegen.model.CtrContent
+import de.rk42.openapi.codegen.model.CtrOperation
+import de.rk42.openapi.codegen.model.CtrParameter
+import de.rk42.openapi.codegen.model.CtrPrimitiveType
+import de.rk42.openapi.codegen.model.CtrRequestBody
+import de.rk42.openapi.codegen.model.CtrResponse
+import de.rk42.openapi.codegen.model.CtrSchema
+import de.rk42.openapi.codegen.model.CtrSchemaArray
+import de.rk42.openapi.codegen.model.CtrSchemaEnum
+import de.rk42.openapi.codegen.model.CtrSchemaMap
+import de.rk42.openapi.codegen.model.CtrSchemaNonRef
+import de.rk42.openapi.codegen.model.CtrSchemaObject
+import de.rk42.openapi.codegen.model.CtrSchemaPrimitive
+import de.rk42.openapi.codegen.model.CtrSchemaProperty
+import de.rk42.openapi.codegen.model.CtrSchemaRef
+import de.rk42.openapi.codegen.model.CtrSpecification
+import de.rk42.openapi.codegen.model.DefaultStatusCode
 import de.rk42.openapi.codegen.model.ParameterLocation
-import de.rk42.openapi.codegen.model.contract.CtrContent
-import de.rk42.openapi.codegen.model.contract.CtrOperation
-import de.rk42.openapi.codegen.model.contract.CtrParameter
-import de.rk42.openapi.codegen.model.contract.CtrPrimitiveType
-import de.rk42.openapi.codegen.model.contract.CtrRequestBody
-import de.rk42.openapi.codegen.model.contract.CtrResponse
-import de.rk42.openapi.codegen.model.contract.CtrSchema
-import de.rk42.openapi.codegen.model.contract.CtrSchemaArray
-import de.rk42.openapi.codegen.model.contract.CtrSchemaEnum
-import de.rk42.openapi.codegen.model.contract.CtrSchemaMap
-import de.rk42.openapi.codegen.model.contract.CtrSchemaNonRef
-import de.rk42.openapi.codegen.model.contract.CtrSchemaObject
-import de.rk42.openapi.codegen.model.contract.CtrSchemaPrimitive
-import de.rk42.openapi.codegen.model.contract.CtrSchemaProperty
-import de.rk42.openapi.codegen.model.contract.CtrSchemaRef
-import de.rk42.openapi.codegen.model.contract.CtrSpecification
-import de.rk42.openapi.codegen.model.contract.DefaultStatusCode
-import de.rk42.openapi.codegen.model.contract.ResponseStatusCode
-import de.rk42.openapi.codegen.model.contract.StatusCode
+import de.rk42.openapi.codegen.model.ResponseStatusCode
+import de.rk42.openapi.codegen.model.StatusCode
 import io.swagger.parser.OpenAPIParser
 import io.swagger.v3.oas.models.OpenAPI
 import io.swagger.v3.oas.models.Operation
@@ -140,7 +141,7 @@ class Parser {
       "header" -> ParameterLocation.HEADER
       "path" -> ParameterLocation.PATH
       "cookie" -> ParameterLocation.COOKIE
-      else -> throw InvalidContractException("parameter.in must be one of query, header, path or cookie, but was $location")
+      else -> throw ParserException("parameter.in must be one of 'query', 'header', 'path' or 'cookie', but was '$location'")
     }
   }
 

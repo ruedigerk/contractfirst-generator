@@ -1,4 +1,4 @@
-package de.rk42.openapi.codegen.model.contract
+package de.rk42.openapi.codegen.model
 
 data class CtrSpecification(
     val operations: List<CtrOperation>,

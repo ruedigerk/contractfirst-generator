@@ -1,7 +1,7 @@
-package de.rk42.openapi.codegen
+package de.rk42.openapi.codegen.java
 
 import com.squareup.javapoet.AnnotationSpec
-import de.rk42.openapi.codegen.JavaTypes.toTypeName
+import de.rk42.openapi.codegen.java.JavaTypes.toTypeName
 
 object JavapoetHelper {
 

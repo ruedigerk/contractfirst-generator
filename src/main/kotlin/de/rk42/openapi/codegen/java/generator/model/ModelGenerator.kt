@@ -1,4 +1,4 @@
-package de.rk42.openapi.codegen
+package de.rk42.openapi.codegen.java.generator.model
 
 import com.squareup.javapoet.FieldSpec
 import com.squareup.javapoet.JavaFile
@@ -6,17 +6,18 @@ import com.squareup.javapoet.MethodSpec
 import com.squareup.javapoet.NameAllocator
 import com.squareup.javapoet.TypeName
 import com.squareup.javapoet.TypeSpec
-import de.rk42.openapi.codegen.JavaTypes.toTypeName
-import de.rk42.openapi.codegen.JavapoetHelper.doIf
-import de.rk42.openapi.codegen.JavapoetHelper.doIfNotNull
-import de.rk42.openapi.codegen.JavapoetHelper.toAnnotation
-import de.rk42.openapi.codegen.Names.capitalize
-import de.rk42.openapi.codegen.model.java.JavaBuiltIn
-import de.rk42.openapi.codegen.model.java.JavaClass
-import de.rk42.openapi.codegen.model.java.JavaEnum
-import de.rk42.openapi.codegen.model.java.JavaProperty
-import de.rk42.openapi.codegen.model.java.JavaSpecification
-import de.rk42.openapi.codegen.model.java.JavaType
+import de.rk42.openapi.codegen.CliConfiguration
+import de.rk42.openapi.codegen.java.Identifiers.capitalize
+import de.rk42.openapi.codegen.java.JavaTypes.toTypeName
+import de.rk42.openapi.codegen.java.JavapoetHelper.doIf
+import de.rk42.openapi.codegen.java.JavapoetHelper.doIfNotNull
+import de.rk42.openapi.codegen.java.JavapoetHelper.toAnnotation
+import de.rk42.openapi.codegen.java.model.JavaBuiltIn
+import de.rk42.openapi.codegen.java.model.JavaClass
+import de.rk42.openapi.codegen.java.model.JavaEnum
+import de.rk42.openapi.codegen.java.model.JavaProperty
+import de.rk42.openapi.codegen.java.model.JavaSpecification
+import de.rk42.openapi.codegen.java.model.JavaType
 import java.io.File
 import java.util.*
 import javax.lang.model.element.Modifier.PRIVATE

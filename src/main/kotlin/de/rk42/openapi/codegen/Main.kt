@@ -2,6 +2,7 @@ package de.rk42.openapi.codegen
 
 import com.xenomachina.argparser.ArgParser
 import com.xenomachina.argparser.default
+import de.rk42.openapi.codegen.parser.ParserException
 
 /**
  * The Command Line Interface application for invoking OpenApiCodegen.
@@ -14,10 +15,8 @@ fun main(args: Array<String>) {
   try {
     OpenApiCodegen.generate(configuration)
   } catch (e: ParserException) {
-    println("Error parsing input contract:")
+    println("Error parsing contract:")
     e.messages.forEach(::println)
-  } catch (e: InvalidContractException) {
-    println("Error, contract invalid: ${e.message}")
   } catch (e: NotSupportedException) {
     println("Error, contract contains unsupported usage: ${e.message}")
   }

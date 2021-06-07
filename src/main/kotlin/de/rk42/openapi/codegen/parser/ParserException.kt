@@ -1,4 +1,4 @@
-package de.rk42.openapi.codegen
+package de.rk42.openapi.codegen.parser
 
 class ParserException(val messages: List<String>) : RuntimeException() {
 
