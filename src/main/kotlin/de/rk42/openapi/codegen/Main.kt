@@ -1,6 +1,7 @@
 package de.rk42.openapi.codegen
 
 import com.xenomachina.argparser.ArgParser
+import com.xenomachina.argparser.default
 
 /**
  * The Command Line Interface application for invoking OpenApiCodegen.
@@ -17,6 +18,8 @@ fun main(args: Array<String>) {
     e.messages.forEach(::println)
   } catch (e: InvalidContractException) {
     println("Error, contract invalid: ${e.message}")
+  } catch (e: NotSupportedException) {
+    println("Error, contract contains unsupported usage: ${e.message}")
   }
 }
 
@@ -28,4 +31,6 @@ class CliConfiguration(parser: ArgParser) {
 
   // TODO: Validate package for invalid characters etc.
   val sourcePackage: String by parser.storing("--package", help = "the Java package to put generated classes into")
+  
+  val modelPrefix: String by parser.storing("--model-prefix", help = "the prefix for model file names").default("")
 }

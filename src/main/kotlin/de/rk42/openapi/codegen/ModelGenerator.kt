@@ -25,14 +25,12 @@ import javax.lang.model.element.Modifier.PUBLIC
  *
  * TODO: Properly use NameAllocator with scopes, see https://github.com/square/wire/blob/d48be72904d7f6e1458b762cd936b1a7069c2813/wire-java-generator/src/main/java/com/squareup/wire/java/JavaGenerator.java#L1278-L1403
  */
-class ModelGenerator(configuration: CliConfiguration) {
+class ModelGenerator(private val configuration: CliConfiguration) {
 
   private val outputDir = File(configuration.outputDir)
   private val modelPackage = "${configuration.sourcePackage}.model"
 
   fun generateCode(specification: JavaSpecification) {
-    //    outputDir.mkdirs()
-
     specification.typesToGenerate.asSequence()
         .map(::toJavaFile)
         .forEach(this::writeFile)

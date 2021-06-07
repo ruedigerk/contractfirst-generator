@@ -4,7 +4,7 @@ sealed interface JavaType
 
 data class JavaClass(
     val className: String,
-    val title: String,
+    val title: String?,
     val properties: List<JavaProperty>,
 ) : JavaType
 
@@ -17,7 +17,7 @@ data class JavaProperty(
 
 data class JavaEnum(
     val className: String,
-    val title: String,
+    val title: String?,
     val values: List<EnumConstant>
 ) : JavaType
 

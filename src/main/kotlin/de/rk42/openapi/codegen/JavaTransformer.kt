@@ -3,14 +3,15 @@ package de.rk42.openapi.codegen
 import de.rk42.openapi.codegen.Names.toJavaConstant
 import de.rk42.openapi.codegen.Names.toJavaIdentifier
 import de.rk42.openapi.codegen.Names.toJavaTypeIdentifier
+import de.rk42.openapi.codegen.model.contract.CtrContent
 import de.rk42.openapi.codegen.model.contract.CtrOperation
 import de.rk42.openapi.codegen.model.contract.CtrParameter
 import de.rk42.openapi.codegen.model.contract.CtrPrimitiveType.BOOLEAN
 import de.rk42.openapi.codegen.model.contract.CtrPrimitiveType.INTEGER
 import de.rk42.openapi.codegen.model.contract.CtrPrimitiveType.NUMBER
 import de.rk42.openapi.codegen.model.contract.CtrPrimitiveType.STRING
+import de.rk42.openapi.codegen.model.contract.CtrRequestBody
 import de.rk42.openapi.codegen.model.contract.CtrResponse
-import de.rk42.openapi.codegen.model.contract.CtrResponseContent
 import de.rk42.openapi.codegen.model.contract.CtrSchema
 import de.rk42.openapi.codegen.model.contract.CtrSchemaArray
 import de.rk42.openapi.codegen.model.contract.CtrSchemaEnum
@@ -20,15 +21,17 @@ import de.rk42.openapi.codegen.model.contract.CtrSchemaPrimitive
 import de.rk42.openapi.codegen.model.contract.CtrSchemaProperty
 import de.rk42.openapi.codegen.model.contract.CtrSpecification
 import de.rk42.openapi.codegen.model.java.EnumConstant
+import de.rk42.openapi.codegen.model.java.JavaBodyParameter
 import de.rk42.openapi.codegen.model.java.JavaClass
+import de.rk42.openapi.codegen.model.java.JavaContent
 import de.rk42.openapi.codegen.model.java.JavaEnum
 import de.rk42.openapi.codegen.model.java.JavaOperation
 import de.rk42.openapi.codegen.model.java.JavaOperationGroup
 import de.rk42.openapi.codegen.model.java.JavaParameter
 import de.rk42.openapi.codegen.model.java.JavaProperty
 import de.rk42.openapi.codegen.model.java.JavaReference
+import de.rk42.openapi.codegen.model.java.JavaRegularParameterLocation
 import de.rk42.openapi.codegen.model.java.JavaResponse
-import de.rk42.openapi.codegen.model.java.JavaResponseContent
 import de.rk42.openapi.codegen.model.java.JavaSpecification
 import de.rk42.openapi.codegen.model.java.JavaType
 
@@ -55,6 +58,14 @@ class JavaTransformer(configuration: CliConfiguration) {
       .map { (groupJavaIdentifier, operations) -> JavaOperationGroup(groupJavaIdentifier, operations) }
 
   private fun toJavaOperation(operation: CtrOperation): JavaOperation {
+    val requestBodySchemas = operation.requestBody?.contents?.map { it.schema }?.toSet() ?: emptySet()
+    if (requestBodySchemas.size > 1) {
+      throw NotSupportedException("Different response body schemas for a single operation are not supported: $operation")
+    }
+
+    val requestBodyMediaTypes = operation.requestBody?.contents?.map { it.mediaType }?.toSet() ?: emptySet()
+    val bodyParameter = operation.requestBody?.let { listOf(it).map(::toBodyParameter) } ?: emptyList()
+
     return JavaOperation(
         operation.operationId.toJavaIdentifier(),
         operation.path,
@@ -62,15 +73,29 @@ class JavaTransformer(configuration: CliConfiguration) {
         operation.tags,
         operation.summary,
         operation.description,
-        operation.parameters.map(::toJavaParameter),
+        requestBodyMediaTypes.toList(),
+        operation.parameters.map(::toJavaParameter) + bodyParameter,
         operation.responses.map(::toJavaResponse)
+    )
+  }
+
+  private fun toBodyParameter(requestBody: CtrRequestBody): JavaParameter {
+    if (requestBody.contents.isEmpty()) {
+      throw NotSupportedException("Empty request body content is not supported: $requestBody")
+    }
+
+    return JavaParameter(
+        "requestBody",
+        JavaBodyParameter,
+        requestBody.description,
+        requestBody.required,
+        toJavaReference(requestBody.contents.first().schema)
     )
   }
 
   private fun toJavaParameter(parameter: CtrParameter): JavaParameter = JavaParameter(
       parameter.name.toJavaIdentifier(),
-      parameter.name,
-      parameter.location,
+      JavaRegularParameterLocation(parameter.name, parameter.location),
       parameter.description,
       parameter.required,
       toJavaReference(parameter.schema)
@@ -78,12 +103,12 @@ class JavaTransformer(configuration: CliConfiguration) {
 
   private fun toJavaResponse(response: CtrResponse): JavaResponse = JavaResponse(
       response.statusCode,
-      response.content.map(::toJavaResponseContent)
+      response.contents.map(::toJavaResponseContent)
   )
 
-  private fun toJavaResponseContent(responseContent: CtrResponseContent): JavaResponseContent = JavaResponseContent(
-      responseContent.mediaType,
-      toJavaReference(responseContent.schema)
+  private fun toJavaResponseContent(content: CtrContent): JavaContent = JavaContent(
+      content.mediaType,
+      toJavaReference(content.schema)
   )
 
   private fun toJavaReference(schema: CtrSchema): JavaReference = schemaTransformer.lookupReference(schema)
@@ -95,7 +120,7 @@ class JavaTransformer(configuration: CliConfiguration) {
   }
 }
 
-private class JavaSchemaTransformer(configuration: CliConfiguration) {
+private class JavaSchemaTransformer(private val configuration: CliConfiguration) {
 
   private val modelPackage = "${configuration.sourcePackage}.model"
   private val referencesLookup: MutableMap<CtrSchema, JavaReference> = mutableMapOf()
@@ -114,20 +139,17 @@ private class JavaSchemaTransformer(configuration: CliConfiguration) {
       schemas.associateWith { toReference(it) }
 
   private fun toReference(schema: CtrSchemaNonRef): JavaReference = when (schema) {
-    is CtrSchemaObject -> toJavaReference(schema.reference?.referencedName() ?: schema.title, true)
-    is CtrSchemaEnum -> toJavaReference(schema.reference?.referencedName() ?: schema.title, false)
+    is CtrSchemaObject -> toJavaReference(schema.referencedBy?.referencedName() ?: schema.title, true)
+    is CtrSchemaEnum -> toJavaReference(schema.referencedBy?.referencedName() ?: schema.title, false)
     is CtrSchemaArray -> toJavaCollectionReference(schema)
     is CtrSchemaPrimitive -> toJavaBuiltInReference(schema)
   }
 
-  private fun toJavaReference(name: String, isClass: Boolean): JavaReference {
-    val typeName = if (name.isEmpty()) {
-      createUniqueTypeName()
-    } else {
-      name.toJavaTypeIdentifier()
-    }
+  private fun toJavaReference(name: String?, isClass: Boolean): JavaReference {
+    val typeName = name?.toJavaTypeIdentifier() ?: createUniqueTypeName()
+    val finalTypeName = configuration.modelPrefix + typeName
 
-    return JavaReference(typeName, modelPackage, isClass)
+    return JavaReference(finalTypeName, modelPackage, isClass)
   }
 
   private fun toJavaCollectionReference(schema: CtrSchemaArray): JavaReference {

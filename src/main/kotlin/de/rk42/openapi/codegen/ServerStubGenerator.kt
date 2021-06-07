@@ -14,12 +14,14 @@ import de.rk42.openapi.codegen.model.ParameterLocation.COOKIE
 import de.rk42.openapi.codegen.model.ParameterLocation.HEADER
 import de.rk42.openapi.codegen.model.ParameterLocation.PATH
 import de.rk42.openapi.codegen.model.ParameterLocation.QUERY
+import de.rk42.openapi.codegen.model.contract.DefaultStatusCode
 import de.rk42.openapi.codegen.model.contract.StatusCode
+import de.rk42.openapi.codegen.model.java.JavaContent
 import de.rk42.openapi.codegen.model.java.JavaOperation
 import de.rk42.openapi.codegen.model.java.JavaOperationGroup
 import de.rk42.openapi.codegen.model.java.JavaParameter
+import de.rk42.openapi.codegen.model.java.JavaRegularParameterLocation
 import de.rk42.openapi.codegen.model.java.JavaResponse
-import de.rk42.openapi.codegen.model.java.JavaResponseContent
 import de.rk42.openapi.codegen.model.java.JavaSpecification
 import java.io.File
 import java.io.InputStream
@@ -38,8 +40,6 @@ class ServerStubGenerator(private val configuration: CliConfiguration) {
   private val supportPackage = "$apiPackage.support"
 
   fun generateCode(specification: JavaSpecification) {
-    outputDir.mkdirs()
-    
     specification.operationGroups.asSequence()
         .map(::toJavaInterface)
         .forEach { it.writeTo(outputDir) }
@@ -65,24 +65,44 @@ class ServerStubGenerator(private val configuration: CliConfiguration) {
 
   private fun toOperationMethod(operation: JavaOperation, typesafeResponseClass: TypeSpec): MethodSpec {
     val parameters = operation.parameters.map(::toParameterSpec)
-
-    return MethodSpec.methodBuilder(operation.javaIdentifier)
+    
+    val builder = MethodSpec.methodBuilder(operation.javaIdentifier)
         .addAnnotation(httpMethodAnnotation(operation.method))
         .addAnnotation(pathAnnotation(operation.path))
         .addAnnotation(producesAnnotation(operation.responses))
         .addModifiers(PUBLIC, Modifier.ABSTRACT)
         .returns(typesafeResponseClass.name.toTypeName())
         .addParameters(parameters)
-        .build()
+
+    if (operation.requestBodyMediaTypes.isNotEmpty()) {
+      builder.addAnnotation(consumesAnnotation(operation.requestBodyMediaTypes))
+    }
+
+    val javadoc = operation.description ?: operation.summary
+    if (javadoc != null) {
+      builder.addJavadoc("\$L", javadoc)
+    }
+    
+    return builder.build()
   }
 
   private fun toParameterSpec(parameter: JavaParameter): ParameterSpec {
-    return ParameterSpec.builder(parameter.javaType.toTypeName(), parameter.javaIdentifier)
-        .addAnnotation(paramAnnotation(parameter))
-        .build()
+    val builder = ParameterSpec.builder(parameter.javaType.toTypeName(), parameter.javaIdentifier)
+
+    if (parameter.location is JavaRegularParameterLocation) {
+      builder.addAnnotation(paramAnnotation(parameter.location))
+    }
+    if (parameter.required) {
+      builder.addAnnotation(toAnnotation("javax.validation.constraints.NotNull"))
+    }
+    if (parameter.javaType.isClass) {
+      builder.addAnnotation(toAnnotation("javax.validation.Valid"))
+    }
+    
+    return builder.build()
   }
 
-  private fun paramAnnotation(parameter: JavaParameter): AnnotationSpec {
+  private fun paramAnnotation(parameter: JavaRegularParameterLocation): AnnotationSpec {
     val annotationName = when (parameter.location) {
       QUERY -> "QueryParam"
       HEADER -> "HeaderParam"
@@ -105,6 +125,10 @@ class ServerStubGenerator(private val configuration: CliConfiguration) {
     return toAnnotation("javax.ws.rs.Produces", mediaTypes)
   }
 
+  private fun consumesAnnotation(mediaTypes: List<String>): AnnotationSpec {
+    return toAnnotation("javax.ws.rs.Consumes", mediaTypes.sorted())
+  }
+
   private fun toTypesafeResponseClass(operation: JavaOperation): TypeSpec {
     val jaxRsResponseTypeName = "javax.ws.rs.core.Response".toTypeName()
     val className = operation.javaIdentifier.capitalize() + "Response"
@@ -116,6 +140,10 @@ class ServerStubGenerator(private val configuration: CliConfiguration) {
     val emptyResponseMethods = operation.responses
         .filter { it.contents.isEmpty() }
         .map { toTypesafeEmptyResponseMethod(it, className) }
+
+    val defaultResponseMethods = operation.responses
+        .filter { it.statusCode is DefaultStatusCode }
+        .flatMap { response -> response.contents.map { content -> toTypesafeDefaultResponseMethod(content, className) } }
 
     val customResponseMethod = MethodSpec.methodBuilder("withCustomResponse")
         .addModifiers(PUBLIC, STATIC)
@@ -136,11 +164,12 @@ class ServerStubGenerator(private val configuration: CliConfiguration) {
         .addMethod(constructor)
         .addMethods(nonEmptyResponseMethods)
         .addMethods(emptyResponseMethods)
+        .addMethods(defaultResponseMethods)
         .addMethod(customResponseMethod)
         .build()
   }
 
-  private fun toTypesafeResponseMethod(response: JavaResponse, content: JavaResponseContent, className: String): MethodSpec {
+  private fun toTypesafeResponseMethod(response: JavaResponse, content: JavaContent, className: String): MethodSpec {
     val statusCode = (response.statusCode as StatusCode).code
     val mediaTypeAsIdentifier = content.mediaType.mediaTypeToJavaIdentifier()
     val methodName = "with$statusCode$mediaTypeAsIdentifier"
@@ -161,6 +190,19 @@ class ServerStubGenerator(private val configuration: CliConfiguration) {
         .addModifiers(PUBLIC, STATIC)
         .returns(className.toTypeName())
         .addStatement("return new \$N(Response.status(\$L).build())", className, statusCode)
+        .build()
+  }
+
+  private fun toTypesafeDefaultResponseMethod(content: JavaContent, className: String): MethodSpec {
+    val mediaTypeAsIdentifier = content.mediaType.mediaTypeToJavaIdentifier()
+    val methodName = "with$mediaTypeAsIdentifier"
+
+    return MethodSpec.methodBuilder(methodName)
+        .addModifiers(PUBLIC, STATIC)
+        .returns(className.toTypeName())
+        .addParameter(Integer.TYPE, "status")
+        .addParameter(content.javaType.toTypeName(), "entity")
+        .addStatement("return new \$N(Response.status(status).header(\"Content-Type\", \$S).entity(entity).build())", className, content.mediaType)
         .build()
   }
 
@@ -185,7 +227,7 @@ class ServerStubGenerator(private val configuration: CliConfiguration) {
 
   companion object {
 
-    const val API_PACKAGE = "api"
+    const val API_PACKAGE = "resources"
     const val RESPONSE_WRAPPER_CLASS_NAME = "ResponseWrapper"
   }
 }
