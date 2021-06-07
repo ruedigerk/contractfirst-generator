@@ -36,14 +36,14 @@ sealed interface JavaReference {
     val typeName: String
     val packageName: String
 
-    /** Returns whether this reference points to a class being generated. */
-    val isGeneratedClass: Boolean
+    /** Returns whether this reference points to a type that needs to be validated. */
+    val isValidated: Boolean
 }
 
 data class JavaBasicReference(
     override val typeName: String,
     override val packageName: String,
-    override val isGeneratedClass: Boolean,
+    override val isValidated: Boolean,
 ) : JavaReference
 
 data class JavaCollectionReference(
@@ -52,7 +52,7 @@ data class JavaCollectionReference(
     val elementType: JavaReference,
 ) : JavaReference {
     
-    override val isGeneratedClass: Boolean
+    override val isValidated: Boolean
       get() = false
 }
 
@@ -62,6 +62,6 @@ data class JavaMapReference(
     val valuesType: JavaReference,
 ) : JavaReference {
     
-    override val isGeneratedClass: Boolean
+    override val isValidated: Boolean
       get() = false
 }

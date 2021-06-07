@@ -119,7 +119,7 @@ class Parser {
     return CtrParameter(
         parameter.name,
         toParameterLocation(parameter.`in`),
-        parameter.description,
+        parameter.description.normalize(),
         parameter.required ?: false,
         schemaResolver.resolveSchema(parameter.schema)
     )

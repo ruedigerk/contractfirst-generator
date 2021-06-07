@@ -110,7 +110,7 @@ class ModelGenerator(configuration: CliConfiguration) {
         // Required fields are annotated with @NotNull.
         .doIf(property.required) { addAnnotation("javax.validation.constraints.NotNull".toTypeName()) }
         // Fields of generated types (e.g. not java.lang.String) are annotated with @Valid.
-        .doIf(property.type.isGeneratedClass) { addAnnotation("javax.validation.Valid".toTypeName()) }
+        .doIf(property.type.isValidated) { addAnnotation("javax.validation.Valid".toTypeName()) }
         .build()
   }
 

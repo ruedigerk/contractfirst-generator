@@ -9,7 +9,6 @@ import de.rk42.openapi.codegen.java.model.JavaContent
 import de.rk42.openapi.codegen.java.model.JavaOperation
 import de.rk42.openapi.codegen.java.model.JavaOperationGroup
 import de.rk42.openapi.codegen.java.model.JavaParameter
-import de.rk42.openapi.codegen.java.model.JavaReference
 import de.rk42.openapi.codegen.java.model.JavaRegularParameterLocation
 import de.rk42.openapi.codegen.java.model.JavaResponse
 import de.rk42.openapi.codegen.java.model.JavaSpecification
@@ -18,22 +17,22 @@ import de.rk42.openapi.codegen.model.CtrOperation
 import de.rk42.openapi.codegen.model.CtrParameter
 import de.rk42.openapi.codegen.model.CtrRequestBody
 import de.rk42.openapi.codegen.model.CtrResponse
-import de.rk42.openapi.codegen.model.CtrSchema
+import de.rk42.openapi.codegen.model.CtrSchemaNonRef
 import de.rk42.openapi.codegen.model.CtrSpecification
 
 /**
  * Transforms the parsed specification into a Java-specific specification, appropriate for code generation.
  */
-class JavaTransformer(configuration: CliConfiguration) {
+class JavaTransformer(private val configuration: CliConfiguration) {
 
-  private val schemaTransformer = JavaSchemaTransformer(configuration)
+  private lateinit var schemaTransformer: JavaSchemaTransformer
 
   fun transform(specification: CtrSpecification): JavaSpecification {
-    val javaTypes = schemaTransformer.parseSchemas(specification.schemas)
+    schemaTransformer = JavaSchemaTransformer(configuration, specification.schemas)
 
     return JavaSpecification(
         groupOperations(specification.operations),
-        javaTypes
+        schemaTransformer.typesToGenerate
     )
   }
 
@@ -51,16 +50,29 @@ class JavaTransformer(configuration: CliConfiguration) {
 
     val requestBodyMediaTypes = operation.requestBody?.contents?.map { it.mediaType }?.toSet() ?: emptySet()
     val bodyParameter = operation.requestBody?.let { listOf(it).map(::toBodyParameter) } ?: emptyList()
+    val parameters = operation.parameters.map(::toJavaParameter) + bodyParameter
 
     return JavaOperation(
         operation.operationId.toJavaIdentifier(),
-        operation.description ?: operation.summary,
+        toOperationJavadoc(operation, parameters),
         operation.path,
         operation.method,
         requestBodyMediaTypes.toList(),
-        operation.parameters.map(::toJavaParameter) + bodyParameter,
+        parameters,
         operation.responses.map(::toJavaResponse)
     )
+  }
+
+  private fun toOperationJavadoc(operation: CtrOperation, parameters: List<JavaParameter>): String? {
+    val docComment = operation.description ?: operation.summary
+    val paramsJavadoc = parameters.filter { it.javadoc != null }.joinToString("\n") { "@param ${it.javaIdentifier} ${it.javadoc}" }
+
+    return when {
+      docComment == null && paramsJavadoc.isEmpty() -> null
+      docComment == null -> paramsJavadoc
+      paramsJavadoc.isEmpty() -> docComment
+      else -> docComment + "\n\n" + paramsJavadoc
+    }
   }
 
   private fun toBodyParameter(requestBody: CtrRequestBody): JavaParameter {
@@ -73,19 +85,19 @@ class JavaTransformer(configuration: CliConfiguration) {
 
     return JavaParameter(
         "requestBody",
+        requestBody.description ?: TransformerHelper.toJavadoc(schema as CtrSchemaNonRef),
         JavaBodyParameter,
-        requestBody.description,
         requestBody.required,
-        toJavaReference(schema)
+        schemaTransformer.lookupReference(schema)
     )
   }
 
   private fun toJavaParameter(parameter: CtrParameter): JavaParameter = JavaParameter(
       parameter.name.toJavaIdentifier(),
+      parameter.description ?: TransformerHelper.toJavadoc(parameter.schema as CtrSchemaNonRef),
       JavaRegularParameterLocation(parameter.name, parameter.location),
-      parameter.description,
       parameter.required,
-      toJavaReference(parameter.schema)
+      schemaTransformer.lookupReference(parameter.schema)
   )
 
   private fun toJavaResponse(response: CtrResponse): JavaResponse = JavaResponse(
@@ -95,10 +107,8 @@ class JavaTransformer(configuration: CliConfiguration) {
 
   private fun toJavaResponseContent(content: CtrContent): JavaContent = JavaContent(
       content.mediaType,
-      toJavaReference(content.schema)
+      schemaTransformer.lookupReference(content.schema)
   )
-
-  private fun toJavaReference(schema: CtrSchema): JavaReference = schemaTransformer.lookupReference(schema)
 
   companion object {
 

@@ -25,52 +25,52 @@ import de.rk42.openapi.codegen.model.CtrSchemaNonRef
 import de.rk42.openapi.codegen.model.CtrSchemaObject
 import de.rk42.openapi.codegen.model.CtrSchemaPrimitive
 import de.rk42.openapi.codegen.model.CtrSchemaProperty
+import de.rk42.openapi.codegen.model.CtrSchemaRef
 
 /**
  * Transforms the parsed schemas into Java-specific type representations, appropriate for code generation.
  */
-class JavaSchemaTransformer(private val configuration: CliConfiguration) {
+class JavaSchemaTransformer(private val configuration: CliConfiguration, allSchemas: List<CtrSchemaNonRef>) {
 
   private val modelPackage = "${configuration.sourcePackage}.model"
-  private val referencesLookup: MutableMap<CtrSchema, JavaReference> = mutableMapOf()
+  private val referencesLookup: Map<CtrSchemaNonRef, JavaReference> = allSchemas.associateWith { toJavaReference(it) }
 
   private var uniqueNameCounter: Int = 1
+  
+  val typesToGenerate: List<JavaType> = allSchemas.mapNotNull(::toJavaType)
 
-  fun parseSchemas(schemas: List<CtrSchemaNonRef>): List<JavaType> {
-    referencesLookup.putAll(createReferencesToSchemaMap(schemas))
-    return schemas.mapNotNull(::toJavaType)
+  fun lookupReference(schema: CtrSchema): JavaReference {
+    if (schema is CtrSchemaRef) {
+      throw IllegalStateException("Specification must not contain any CtrSchemaRef instances, but was: $schema")
+    }
+
+    return referencesLookup[schema] ?: throw IllegalArgumentException("Schema not in referencesLookup: $schema")
   }
 
-  fun lookupReference(schema: CtrSchema): JavaReference =
-      referencesLookup[schema] ?: throw IllegalArgumentException("Schema not in referencesLookup: $schema")
-
-  private fun createReferencesToSchemaMap(schemas: List<CtrSchemaNonRef>): Map<out CtrSchema, JavaReference> =
-      schemas.associateWith { toReference(it) }
-
-  private fun toReference(schema: CtrSchemaNonRef): JavaReference = when (schema) {
-    is CtrSchemaObject -> toJavaReference(schema.referencedBy?.referencedName() ?: schema.title, true)
-    is CtrSchemaEnum -> toJavaReference(schema.referencedBy?.referencedName() ?: schema.title, false)
+  private fun toJavaReference(schema: CtrSchemaNonRef): JavaReference = when (schema) {
+    is CtrSchemaObject -> toJavaBasicReference(schema.referencedBy?.referencedName() ?: schema.title, true)
+    is CtrSchemaEnum -> toJavaBasicReference(schema.referencedBy?.referencedName() ?: schema.title, false)
     is CtrSchemaArray -> toJavaCollectionReference(schema)
     is CtrSchemaMap -> toJavaMapReference(schema)
     is CtrSchemaPrimitive -> toJavaBuiltInReference(schema)
   }
 
-  private fun toJavaReference(name: String?, isGeneratedClass: Boolean): JavaReference {
+  private fun toJavaBasicReference(name: String?, isRegularClass: Boolean): JavaReference {
     val typeName = name?.toJavaTypeIdentifier() ?: createUniqueTypeName()
     val finalTypeName = configuration.modelPrefix + typeName
 
-    return JavaBasicReference(finalTypeName, modelPackage, isGeneratedClass)
+    return JavaBasicReference(finalTypeName, modelPackage, isRegularClass)
   }
 
   private fun toJavaCollectionReference(schema: CtrSchemaArray): JavaCollectionReference {
     val elementSchema = schema.itemSchema as? CtrSchemaNonRef ?: throw IllegalArgumentException("Unexpected SchemaRef in $schema")
-    val elementReference = toReference(elementSchema)
+    val elementReference = toJavaReference(elementSchema)
     return JavaCollectionReference("List", "java.util", elementReference)
   }
 
   private fun toJavaMapReference(schema: CtrSchemaMap): JavaMapReference {
     val valuesSchema = schema.valuesSchema as? CtrSchemaNonRef ?: throw IllegalArgumentException("Unexpected SchemaRef in $schema")
-    val valuesReference = toReference(valuesSchema)
+    val valuesReference = toJavaReference(valuesSchema)
     return JavaMapReference("Map", "java.util", valuesReference)
   }
 
@@ -117,7 +117,10 @@ class JavaSchemaTransformer(private val configuration: CliConfiguration) {
 
   private fun toJavaProperty(property: CtrSchemaProperty): JavaProperty {
     val schema = property.schema as? CtrSchemaNonRef ?: throw IllegalArgumentException("Unexpected SchemaRef in $property")
-    return JavaProperty(property.name.toJavaIdentifier(), TransformerHelper.toJavadoc(schema), property.name, property.required, toReference(schema))
+    return JavaProperty(
+        property.name.toJavaIdentifier(), TransformerHelper.toJavadoc(schema), property.name, property.required,
+        toJavaReference(schema)
+    )
   }
 
   private fun toJavaEnum(schema: CtrSchemaEnum): JavaEnum {

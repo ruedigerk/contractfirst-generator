@@ -84,7 +84,7 @@ class ServerStubGenerator(private val configuration: CliConfiguration) {
     return ParameterSpec.builder(parameter.javaType.toTypeName(), parameter.javaIdentifier)
         .doIfNotNull(parameter.location as? JavaRegularParameterLocation) { addAnnotation(paramAnnotation(it)) }
         .doIf(parameter.required) { addAnnotation(toAnnotation("javax.validation.constraints.NotNull")) }
-        .doIf(parameter.javaType.isGeneratedClass) { addAnnotation(toAnnotation("javax.validation.Valid")) }.build()
+        .doIf(parameter.javaType.isValidated) { addAnnotation(toAnnotation("javax.validation.Valid")) }.build()
   }
 
   private fun paramAnnotation(parameter: JavaRegularParameterLocation): AnnotationSpec {
