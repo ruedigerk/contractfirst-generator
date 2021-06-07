@@ -4,68 +4,58 @@ import de.rk42.openapi.codegen.NotSupportedException
 import de.rk42.openapi.codegen.model.CtrContent
 import de.rk42.openapi.codegen.model.CtrOperation
 import de.rk42.openapi.codegen.model.CtrParameter
-import de.rk42.openapi.codegen.model.CtrPrimitiveType
 import de.rk42.openapi.codegen.model.CtrRequestBody
 import de.rk42.openapi.codegen.model.CtrResponse
-import de.rk42.openapi.codegen.model.CtrSchema
-import de.rk42.openapi.codegen.model.CtrSchemaArray
-import de.rk42.openapi.codegen.model.CtrSchemaEnum
-import de.rk42.openapi.codegen.model.CtrSchemaMap
-import de.rk42.openapi.codegen.model.CtrSchemaNonRef
-import de.rk42.openapi.codegen.model.CtrSchemaObject
-import de.rk42.openapi.codegen.model.CtrSchemaPrimitive
-import de.rk42.openapi.codegen.model.CtrSchemaProperty
-import de.rk42.openapi.codegen.model.CtrSchemaRef
 import de.rk42.openapi.codegen.model.CtrSpecification
 import de.rk42.openapi.codegen.model.DefaultStatusCode
 import de.rk42.openapi.codegen.model.ParameterLocation
 import de.rk42.openapi.codegen.model.ResponseStatusCode
 import de.rk42.openapi.codegen.model.StatusCode
+import de.rk42.openapi.codegen.parser.ParserHelper.normalize
+import de.rk42.openapi.codegen.parser.ParserHelper.nullToEmpty
 import io.swagger.parser.OpenAPIParser
 import io.swagger.v3.oas.models.OpenAPI
 import io.swagger.v3.oas.models.Operation
 import io.swagger.v3.oas.models.PathItem
-import io.swagger.v3.oas.models.media.ArraySchema
 import io.swagger.v3.oas.models.media.Content
-import io.swagger.v3.oas.models.media.Schema
 import io.swagger.v3.oas.models.parameters.Parameter
 import io.swagger.v3.oas.models.parameters.RequestBody
 import io.swagger.v3.oas.models.responses.ApiResponses
 import io.swagger.v3.parser.core.models.ParseOptions
-import io.swagger.v3.parser.core.models.SwaggerParseResult
 
 /**
  * Parser implementation based on swagger-parser.
  */
 class Parser {
 
-  private lateinit var schemaParser: SchemaParser
+  private lateinit var schemaResolver: SchemaResolver
 
   fun parse(specFilePath: String): CtrSpecification {
-    val swaggerParseResult = runSwaggerParser(specFilePath)
-
-    if (swaggerParseResult.messages.isNotEmpty()) {
-      throw ParserException(swaggerParseResult.messages)
-    }
-
-    return toContract(swaggerParseResult.openAPI!!)
+    val openApiSpecification = runSwaggerParser(specFilePath)
+    return toContract(openApiSpecification)
   }
 
-  private fun runSwaggerParser(specFile: String): SwaggerParseResult {
+  private fun runSwaggerParser(specFile: String): OpenAPI {
     val parseOptions = ParseOptions().apply {
       isResolve = true
       isFlatten = true
       isFlattenComposedSchemas = true
     }
 
-    return OpenAPIParser().readLocation(specFile, null, parseOptions)
+    val result = OpenAPIParser().readLocation(specFile, null, parseOptions)
+    
+    if (result.messages.isNotEmpty()) {
+      throw ParserException(result.messages)
+    }
+
+    return result.openAPI!!
   }
 
   private fun toContract(openApi: OpenAPI): CtrSpecification {
-    schemaParser = SchemaParser(openApi.components.schemas)
+    schemaResolver = SchemaResolver(openApi.components.schemas)
 
     val operations = toOperations(openApi.paths)
-    val referencedSchemas = schemaParser.determineAndResolveReferencedSchemas()
+    val referencedSchemas = schemaResolver.determineAndResolveReferencedSchemas()
 
     return CtrSpecification(operations, referencedSchemas)
   }
@@ -131,7 +121,7 @@ class Parser {
         toParameterLocation(parameter.`in`),
         parameter.description,
         parameter.required ?: false,
-        schemaParser.resolveSchema(parameter.schema)
+        schemaResolver.resolveSchema(parameter.schema)
     )
   }
 
@@ -155,171 +145,6 @@ class Parser {
   }
 
   private fun toContents(content: Content): List<CtrContent> = content.map { (mediaType, content) ->
-    CtrContent(mediaType, schemaParser.resolveSchema(content.schema))
+    CtrContent(mediaType, schemaResolver.resolveSchema(content.schema))
   }
 }
-
-private class SchemaParser(topLevelSchemas: Map<String, Schema<Any>>) {
-
-  // All schemas actually being used/referenced in the contract.
-  private val referencedSchemas: MutableSet<CtrSchemaNonRef> = mutableSetOf()
-
-  // Top level schemas are the schemas of the components section of the contract. Only they can be referenced by a $ref.
-  private val topLevelSchemas: Map<CtrSchemaRef, CtrSchemaNonRef> = toTopLevelSchemas(topLevelSchemas)
-
-  private fun toTopLevelSchemas(schemas: Map<String, Schema<Any>>): Map<CtrSchemaRef, CtrSchemaNonRef> = schemas
-      .mapKeys { CtrSchemaRef("#/components/schemas/${it.key}") }
-      .mapValues { toTopLevelSchema(it.value) }
-
-  private fun toTopLevelSchema(schema: Schema<Any>): CtrSchemaNonRef =
-      (parseSchema(schema) as? CtrSchemaNonRef) ?: throw NotSupportedException("Unsupported schema reference in #/components/schemas: $schema")
-
-  private fun parseSchema(schema: Schema<Any>): CtrSchema {
-    if (schema.`$ref` != null) {
-      return CtrSchemaRef(schema.`$ref`)
-    }
-    if (schema.enum != null && schema.enum.isNotEmpty()) {
-      return toEnumSchema(schema)
-    }
-
-    return when (schema.type) {
-      "array" -> toArraySchema(schema as ArraySchema)
-      "boolean", "integer", "number", "string" -> toPrimitiveSchema(schema)
-      "null" -> throw NotSupportedException("Schema type 'null' is not supported")
-      else -> toObjectOrMapSchema(schema)
-    }
-  }
-
-  private fun toEnumSchema(schema: Schema<Any>): CtrSchemaEnum {
-    if (schema.type != "string") {
-      throw NotSupportedException("Currently only enum schemas of type 'string' are supported, type is '${schema.type}'")
-    }
-
-    return CtrSchemaEnum(schema.title.normalize(), schema.description.normalize(), schema.enum.map { it.toString() })
-  }
-
-  @Suppress("UNCHECKED_CAST")
-  private fun toArraySchema(schema: ArraySchema): CtrSchemaArray {
-    return CtrSchemaArray(schema.title.normalize(), schema.description.normalize(), parseSchema(schema.items as Schema<Any>))
-  }
-
-  private fun toPrimitiveSchema(schema: Schema<Any>): CtrSchemaPrimitive {
-    val type = when (schema.type) {
-      "boolean" -> CtrPrimitiveType.BOOLEAN
-      "integer" -> CtrPrimitiveType.INTEGER
-      "number" -> CtrPrimitiveType.NUMBER
-      "string" -> CtrPrimitiveType.STRING
-      else -> throw IllegalArgumentException("Program error, unexpected type ${schema.type} in toPrimitiveSchema")
-    }
-
-    return CtrSchemaPrimitive(schema.title.normalize(), schema.description.normalize(), type, schema.format)
-  }
-
-  private fun toObjectOrMapSchema(schema: Schema<Any>): CtrSchemaNonRef {
-    if (schema.properties.nullToEmpty().isNotEmpty() && schema.additionalProperties != null) {
-      throw NotSupportedException("Object schemas having both properties and additionalProperties is not supported, just either or: $schema")
-    }
-      
-    val additionalPropertiesSchema = parseAdditionalProperties(schema)
-
-    return if (additionalPropertiesSchema != null) {
-      toMapSchema(schema, additionalPropertiesSchema)
-    } else {
-      toObjectSchema(schema)
-    }
-  }
-
-  @Suppress("UNCHECKED_CAST")
-  private fun parseAdditionalProperties(schema: Schema<Any>): CtrSchema? {
-    val additionalProperties = schema.additionalProperties
-    return if (additionalProperties is Schema<*>) parseSchema(additionalProperties as Schema<Any>) else null
-  }
-
-  private fun toMapSchema(schema: Schema<Any>, additionalPropertiesSchema: CtrSchema): CtrSchemaMap =
-      CtrSchemaMap(schema.title.normalize(), schema.description.normalize(), additionalPropertiesSchema)
-
-  private fun toObjectSchema(schema: Schema<Any>): CtrSchemaObject {
-    val requiredProperties = schema.required.nullToEmpty().toSet()
-
-    return CtrSchemaObject(
-        schema.title.normalize(),
-        schema.description.normalize(),
-        schema.properties.nullToEmpty().map { (name, schema) -> CtrSchemaProperty(name, requiredProperties.contains(name), parseSchema(schema)) }
-    )
-  }
-
-  fun resolveSchema(schema: Schema<Any>): CtrSchema = when (val parsed = parseSchema(schema)) {
-    is CtrSchemaRef -> lookupSchemaRef(parsed)
-    is CtrSchemaNonRef -> {
-      referencedSchemas.add(parsed)
-      parsed
-    }
-  }
-
-  private fun lookupSchemaRef(schema: CtrSchemaRef): CtrSchemaNonRef {
-    val referencedSchema = topLevelSchemas[schema] ?: throw ParserException("Unresolvable schema reference $schema")
-
-    referencedSchema.referencedBy = schema
-    referencedSchemas.add(referencedSchema)
-
-    return referencedSchema
-  }
-
-  /**
-   * Return all schemas actually being used in the contract.
-   */
-  fun determineAndResolveReferencedSchemas(): List<CtrSchemaNonRef> {
-    if (referencedSchemas.isEmpty()) {
-      throw IllegalStateException("resolveReferencedSchemas must be called after parsing the contract's operations")
-    }
-
-    val resolvedSchemas = mutableSetOf<CtrSchemaNonRef>()
-    var schemasForResolving = referencedSchemas.toSet()
-
-    // Iteratively resolve all schemas
-    do {
-      schemasForResolving.forEach(::resolveSchemaComponents)
-      resolvedSchemas.addAll(schemasForResolving)
-      schemasForResolving = referencedSchemas - resolvedSchemas
-    } while (schemasForResolving.isNotEmpty())
-
-    return referencedSchemas.toList()
-  }
-
-  private fun resolveSchemaComponents(schema: CtrSchemaNonRef) = when (schema) {
-    is CtrSchemaObject -> resolveObjectProperties(schema)
-    is CtrSchemaArray -> resolveArrayItems(schema)
-    else -> {
-      // do nothing 
-    }
-  }
-
-  private fun resolveFurther(schema: CtrSchemaNonRef) {
-    val newSchema = referencedSchemas.add(schema)
-    if (newSchema) {
-      resolveSchemaComponents(schema)
-    }
-  }
-
-  private fun resolveObjectProperties(schema: CtrSchemaObject) {
-    schema.properties.forEach { property ->
-      when (val propertySchema = property.schema) {
-        is CtrSchemaRef -> property.schema = lookupSchemaRef(propertySchema)
-        is CtrSchemaNonRef -> resolveFurther(propertySchema)
-      }
-    }
-  }
-
-  private fun resolveArrayItems(schema: CtrSchemaArray) {
-    when (val itemSchema = schema.itemSchema) {
-      is CtrSchemaRef -> schema.itemSchema = lookupSchemaRef(itemSchema)
-      is CtrSchemaNonRef -> resolveFurther(itemSchema)
-    }
-  }
-}
-
-private fun <T> List<T>?.nullToEmpty(): List<T> = this ?: emptyList()
-
-private fun <K, V> Map<K, V>?.nullToEmpty(): Map<K, V> = this ?: emptyMap()
-
-private fun String?.normalize(): String? = if (this.isNullOrBlank()) null else this.trim()
