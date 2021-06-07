@@ -7,6 +7,8 @@ import com.squareup.javapoet.MethodSpec
 import com.squareup.javapoet.ParameterSpec
 import com.squareup.javapoet.TypeSpec
 import de.rk42.openapi.codegen.JavaTypes.toTypeName
+import de.rk42.openapi.codegen.JavapoetHelper.doIf
+import de.rk42.openapi.codegen.JavapoetHelper.doIfNotNull
 import de.rk42.openapi.codegen.JavapoetHelper.toAnnotation
 import de.rk42.openapi.codegen.Names.capitalize
 import de.rk42.openapi.codegen.Names.mediaTypeToJavaIdentifier
@@ -25,7 +27,7 @@ import de.rk42.openapi.codegen.model.java.JavaResponse
 import de.rk42.openapi.codegen.model.java.JavaSpecification
 import java.io.File
 import java.io.InputStream
-import javax.lang.model.element.Modifier
+import javax.lang.model.element.Modifier.ABSTRACT
 import javax.lang.model.element.Modifier.PRIVATE
 import javax.lang.model.element.Modifier.PUBLIC
 import javax.lang.model.element.Modifier.STATIC
@@ -65,41 +67,23 @@ class ServerStubGenerator(private val configuration: CliConfiguration) {
 
   private fun toOperationMethod(operation: JavaOperation, typesafeResponseClass: TypeSpec): MethodSpec {
     val parameters = operation.parameters.map(::toParameterSpec)
-    
-    val builder = MethodSpec.methodBuilder(operation.javaIdentifier)
+
+    return MethodSpec.methodBuilder(operation.javaIdentifier)
+        .doIfNotNull(operation.javadoc) { addJavadoc(it) }
         .addAnnotation(httpMethodAnnotation(operation.method))
         .addAnnotation(pathAnnotation(operation.path))
+        .doIf(operation.requestBodyMediaTypes.isNotEmpty()) { addAnnotation(consumesAnnotation(operation.requestBodyMediaTypes)) }
         .addAnnotation(producesAnnotation(operation.responses))
-        .addModifiers(PUBLIC, Modifier.ABSTRACT)
+        .addModifiers(PUBLIC, ABSTRACT)
         .returns(typesafeResponseClass.name.toTypeName())
-        .addParameters(parameters)
-
-    if (operation.requestBodyMediaTypes.isNotEmpty()) {
-      builder.addAnnotation(consumesAnnotation(operation.requestBodyMediaTypes))
-    }
-
-    val javadoc = operation.description ?: operation.summary
-    if (javadoc != null) {
-      builder.addJavadoc("\$L", javadoc)
-    }
-    
-    return builder.build()
+        .addParameters(parameters).build()
   }
 
   private fun toParameterSpec(parameter: JavaParameter): ParameterSpec {
-    val builder = ParameterSpec.builder(parameter.javaType.toTypeName(), parameter.javaIdentifier)
-
-    if (parameter.location is JavaRegularParameterLocation) {
-      builder.addAnnotation(paramAnnotation(parameter.location))
-    }
-    if (parameter.required) {
-      builder.addAnnotation(toAnnotation("javax.validation.constraints.NotNull"))
-    }
-    if (parameter.javaType.isClass) {
-      builder.addAnnotation(toAnnotation("javax.validation.Valid"))
-    }
-    
-    return builder.build()
+    return ParameterSpec.builder(parameter.javaType.toTypeName(), parameter.javaIdentifier)
+        .doIfNotNull(parameter.location as? JavaRegularParameterLocation) { addAnnotation(paramAnnotation(it)) }
+        .doIf(parameter.required) { addAnnotation(toAnnotation("javax.validation.constraints.NotNull")) }
+        .doIf(parameter.javaType.isGeneratedClass) { addAnnotation(toAnnotation("javax.validation.Valid")) }.build()
   }
 
   private fun paramAnnotation(parameter: JavaRegularParameterLocation): AnnotationSpec {
@@ -109,7 +93,7 @@ class ServerStubGenerator(private val configuration: CliConfiguration) {
       PATH -> "PathParam"
       COOKIE -> "CookieParam"
     }
-    
+
     return toAnnotation("javax.ws.rs.$annotationName", parameter.name)
   }
 

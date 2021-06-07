@@ -210,7 +210,7 @@ private class SchemaParser(topLevelSchemas: Map<String, Schema<Any>>) {
       else -> throw IllegalArgumentException("Program error, unexpected type ${schema.type} in toPrimitiveSchema")
     }
 
-    return CtrSchemaPrimitive(type, schema.format, schema.title.normalize(), schema.description.normalize())
+    return CtrSchemaPrimitive(schema.title.normalize(), schema.description.normalize(), type, schema.format)
   }
 
   private fun toObjectSchema(schema: Schema<Any>): CtrSchemaObject {

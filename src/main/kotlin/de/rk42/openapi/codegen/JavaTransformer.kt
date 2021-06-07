@@ -3,6 +3,7 @@ package de.rk42.openapi.codegen
 import de.rk42.openapi.codegen.Names.toJavaConstant
 import de.rk42.openapi.codegen.Names.toJavaIdentifier
 import de.rk42.openapi.codegen.Names.toJavaTypeIdentifier
+import de.rk42.openapi.codegen.TransformerHelper.toJavadoc
 import de.rk42.openapi.codegen.model.contract.CtrContent
 import de.rk42.openapi.codegen.model.contract.CtrOperation
 import de.rk42.openapi.codegen.model.contract.CtrParameter
@@ -68,11 +69,9 @@ class JavaTransformer(configuration: CliConfiguration) {
 
     return JavaOperation(
         operation.operationId.toJavaIdentifier(),
+        operation.description ?: operation.summary,
         operation.path,
         operation.method,
-        operation.tags,
-        operation.summary,
-        operation.description,
         requestBodyMediaTypes.toList(),
         operation.parameters.map(::toJavaParameter) + bodyParameter,
         operation.responses.map(::toJavaResponse)
@@ -84,12 +83,15 @@ class JavaTransformer(configuration: CliConfiguration) {
       throw NotSupportedException("Empty request body content is not supported: $requestBody")
     }
 
+    // Currently, all body contents must have the same schema. This is enforced by toJavaOperation.
+    val schema = requestBody.contents.first().schema
+
     return JavaParameter(
         "requestBody",
         JavaBodyParameter,
         requestBody.description,
         requestBody.required,
-        toJavaReference(requestBody.contents.first().schema)
+        toJavaReference(schema)
     )
   }
 
@@ -159,7 +161,7 @@ private class JavaSchemaTransformer(private val configuration: CliConfiguration)
   }
 
   /**
-   * TODO: Support the following string formats:
+   * TODO: Support the following "string" formats:
    *  - "byte": base64 encoded characters
    *  - "binary": any sequence of octets
    */
@@ -195,17 +197,22 @@ private class JavaSchemaTransformer(private val configuration: CliConfiguration)
     val reference = referencesLookup[schema] ?: throw IllegalArgumentException("Schema not in referencesLookup: $schema")
     val className = reference.typeName
     val properties = schema.properties.map(::toJavaProperty)
-    return JavaClass(className, schema.title, properties)
+    return JavaClass(className, toJavadoc(schema), properties)
   }
 
   private fun toJavaProperty(property: CtrSchemaProperty): JavaProperty {
     val schema = property.schema as? CtrSchemaNonRef ?: throw IllegalArgumentException("Unexpected SchemaRef in $property")
-    return JavaProperty(property.name.toJavaIdentifier(), property.name, property.required, toReference(schema))
+    return JavaProperty(property.name.toJavaIdentifier(), toJavadoc(schema), property.name, property.required, toReference(schema))
   }
 
   private fun toJavaEnum(schema: CtrSchemaEnum): JavaEnum {
     val className = referencesLookup[schema]?.typeName ?: throw IllegalArgumentException("Schema not in referencesLookup: $schema")
     val constants = schema.values.map { EnumConstant(it, it.toJavaConstant()) }
-    return JavaEnum(className, schema.title, constants)
+    return JavaEnum(className, toJavadoc(schema), constants)
   }
+}
+
+private object TransformerHelper {
+  
+  fun toJavadoc(schema: CtrSchemaNonRef): String? = schema.description ?: schema.title
 }

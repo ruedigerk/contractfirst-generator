@@ -13,14 +13,18 @@ data class CtrSchemaRef(
 }
 
 sealed interface CtrSchemaNonRef : CtrSchema {
-
-  /** The reference this schema is referenced by (optional) */
+  
+  val title: String?
+  
+  val description: String?
+  
+  /** A reference this schema is referenced by (optional) */
   var referencedBy: CtrSchemaRef?
 }
 
 data class CtrSchemaObject(
-    val title: String?,
-    val description: String?,
+    override val title: String?,
+    override val description: String?,
     val properties: List<CtrSchemaProperty>,
     override var referencedBy: CtrSchemaRef? = null
 ) : CtrSchemaNonRef
@@ -32,8 +36,8 @@ data class CtrSchemaProperty(
 )
 
 data class CtrSchemaArray(
-    val title: String?,
-    val description: String?,
+    override val title: String?,
+    override val description: String?,
     var itemSchema: CtrSchema,
     override var referencedBy: CtrSchemaRef? = null
 ) : CtrSchemaNonRef
@@ -42,17 +46,17 @@ data class CtrSchemaArray(
  * Currently Enums are always assumed to habe type "string".
  */
 data class CtrSchemaEnum(
-    val title: String?,
-    val description: String?,
+    override val title: String?,
+    override val description: String?,
     val values: List<String>,
     override var referencedBy: CtrSchemaRef? = null
 ) : CtrSchemaNonRef
 
 data class CtrSchemaPrimitive(
+    override val title: String?,
+    override val description: String?,
     val type: CtrPrimitiveType,
     val format: String?,
-    val title: String?,
-    val description: String?,
     override var referencedBy: CtrSchemaRef? = null
 ) : CtrSchemaNonRef
 

@@ -7,6 +7,8 @@ import com.squareup.javapoet.NameAllocator
 import com.squareup.javapoet.TypeName
 import com.squareup.javapoet.TypeSpec
 import de.rk42.openapi.codegen.JavaTypes.toTypeName
+import de.rk42.openapi.codegen.JavapoetHelper.doIf
+import de.rk42.openapi.codegen.JavapoetHelper.doIfNotNull
 import de.rk42.openapi.codegen.JavapoetHelper.toAnnotation
 import de.rk42.openapi.codegen.Names.capitalize
 import de.rk42.openapi.codegen.model.java.JavaBuiltIn
@@ -25,7 +27,7 @@ import javax.lang.model.element.Modifier.PUBLIC
  *
  * TODO: Properly use NameAllocator with scopes, see https://github.com/square/wire/blob/d48be72904d7f6e1458b762cd936b1a7069c2813/wire-java-generator/src/main/java/com/squareup/wire/java/JavaGenerator.java#L1278-L1403
  */
-class ModelGenerator(private val configuration: CliConfiguration) {
+class ModelGenerator(configuration: CliConfiguration) {
 
   private val outputDir = File(configuration.outputDir)
   private val modelPackage = "${configuration.sourcePackage}.model"
@@ -61,6 +63,7 @@ class ModelGenerator(private val configuration: CliConfiguration) {
     val toString = generateToString(javaClass.className, fields)
 
     return TypeSpec.classBuilder(javaClass.className)
+        .doIfNotNull(javaClass.javadoc) { addJavadoc(it) }
         .addModifiers(PUBLIC)
         .addFields(fields)
         .addMethods(accessors)
@@ -73,7 +76,7 @@ class ModelGenerator(private val configuration: CliConfiguration) {
   private fun generateAccessorMethods(property: JavaProperty, className: String): List<MethodSpec> {
     val propertyTypeName = property.type.toTypeName()
 
-    // The getters is annotated with BeanValidation annotations.
+    // The getter is annotated with BeanValidation annotations.
     val getter = generateGetter(property, propertyTypeName)
     val setter = generateSetter(property, propertyTypeName)
     val builder = generateBuilderSetter(property, className, propertyTypeName)
@@ -98,21 +101,16 @@ class ModelGenerator(private val configuration: CliConfiguration) {
           .build()
 
   private fun generateGetter(property: JavaProperty, propertyTypeName: TypeName): MethodSpec {
-    val getterBuilder = MethodSpec.methodBuilder("get${property.javaIdentifier.capitalize()}")
+    return MethodSpec.methodBuilder("get${property.javaIdentifier.capitalize()}")
+        .doIfNotNull(property.javadoc) { addJavadoc(it) }
         .addModifiers(PUBLIC)
         .returns(propertyTypeName)
         .addStatement("return \$N", property.javaIdentifier)
-
-    if (property.required) {
-      // Required fields are annotated with @NotNull.
-      getterBuilder.addAnnotation("javax.validation.constraints.NotNull".toTypeName())
-    }
-    if (property.type.isClass) {
-      // Fields of generated types (e.g. not java.lang.String) are annotated with @Valid.
-      getterBuilder.addAnnotation("javax.validation.Valid".toTypeName())
-    }
-
-    return getterBuilder.build()
+        // Required fields are annotated with @NotNull.
+        .doIf(property.required) { addAnnotation("javax.validation.constraints.NotNull".toTypeName()) }
+        // Fields of generated types (e.g. not java.lang.String) are annotated with @Valid.
+        .doIf(property.type.isGeneratedClass) { addAnnotation("javax.validation.Valid".toTypeName()) }
+        .build()
   }
 
   private fun toField(property: JavaProperty): FieldSpec {
@@ -235,7 +233,7 @@ class ModelGenerator(private val configuration: CliConfiguration) {
     enum.values.forEach { enumConstant ->
       val serializedNameAnnotation = toAnnotation("com.google.gson.annotations.SerializedName", enumConstant.originalName)
       val typeSpec = TypeSpec.anonymousClassBuilder("").addAnnotation(serializedNameAnnotation).build()
-      
+
       builder.addEnumConstant(enumConstant.javaIdentifier, typeSpec)
     }
 

@@ -4,12 +4,13 @@ sealed interface JavaType
 
 data class JavaClass(
     val className: String,
-    val title: String?,
+    val javadoc: String?,
     val properties: List<JavaProperty>,
 ) : JavaType
 
 data class JavaProperty(
     val javaIdentifier: String,
+    val javadoc: String?,
     val name: String,
     val required: Boolean,
     var type: JavaReference
@@ -17,7 +18,7 @@ data class JavaProperty(
 
 data class JavaEnum(
     val className: String,
-    val title: String?,
+    val javadoc: String?,
     val values: List<EnumConstant>
 ) : JavaType
 
@@ -33,6 +34,9 @@ data class JavaBuiltIn(
 data class JavaReference(
     val typeName: String,
     val packageName: String,
-    val isClass: Boolean,
+    
+    /** Returns whether this reference points to a class being generated. */
+    val isGeneratedClass: Boolean,
+    
     val typeParameter: JavaReference? = null,
 )
