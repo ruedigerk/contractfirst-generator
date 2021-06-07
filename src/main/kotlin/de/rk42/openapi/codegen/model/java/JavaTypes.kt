@@ -31,12 +31,37 @@ data class JavaBuiltIn(
     val typeName: String
 ) : JavaType
 
-data class JavaReference(
-    val typeName: String,
-    val packageName: String,
+sealed interface JavaReference {
     
+    val typeName: String
+    val packageName: String
+
     /** Returns whether this reference points to a class being generated. */
-    val isGeneratedClass: Boolean,
+    val isGeneratedClass: Boolean
+}
+
+data class JavaBasicReference(
+    override val typeName: String,
+    override val packageName: String,
+    override val isGeneratedClass: Boolean,
+) : JavaReference
+
+data class JavaCollectionReference(
+    override val typeName: String,
+    override val packageName: String,
+    val elementType: JavaReference,
+) : JavaReference {
     
-    val typeParameter: JavaReference? = null,
-)
+    override val isGeneratedClass: Boolean
+      get() = false
+}
+
+data class JavaMapReference(
+    override val typeName: String,
+    override val packageName: String,
+    val valuesType: JavaReference,
+) : JavaReference {
+    
+    override val isGeneratedClass: Boolean
+      get() = false
+}

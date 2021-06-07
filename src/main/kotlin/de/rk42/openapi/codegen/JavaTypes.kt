@@ -3,6 +3,9 @@ package de.rk42.openapi.codegen
 import com.squareup.javapoet.ClassName
 import com.squareup.javapoet.ParameterizedTypeName
 import com.squareup.javapoet.TypeName
+import de.rk42.openapi.codegen.model.java.JavaBasicReference
+import de.rk42.openapi.codegen.model.java.JavaCollectionReference
+import de.rk42.openapi.codegen.model.java.JavaMapReference
 import de.rk42.openapi.codegen.model.java.JavaReference
 
 object JavaTypes {
@@ -11,13 +14,18 @@ object JavaTypes {
 
   fun JavaReference.toTypeName(): TypeName {
     val baseType = ClassName.get(this.packageName, this.typeName)
-    val typeParameter = this.typeParameter
 
-    return if (typeParameter == null) {
-      baseType
-    } else {
-      val typeArgument = typeParameter.toTypeName()
-      ParameterizedTypeName.get(baseType, typeArgument)
+    return when (this) {
+      is JavaBasicReference -> baseType
+      is JavaCollectionReference -> {
+        val elementTypeName = this.elementType.toTypeName()
+        ParameterizedTypeName.get(baseType, elementTypeName)
+      }
+      is JavaMapReference -> {
+        val keysTypeName = ClassName.get("java.lang", "String")
+        val valuesTypeName = this.valuesType.toTypeName()
+        ParameterizedTypeName.get(baseType, keysTypeName, valuesTypeName)
+      }
     }
   }
 }

@@ -16,16 +16,20 @@ import de.rk42.openapi.codegen.model.contract.CtrResponse
 import de.rk42.openapi.codegen.model.contract.CtrSchema
 import de.rk42.openapi.codegen.model.contract.CtrSchemaArray
 import de.rk42.openapi.codegen.model.contract.CtrSchemaEnum
+import de.rk42.openapi.codegen.model.contract.CtrSchemaMap
 import de.rk42.openapi.codegen.model.contract.CtrSchemaNonRef
 import de.rk42.openapi.codegen.model.contract.CtrSchemaObject
 import de.rk42.openapi.codegen.model.contract.CtrSchemaPrimitive
 import de.rk42.openapi.codegen.model.contract.CtrSchemaProperty
 import de.rk42.openapi.codegen.model.contract.CtrSpecification
 import de.rk42.openapi.codegen.model.java.EnumConstant
+import de.rk42.openapi.codegen.model.java.JavaBasicReference
 import de.rk42.openapi.codegen.model.java.JavaBodyParameter
 import de.rk42.openapi.codegen.model.java.JavaClass
+import de.rk42.openapi.codegen.model.java.JavaCollectionReference
 import de.rk42.openapi.codegen.model.java.JavaContent
 import de.rk42.openapi.codegen.model.java.JavaEnum
+import de.rk42.openapi.codegen.model.java.JavaMapReference
 import de.rk42.openapi.codegen.model.java.JavaOperation
 import de.rk42.openapi.codegen.model.java.JavaOperationGroup
 import de.rk42.openapi.codegen.model.java.JavaParameter
@@ -144,20 +148,27 @@ private class JavaSchemaTransformer(private val configuration: CliConfiguration)
     is CtrSchemaObject -> toJavaReference(schema.referencedBy?.referencedName() ?: schema.title, true)
     is CtrSchemaEnum -> toJavaReference(schema.referencedBy?.referencedName() ?: schema.title, false)
     is CtrSchemaArray -> toJavaCollectionReference(schema)
+    is CtrSchemaMap -> toJavaMapReference(schema)
     is CtrSchemaPrimitive -> toJavaBuiltInReference(schema)
   }
 
-  private fun toJavaReference(name: String?, isClass: Boolean): JavaReference {
+  private fun toJavaReference(name: String?, isGeneratedClass: Boolean): JavaReference {
     val typeName = name?.toJavaTypeIdentifier() ?: createUniqueTypeName()
     val finalTypeName = configuration.modelPrefix + typeName
 
-    return JavaReference(finalTypeName, modelPackage, isClass)
+    return JavaBasicReference(finalTypeName, modelPackage, isGeneratedClass)
   }
 
-  private fun toJavaCollectionReference(schema: CtrSchemaArray): JavaReference {
-    val itemSchema = schema.itemSchema as? CtrSchemaNonRef ?: throw IllegalArgumentException("Unexpected SchemaRef in $schema")
-    val itemReference = toReference(itemSchema)
-    return JavaReference("List", "java.util", false, itemReference)
+  private fun toJavaCollectionReference(schema: CtrSchemaArray): JavaCollectionReference {
+    val elementSchema = schema.itemSchema as? CtrSchemaNonRef ?: throw IllegalArgumentException("Unexpected SchemaRef in $schema")
+    val elementReference = toReference(elementSchema)
+    return JavaCollectionReference("List", "java.util", elementReference)
+  }
+
+  private fun toJavaMapReference(schema: CtrSchemaMap): JavaMapReference {
+    val valuesSchema = schema.valuesSchema as? CtrSchemaNonRef ?: throw IllegalArgumentException("Unexpected SchemaRef in $schema")
+    val valuesReference = toReference(valuesSchema)
+    return JavaMapReference("Map", "java.util", valuesReference)
   }
 
   /**
@@ -166,21 +177,21 @@ private class JavaSchemaTransformer(private val configuration: CliConfiguration)
    *  - "binary": any sequence of octets
    */
   private fun toJavaBuiltInReference(schema: CtrSchemaPrimitive): JavaReference = when (schema.type) {
-    BOOLEAN -> JavaReference("Boolean", "java.lang", false)
+    BOOLEAN -> JavaBasicReference("Boolean", "java.lang", false)
     INTEGER -> when (schema.format) {
-      "int32" -> JavaReference("Integer", "java.lang", false)
-      "int64" -> JavaReference("Long", "java.lang", false)
-      else -> JavaReference("BigInteger", "java.math", false)
+      "int32" -> JavaBasicReference("Integer", "java.lang", false)
+      "int64" -> JavaBasicReference("Long", "java.lang", false)
+      else -> JavaBasicReference("BigInteger", "java.math", false)
     }
     NUMBER -> when (schema.format) {
-      "float" -> JavaReference("Float", "java.lang", false)
-      "double" -> JavaReference("Double", "java.lang", false)
-      else -> JavaReference("BigDecimal", "java.math", false)
+      "float" -> JavaBasicReference("Float", "java.lang", false)
+      "double" -> JavaBasicReference("Double", "java.lang", false)
+      else -> JavaBasicReference("BigDecimal", "java.math", false)
     }
     STRING -> when (schema.format) {
-      "date" -> JavaReference("LocalDate", "java.time", false)
-      "date-time" -> JavaReference("OffsetDateTime", "java.time", false)
-      else -> JavaReference("String", "java.lang", false)
+      "date" -> JavaBasicReference("LocalDate", "java.time", false)
+      "date-time" -> JavaBasicReference("OffsetDateTime", "java.time", false)
+      else -> JavaBasicReference("String", "java.lang", false)
     }
   }
 
@@ -190,6 +201,7 @@ private class JavaSchemaTransformer(private val configuration: CliConfiguration)
     is CtrSchemaObject -> toJavaClass(schema)
     is CtrSchemaEnum -> toJavaEnum(schema)
     is CtrSchemaArray -> null
+    is CtrSchemaMap -> null
     is CtrSchemaPrimitive -> null
   }
 

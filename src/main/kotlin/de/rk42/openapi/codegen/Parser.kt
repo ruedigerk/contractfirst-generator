@@ -10,6 +10,7 @@ import de.rk42.openapi.codegen.model.contract.CtrResponse
 import de.rk42.openapi.codegen.model.contract.CtrSchema
 import de.rk42.openapi.codegen.model.contract.CtrSchemaArray
 import de.rk42.openapi.codegen.model.contract.CtrSchemaEnum
+import de.rk42.openapi.codegen.model.contract.CtrSchemaMap
 import de.rk42.openapi.codegen.model.contract.CtrSchemaNonRef
 import de.rk42.openapi.codegen.model.contract.CtrSchemaObject
 import de.rk42.openapi.codegen.model.contract.CtrSchemaPrimitive
@@ -184,7 +185,7 @@ private class SchemaParser(topLevelSchemas: Map<String, Schema<Any>>) {
       "array" -> toArraySchema(schema as ArraySchema)
       "boolean", "integer", "number", "string" -> toPrimitiveSchema(schema)
       "null" -> throw NotSupportedException("Schema type 'null' is not supported")
-      else -> toObjectSchema(schema)
+      else -> toObjectOrMapSchema(schema)
     }
   }
 
@@ -212,6 +213,29 @@ private class SchemaParser(topLevelSchemas: Map<String, Schema<Any>>) {
 
     return CtrSchemaPrimitive(schema.title.normalize(), schema.description.normalize(), type, schema.format)
   }
+
+  private fun toObjectOrMapSchema(schema: Schema<Any>): CtrSchemaNonRef {
+    if (schema.properties.nullToEmpty().isNotEmpty() && schema.additionalProperties != null) {
+      throw NotSupportedException("Object schemas having both properties and additionalProperties is not supported, just either or: $schema")
+    }
+      
+    val additionalPropertiesSchema = parseAdditionalProperties(schema)
+
+    return if (additionalPropertiesSchema != null) {
+      toMapSchema(schema, additionalPropertiesSchema)
+    } else {
+      toObjectSchema(schema)
+    }
+  }
+
+  @Suppress("UNCHECKED_CAST")
+  private fun parseAdditionalProperties(schema: Schema<Any>): CtrSchema? {
+    val additionalProperties = schema.additionalProperties
+    return if (additionalProperties is Schema<*>) parseSchema(additionalProperties as Schema<Any>) else null
+  }
+
+  private fun toMapSchema(schema: Schema<Any>, additionalPropertiesSchema: CtrSchema): CtrSchemaMap =
+      CtrSchemaMap(schema.title.normalize(), schema.description.normalize(), additionalPropertiesSchema)
 
   private fun toObjectSchema(schema: Schema<Any>): CtrSchemaObject {
     val requiredProperties = schema.required.nullToEmpty().toSet()

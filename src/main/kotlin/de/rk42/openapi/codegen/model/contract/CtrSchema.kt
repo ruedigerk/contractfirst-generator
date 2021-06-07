@@ -42,6 +42,13 @@ data class CtrSchemaArray(
     override var referencedBy: CtrSchemaRef? = null
 ) : CtrSchemaNonRef
 
+data class CtrSchemaMap(
+    override val title: String?,
+    override val description: String?,
+    var valuesSchema: CtrSchema,
+    override var referencedBy: CtrSchemaRef? = null
+) : CtrSchemaNonRef
+
 /**
  * Currently Enums are always assumed to habe type "string".
  */
