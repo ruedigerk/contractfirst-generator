@@ -117,13 +117,15 @@ class ServerStubGenerator(private val configuration: CliConfiguration) {
     val jaxRsResponseTypeName = "javax.ws.rs.core.Response".toTypeName()
     val className = operation.javaIdentifier.capitalize() + "Response"
 
-    val nonEmptyResponseMethods = operation.responses
+    val responseMethodsWithStatusCode = operation.responses
         .filter { it.statusCode is StatusCode }
-        .flatMap { response -> response.contents.map { content -> toTypesafeResponseMethod(response, content, className) } }
-
-    val emptyResponseMethods = operation.responses
-        .filter { it.contents.isEmpty() }
-        .map { toTypesafeEmptyResponseMethod(it, className) }
+        .flatMap { response ->
+          if (response.contents.isEmpty()) {
+            listOf(toTypesafeEmptyResponseMethod(response, className))
+          } else {
+            response.contents.map { content -> toTypesafeResponseMethod(response, content, className) }
+          }
+        }
 
     val defaultResponseMethods = operation.responses
         .filter { it.statusCode is DefaultStatusCode }
@@ -146,8 +148,7 @@ class ServerStubGenerator(private val configuration: CliConfiguration) {
         .addModifiers(PUBLIC, STATIC)
         .superclass(ClassName.get(supportPackage, RESPONSE_WRAPPER_CLASS_NAME))
         .addMethod(constructor)
-        .addMethods(nonEmptyResponseMethods)
-        .addMethods(emptyResponseMethods)
+        .addMethods(responseMethodsWithStatusCode)
         .addMethods(defaultResponseMethods)
         .addMethod(customResponseMethod)
         .build()
