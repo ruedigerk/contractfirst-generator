@@ -5,5 +5,5 @@ data class JavaParameter(
     val javadoc: String?,
     val location: JavaParameterLocation,
     val required: Boolean,
-    val javaType: JavaReference
+    val javaType: JavaAnyType
 )

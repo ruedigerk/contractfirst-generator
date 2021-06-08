@@ -9,10 +9,10 @@ import com.squareup.javapoet.TypeSpec
 import de.rk42.openapi.codegen.CliConfiguration
 import de.rk42.openapi.codegen.java.Identifiers.capitalize
 import de.rk42.openapi.codegen.java.Identifiers.mediaTypeToJavaIdentifier
-import de.rk42.openapi.codegen.java.JavaTypes.toTypeName
-import de.rk42.openapi.codegen.java.JavapoetHelper.doIf
-import de.rk42.openapi.codegen.java.JavapoetHelper.doIfNotNull
-import de.rk42.openapi.codegen.java.JavapoetHelper.toAnnotation
+import de.rk42.openapi.codegen.java.Javapoet.doIf
+import de.rk42.openapi.codegen.java.Javapoet.doIfNotNull
+import de.rk42.openapi.codegen.java.Javapoet.toAnnotation
+import de.rk42.openapi.codegen.java.Javapoet.toTypeName
 import de.rk42.openapi.codegen.java.model.JavaContent
 import de.rk42.openapi.codegen.java.model.JavaOperation
 import de.rk42.openapi.codegen.java.model.JavaOperationGroup
@@ -27,7 +27,6 @@ import de.rk42.openapi.codegen.model.ParameterLocation.PATH
 import de.rk42.openapi.codegen.model.ParameterLocation.QUERY
 import de.rk42.openapi.codegen.model.StatusCode
 import java.io.File
-import java.io.InputStream
 import javax.lang.model.element.Modifier.ABSTRACT
 import javax.lang.model.element.Modifier.PRIVATE
 import javax.lang.model.element.Modifier.PUBLIC
@@ -47,7 +46,7 @@ class ServerStubGenerator(private val configuration: CliConfiguration) {
         .map(::toJavaInterface)
         .forEach { it.writeTo(outputDir) }
 
-    writeResponseWrapperFile()
+    writeResponseWrapperClass()
   }
 
   private fun toJavaInterface(operationGroup: JavaOperationGroup): JavaFile {
@@ -84,7 +83,7 @@ class ServerStubGenerator(private val configuration: CliConfiguration) {
     return ParameterSpec.builder(parameter.javaType.toTypeName(), parameter.javaIdentifier)
         .doIfNotNull(parameter.location as? JavaRegularParameterLocation) { addAnnotation(paramAnnotation(it)) }
         .doIf(parameter.required) { addAnnotation(toAnnotation("javax.validation.constraints.NotNull")) }
-        .doIf(parameter.javaType.isValidated) { addAnnotation(toAnnotation("javax.validation.Valid")) }.build()
+        .doIf(parameter.javaType.validated) { addAnnotation(toAnnotation("javax.validation.Valid")) }.build()
   }
 
   private fun paramAnnotation(parameter: JavaRegularParameterLocation): AnnotationSpec {
@@ -192,24 +191,9 @@ class ServerStubGenerator(private val configuration: CliConfiguration) {
         .build()
   }
 
-  private fun writeResponseWrapperFile() {
-    val outputDirectory = File(configuration.outputDir)
-    val supportDirectory = File(outputDirectory, supportPackage.replace('.', '/'))
-
-    supportDirectory.mkdirs()
-
-    File(supportDirectory, "$RESPONSE_WRAPPER_CLASS_NAME.java").outputStream().buffered().use { outputStream ->
-      with(outputStream.writer()) {
-        write("package $supportPackage;\n\n")
-        flush()
-      }
-
-      loadResource("/de/rk42/openapi/codegen/templates/$RESPONSE_WRAPPER_CLASS_NAME.java").use { it.transferTo(outputStream) }
-    }
+  private fun writeResponseWrapperClass() {
+    TemplateFileWriter(configuration).writeTemplateFile(supportPackage, "$RESPONSE_WRAPPER_CLASS_NAME.java")
   }
-
-  private fun loadResource(location: String): InputStream = javaClass.getResourceAsStream(location)
-      ?: throw IllegalStateException("Resource file $location not found")
 
   companion object {
 

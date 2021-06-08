@@ -1,67 +1,36 @@
 package de.rk42.openapi.codegen.java.model
 
-sealed interface JavaType
-
-data class JavaClass(
-    val className: String,
-    val javadoc: String?,
-    val properties: List<JavaProperty>,
-) : JavaType
-
-data class JavaProperty(
-    val javaIdentifier: String,
-    val javadoc: String?,
-    val name: String,
-    val required: Boolean,
-    var type: JavaReference
-)
-
-data class JavaEnum(
-    val className: String,
-    val javadoc: String?,
-    val values: List<EnumConstant>
-) : JavaType
-
-data class EnumConstant(
-    val originalName: String,
-    val javaIdentifier: String
-)
-
-data class JavaBuiltIn(
-    val typeName: String
-) : JavaType
-
-sealed interface JavaReference {
+sealed interface JavaAnyType {
     
-    val typeName: String
+    val name: String
     val packageName: String
 
-    /** Returns whether this reference points to a type that needs to be validated. */
-    val isValidated: Boolean
+    /** Returns whether this is a type that needs to be validated. */
+    val validated: Boolean
 }
 
-data class JavaBasicReference(
-    override val typeName: String,
+data class JavaType(
+    override val name: String,
     override val packageName: String,
-    override val isValidated: Boolean,
-) : JavaReference
+    override val validated: Boolean,
+) : JavaAnyType
 
-data class JavaCollectionReference(
-    override val typeName: String,
+data class JavaCollectionType(
+    override val name: String,
     override val packageName: String,
-    val elementType: JavaReference,
-) : JavaReference {
+    val elementType: JavaAnyType,
+) : JavaAnyType {
     
-    override val isValidated: Boolean
+    override val validated: Boolean
       get() = false
 }
 
-data class JavaMapReference(
-    override val typeName: String,
+data class JavaMapType(
+    override val name: String,
     override val packageName: String,
-    val valuesType: JavaReference,
-) : JavaReference {
+    val valuesType: JavaAnyType,
+) : JavaAnyType {
     
-    override val isValidated: Boolean
+    override val validated: Boolean
       get() = false
 }

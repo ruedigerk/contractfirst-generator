@@ -8,16 +8,15 @@ import com.squareup.javapoet.TypeName
 import com.squareup.javapoet.TypeSpec
 import de.rk42.openapi.codegen.CliConfiguration
 import de.rk42.openapi.codegen.java.Identifiers.capitalize
-import de.rk42.openapi.codegen.java.JavaTypes.toTypeName
-import de.rk42.openapi.codegen.java.JavapoetHelper.doIf
-import de.rk42.openapi.codegen.java.JavapoetHelper.doIfNotNull
-import de.rk42.openapi.codegen.java.JavapoetHelper.toAnnotation
-import de.rk42.openapi.codegen.java.model.JavaBuiltIn
-import de.rk42.openapi.codegen.java.model.JavaClass
-import de.rk42.openapi.codegen.java.model.JavaEnum
+import de.rk42.openapi.codegen.java.Javapoet.doIf
+import de.rk42.openapi.codegen.java.Javapoet.doIfNotNull
+import de.rk42.openapi.codegen.java.Javapoet.toAnnotation
+import de.rk42.openapi.codegen.java.Javapoet.toTypeName
+import de.rk42.openapi.codegen.java.model.JavaClassFile
+import de.rk42.openapi.codegen.java.model.JavaEnumFile
 import de.rk42.openapi.codegen.java.model.JavaProperty
+import de.rk42.openapi.codegen.java.model.JavaSourceFile
 import de.rk42.openapi.codegen.java.model.JavaSpecification
-import de.rk42.openapi.codegen.java.model.JavaType
 import java.io.File
 import java.util.*
 import javax.lang.model.element.Modifier.PRIVATE
@@ -34,7 +33,7 @@ class ModelGenerator(configuration: CliConfiguration) {
   private val modelPackage = "${configuration.sourcePackage}.model"
 
   fun generateCode(specification: JavaSpecification) {
-    specification.typesToGenerate.asSequence()
+    specification.modelFiles.asSequence()
         .map(::toJavaFile)
         .forEach(this::writeFile)
   }
@@ -43,11 +42,10 @@ class ModelGenerator(configuration: CliConfiguration) {
     javaFile.writeTo(outputDir)
   }
 
-  private fun toJavaFile(javaType: JavaType): JavaFile {
-    val typeSpec = when (javaType) {
-      is JavaClass -> toJavaClass(javaType)
-      is JavaEnum -> toJavaEnum(javaType)
-      is JavaBuiltIn -> throw IllegalArgumentException("Error: trying to generate model class for JavaBuiltIn $javaType")
+  private fun toJavaFile(sourceFile: JavaSourceFile): JavaFile {
+    val typeSpec = when (sourceFile) {
+      is JavaClassFile -> toJavaClass(sourceFile)
+      is JavaEnumFile -> toJavaEnum(sourceFile)
     }
 
     return JavaFile.builder(modelPackage, typeSpec)
@@ -55,16 +53,15 @@ class ModelGenerator(configuration: CliConfiguration) {
         .build()
   }
 
-  private fun toJavaClass(javaClass: JavaClass): TypeSpec {
-    val fields = javaClass.properties.map(::toField)
-
-    val accessors = javaClass.properties.flatMap { generateAccessorMethods(it, javaClass.className) }
-    val equals = generateEquals(javaClass.className.toTypeName(), fields)
+  private fun toJavaClass(classFile: JavaClassFile): TypeSpec {
+    val fields = classFile.properties.map(::toField)
+    val accessors = classFile.properties.flatMap { generateAccessorMethods(it, classFile.className) }
+    val equals = generateEquals(classFile.className.toTypeName(), fields)
     val hashCode = generateHashCode(fields)
-    val toString = generateToString(javaClass.className, fields)
+    val toString = generateToString(classFile.className, fields)
 
-    return TypeSpec.classBuilder(javaClass.className)
-        .doIfNotNull(javaClass.javadoc) { addJavadoc(it) }
+    return TypeSpec.classBuilder(classFile.className)
+        .doIfNotNull(classFile.javadoc) { addJavadoc(it) }
         .addModifiers(PUBLIC)
         .addFields(fields)
         .addMethods(accessors)
@@ -86,36 +83,36 @@ class ModelGenerator(configuration: CliConfiguration) {
   }
 
   private fun generateSetter(property: JavaProperty, propertyTypeName: TypeName): MethodSpec =
-      MethodSpec.methodBuilder("set${property.javaIdentifier.capitalize()}")
+      MethodSpec.methodBuilder("set${property.javaName.capitalize()}")
           .addModifiers(PUBLIC)
-          .addParameter(propertyTypeName, property.javaIdentifier)
-          .addStatement("this.\$1N = \$1N", property.javaIdentifier)
+          .addParameter(propertyTypeName, property.javaName)
+          .addStatement("this.\$1N = \$1N", property.javaName)
           .build()
 
   private fun generateBuilderSetter(property: JavaProperty, className: String, propertyTypeName: TypeName): MethodSpec =
-      MethodSpec.methodBuilder(property.javaIdentifier)
+      MethodSpec.methodBuilder(property.javaName)
           .addModifiers(PUBLIC)
           .returns(className.toTypeName())
-          .addParameter(propertyTypeName, property.javaIdentifier)
-          .addStatement("this.\$1N = \$1N", property.javaIdentifier)
-          .addStatement("return this", property.javaIdentifier)
+          .addParameter(propertyTypeName, property.javaName)
+          .addStatement("this.\$1N = \$1N", property.javaName)
+          .addStatement("return this", property.javaName)
           .build()
 
   private fun generateGetter(property: JavaProperty, propertyTypeName: TypeName): MethodSpec {
-    return MethodSpec.methodBuilder("get${property.javaIdentifier.capitalize()}")
+    return MethodSpec.methodBuilder("get${property.javaName.capitalize()}")
         .doIfNotNull(property.javadoc) { addJavadoc(it) }
         .addModifiers(PUBLIC)
         .returns(propertyTypeName)
-        .addStatement("return \$N", property.javaIdentifier)
+        .addStatement("return \$N", property.javaName)
         // Required fields are annotated with @NotNull.
         .doIf(property.required) { addAnnotation("javax.validation.constraints.NotNull".toTypeName()) }
         // Fields of generated types (e.g. not java.lang.String) are annotated with @Valid.
-        .doIf(property.type.isValidated) { addAnnotation("javax.validation.Valid".toTypeName()) }
+        .doIf(property.type.validated) { addAnnotation("javax.validation.Valid".toTypeName()) }
         .build()
   }
 
   private fun toField(property: JavaProperty): FieldSpec {
-    return FieldSpec.builder(property.type.toTypeName(), property.javaIdentifier, PRIVATE).build()
+    return FieldSpec.builder(property.type.toTypeName(), property.javaName, PRIVATE).build()
   }
 
   private fun generateEquals(/*nameAllocator: NameAllocator,*/ thisTypeName: TypeName, fields: List<FieldSpec>): MethodSpec {
@@ -227,15 +224,15 @@ class ModelGenerator(configuration: CliConfiguration) {
     return result.build()
   }
 
-  private fun toJavaEnum(enum: JavaEnum): TypeSpec {
-    val builder = TypeSpec.enumBuilder(enum.className)
+  private fun toJavaEnum(enumFile: JavaEnumFile): TypeSpec {
+    val builder = TypeSpec.enumBuilder(enumFile.className)
         .addModifiers(PUBLIC)
 
-    enum.values.forEach { enumConstant ->
+    enumFile.values.forEach { enumConstant ->
       val serializedNameAnnotation = toAnnotation("com.google.gson.annotations.SerializedName", enumConstant.originalName)
       val typeSpec = TypeSpec.anonymousClassBuilder("").addAnnotation(serializedNameAnnotation).build()
 
-      builder.addEnumConstant(enumConstant.javaIdentifier, typeSpec)
+      builder.addEnumConstant(enumConstant.javaName, typeSpec)
     }
 
     return builder.build()

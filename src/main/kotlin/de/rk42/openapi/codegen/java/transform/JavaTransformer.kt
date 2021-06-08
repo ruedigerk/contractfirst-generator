@@ -32,7 +32,7 @@ class JavaTransformer(private val configuration: CliConfiguration) {
 
     return JavaSpecification(
         groupOperations(specification.operations),
-        schemaTransformer.typesToGenerate
+        schemaTransformer.transformJavaModelFiles()
     )
   }
 
@@ -88,7 +88,7 @@ class JavaTransformer(private val configuration: CliConfiguration) {
         requestBody.description ?: TransformerHelper.toJavadoc(schema as CtrSchemaNonRef),
         JavaBodyParameter,
         requestBody.required,
-        schemaTransformer.lookupReference(schema)
+        schemaTransformer.lookupJavaTypeFor(schema)
     )
   }
 
@@ -97,7 +97,7 @@ class JavaTransformer(private val configuration: CliConfiguration) {
       parameter.description ?: TransformerHelper.toJavadoc(parameter.schema as CtrSchemaNonRef),
       JavaRegularParameterLocation(parameter.name, parameter.location),
       parameter.required,
-      schemaTransformer.lookupReference(parameter.schema)
+      schemaTransformer.lookupJavaTypeFor(parameter.schema)
   )
 
   private fun toJavaResponse(response: CtrResponse): JavaResponse = JavaResponse(
@@ -107,7 +107,7 @@ class JavaTransformer(private val configuration: CliConfiguration) {
 
   private fun toJavaResponseContent(content: CtrContent): JavaContent = JavaContent(
       content.mediaType,
-      schemaTransformer.lookupReference(content.schema)
+      schemaTransformer.lookupJavaTypeFor(content.schema)
   )
 
   companion object {
