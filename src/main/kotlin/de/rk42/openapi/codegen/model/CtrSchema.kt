@@ -1,5 +1,7 @@
 package de.rk42.openapi.codegen.model
 
+import java.math.BigDecimal
+
 sealed interface CtrSchema
 
 data class CtrSchemaRef(
@@ -39,13 +41,18 @@ data class CtrSchemaArray(
     override val title: String?,
     override val description: String?,
     var itemSchema: CtrSchema,
-    override var referencedBy: CtrSchemaRef? = null
+    val uniqueItems: Boolean,
+    val minItems: Int?,
+    val maxItems: Int?,
+    override var referencedBy: CtrSchemaRef? = null,
 ) : CtrSchemaNonRef
 
 data class CtrSchemaMap(
     override val title: String?,
     override val description: String?,
     var valuesSchema: CtrSchema,
+    val minItems: Int?,
+    val maxItems: Int?,
     override var referencedBy: CtrSchemaRef? = null
 ) : CtrSchemaNonRef
 
@@ -64,6 +71,13 @@ data class CtrSchemaPrimitive(
     override val description: String?,
     val type: CtrPrimitiveType,
     val format: String?,
+    val minimum: BigDecimal?,
+    val maximum: BigDecimal?,
+    val exclusiveMinimum: Boolean,
+    val exclusiveMaximum: Boolean,
+    val minLength: Int?,
+    val maxLength: Int?,
+    val pattern: String?,
     override var referencedBy: CtrSchemaRef? = null
 ) : CtrSchemaNonRef
 

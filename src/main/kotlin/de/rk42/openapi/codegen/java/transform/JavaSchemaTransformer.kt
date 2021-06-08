@@ -4,7 +4,9 @@ import de.rk42.openapi.codegen.CliConfiguration
 import de.rk42.openapi.codegen.java.Identifiers.toJavaConstant
 import de.rk42.openapi.codegen.java.Identifiers.toJavaIdentifier
 import de.rk42.openapi.codegen.java.Identifiers.toJavaTypeIdentifier
+import de.rk42.openapi.codegen.java.model.DecimalValidation
 import de.rk42.openapi.codegen.java.model.EnumConstant
+import de.rk42.openapi.codegen.java.model.IntegralValidation
 import de.rk42.openapi.codegen.java.model.JavaAnyType
 import de.rk42.openapi.codegen.java.model.JavaClassFile
 import de.rk42.openapi.codegen.java.model.JavaCollectionType
@@ -13,6 +15,12 @@ import de.rk42.openapi.codegen.java.model.JavaMapType
 import de.rk42.openapi.codegen.java.model.JavaProperty
 import de.rk42.openapi.codegen.java.model.JavaSourceFile
 import de.rk42.openapi.codegen.java.model.JavaType
+import de.rk42.openapi.codegen.java.model.NumericValidationType.MAX
+import de.rk42.openapi.codegen.java.model.NumericValidationType.MIN
+import de.rk42.openapi.codegen.java.model.PatternValidation
+import de.rk42.openapi.codegen.java.model.SizeValidation
+import de.rk42.openapi.codegen.java.model.TypeValidation
+import de.rk42.openapi.codegen.java.model.ValidatedValidation
 import de.rk42.openapi.codegen.model.CtrPrimitiveType.BOOLEAN
 import de.rk42.openapi.codegen.model.CtrPrimitiveType.INTEGER
 import de.rk42.openapi.codegen.model.CtrPrimitiveType.NUMBER
@@ -78,7 +86,8 @@ class JavaSchemaTransformer(
 }
 
 /**
- * Transforms the parsed Schemas into Java types, assigning unique and valid type names. This needs to be done before creating Java source file models.
+ * Transforms the parsed Schemas into Java types, assigning unique and valid type names. This needs to be done before creating Java source file models for these
+ * types.
  */
 private class JavaSchemaToTypeTransformer(private val configuration: CliConfiguration, allSchemas: List<CtrSchemaNonRef>) {
 
@@ -106,20 +115,25 @@ private class JavaSchemaToTypeTransformer(private val configuration: CliConfigur
   private fun toJavaSimpleType(name: String?, isRegularClass: Boolean): JavaType {
     val typeName = name?.toJavaTypeIdentifier() ?: createUniqueTypeName()
     val finalTypeName = configuration.modelPrefix + typeName
+    val validations = if (isRegularClass) listOf(ValidatedValidation) else emptyList()
 
-    return JavaType(finalTypeName, modelPackage, isRegularClass)
+    return JavaType(finalTypeName, modelPackage, validations)
   }
 
+  private fun createUniqueTypeName(): String = "Type$uniqueNameCounter".also { uniqueNameCounter++ }
+  
   private fun toJavaCollectionType(schema: CtrSchemaArray): JavaCollectionType {
     val elementSchema = schema.itemSchema as? CtrSchemaNonRef ?: throw IllegalArgumentException("Unexpected SchemaRef in $schema")
-    val elementReference = toJavaType(elementSchema)
-    return JavaCollectionType("List", "java.util", elementReference)
+    val elementType = toJavaType(elementSchema)
+    val typeName = if (schema.uniqueItems) "Set" else "List"
+    
+    return JavaCollectionType(typeName, "java.util", elementType, sizeValidations(schema.minItems, schema.maxItems))
   }
 
   private fun toJavaMapType(schema: CtrSchemaMap): JavaMapType {
     val valuesSchema = schema.valuesSchema as? CtrSchemaNonRef ?: throw IllegalArgumentException("Unexpected SchemaRef in $schema")
-    val valuesReference = toJavaType(valuesSchema)
-    return JavaMapType("Map", "java.util", valuesReference)
+    val valuesType = toJavaType(valuesSchema)
+    return JavaMapType("Map", "java.util", valuesType, sizeValidations(schema.minItems, schema.maxItems))
   }
 
   /**
@@ -128,23 +142,71 @@ private class JavaSchemaToTypeTransformer(private val configuration: CliConfigur
    *  - "binary": any sequence of octets
    */
   private fun toJavaBuiltInType(schema: CtrSchemaPrimitive): JavaType = when (schema.type) {
-    BOOLEAN -> JavaType("Boolean", "java.lang", false)
-    INTEGER -> when (schema.format) {
-      "int32" -> JavaType("Integer", "java.lang", false)
-      "int64" -> JavaType("Long", "java.lang", false)
-      else -> JavaType("BigInteger", "java.math", false)
+    
+    BOOLEAN -> JavaType("Boolean", "java.lang")
+    
+    INTEGER -> {
+      val validations = integralValidations(schema)
+      
+      when (schema.format) {
+        "int32" -> JavaType("Integer", "java.lang", validations)
+        "int64" -> JavaType("Long", "java.lang", validations)
+        else -> JavaType("BigInteger", "java.math", validations)
+      }
     }
-    NUMBER -> when (schema.format) {
-      "float" -> JavaType("Float", "java.lang", false)
-      "double" -> JavaType("Double", "java.lang", false)
-      else -> JavaType("BigDecimal", "java.math", false)
+    
+    NUMBER -> {
+      val validations = decimalValidations(schema)
+      
+      when (schema.format) {
+        "float" -> JavaType("Float", "java.lang", validations)
+        "double" -> JavaType("Double", "java.lang", validations)
+        else -> JavaType("BigDecimal", "java.math", validations)
+      }
     }
+    
     STRING -> when (schema.format) {
-      "date" -> JavaType("LocalDate", "java.time", false)
-      "date-time" -> JavaType("OffsetDateTime", "java.time", false)
-      else -> JavaType("String", "java.lang", false)
+      "date" -> JavaType("LocalDate", "java.time")
+      "date-time" -> JavaType("OffsetDateTime", "java.time")
+      else -> JavaType("String", "java.lang", sizeValidations(schema.minLength, schema.maxLength) + patternValidations(schema))
     }
   }
 
-  private fun createUniqueTypeName(): String = "Type$uniqueNameCounter".also { uniqueNameCounter++ }
+  private fun integralValidations(schema: CtrSchemaPrimitive): List<TypeValidation> {
+    val validations = mutableListOf<TypeValidation>()
+    
+    if (schema.minimum != null) {
+      validations.add(IntegralValidation(MIN, schema.minimum.toLong()))
+    }
+    if (schema.maximum != null) {
+      validations.add(IntegralValidation(MAX, schema.maximum.toLong()))
+    }
+    
+    return validations.toList()
+  }
+
+  private fun decimalValidations(schema: CtrSchemaPrimitive): List<TypeValidation> {
+    val validations = mutableListOf<TypeValidation>()
+
+    if (schema.minimum != null) {
+      validations.add(DecimalValidation(MIN, schema.minimum, !schema.exclusiveMinimum))
+    }
+    if (schema.maximum != null) {
+      validations.add(DecimalValidation(MAX, schema.maximum, !schema.exclusiveMaximum))
+    }
+
+    return validations.toList()
+  }
+
+  private fun sizeValidations(minSize: Int?, maxSize: Int?): List<TypeValidation> = if (minSize != null || maxSize != null) {
+    listOf(SizeValidation(minSize, maxSize))
+  } else {
+    emptyList()
+  }
+
+  private fun patternValidations(schema: CtrSchemaPrimitive): List<TypeValidation> = if (schema.pattern != null) {
+    listOf(PatternValidation(schema.pattern))
+  } else {
+    emptyList()
+  }
 }

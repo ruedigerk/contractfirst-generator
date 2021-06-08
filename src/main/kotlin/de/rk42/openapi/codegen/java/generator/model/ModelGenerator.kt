@@ -8,10 +8,11 @@ import com.squareup.javapoet.TypeName
 import com.squareup.javapoet.TypeSpec
 import de.rk42.openapi.codegen.CliConfiguration
 import de.rk42.openapi.codegen.java.Identifiers.capitalize
-import de.rk42.openapi.codegen.java.Javapoet.doIf
-import de.rk42.openapi.codegen.java.Javapoet.doIfNotNull
-import de.rk42.openapi.codegen.java.Javapoet.toAnnotation
-import de.rk42.openapi.codegen.java.Javapoet.toTypeName
+import de.rk42.openapi.codegen.java.generator.GeneratorCommon
+import de.rk42.openapi.codegen.java.generator.GeneratorCommon.toAnnotation
+import de.rk42.openapi.codegen.java.generator.GeneratorCommon.toTypeName
+import de.rk42.openapi.codegen.java.generator.JavapoetExtensions.doIf
+import de.rk42.openapi.codegen.java.generator.JavapoetExtensions.doIfNotNull
 import de.rk42.openapi.codegen.java.model.JavaClassFile
 import de.rk42.openapi.codegen.java.model.JavaEnumFile
 import de.rk42.openapi.codegen.java.model.JavaProperty
@@ -99,15 +100,15 @@ class ModelGenerator(configuration: CliConfiguration) {
           .build()
 
   private fun generateGetter(property: JavaProperty, propertyTypeName: TypeName): MethodSpec {
+    val typeValidationAnnotations = property.type.validations.map(GeneratorCommon::toAnnotation)
+    
     return MethodSpec.methodBuilder("get${property.javaName.capitalize()}")
         .doIfNotNull(property.javadoc) { addJavadoc(it) }
         .addModifiers(PUBLIC)
         .returns(propertyTypeName)
         .addStatement("return \$N", property.javaName)
-        // Required fields are annotated with @NotNull.
         .doIf(property.required) { addAnnotation("javax.validation.constraints.NotNull".toTypeName()) }
-        // Fields of generated types (e.g. not java.lang.String) are annotated with @Valid.
-        .doIf(property.type.validated) { addAnnotation("javax.validation.Valid".toTypeName()) }
+        .addAnnotations(typeValidationAnnotations)
         .build()
   }
 

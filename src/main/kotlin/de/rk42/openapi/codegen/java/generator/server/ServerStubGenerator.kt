@@ -9,10 +9,11 @@ import com.squareup.javapoet.TypeSpec
 import de.rk42.openapi.codegen.CliConfiguration
 import de.rk42.openapi.codegen.java.Identifiers.capitalize
 import de.rk42.openapi.codegen.java.Identifiers.mediaTypeToJavaIdentifier
-import de.rk42.openapi.codegen.java.Javapoet.doIf
-import de.rk42.openapi.codegen.java.Javapoet.doIfNotNull
-import de.rk42.openapi.codegen.java.Javapoet.toAnnotation
-import de.rk42.openapi.codegen.java.Javapoet.toTypeName
+import de.rk42.openapi.codegen.java.generator.GeneratorCommon
+import de.rk42.openapi.codegen.java.generator.GeneratorCommon.toAnnotation
+import de.rk42.openapi.codegen.java.generator.GeneratorCommon.toTypeName
+import de.rk42.openapi.codegen.java.generator.JavapoetExtensions.doIf
+import de.rk42.openapi.codegen.java.generator.JavapoetExtensions.doIfNotNull
 import de.rk42.openapi.codegen.java.model.JavaContent
 import de.rk42.openapi.codegen.java.model.JavaOperation
 import de.rk42.openapi.codegen.java.model.JavaOperationGroup
@@ -80,10 +81,13 @@ class ServerStubGenerator(private val configuration: CliConfiguration) {
   }
 
   private fun toParameterSpec(parameter: JavaParameter): ParameterSpec {
+    val typeValidationAnnotations = parameter.javaType.validations.map(GeneratorCommon::toAnnotation)
+
     return ParameterSpec.builder(parameter.javaType.toTypeName(), parameter.javaIdentifier)
         .doIfNotNull(parameter.location as? JavaRegularParameterLocation) { addAnnotation(paramAnnotation(it)) }
         .doIf(parameter.required) { addAnnotation(toAnnotation("javax.validation.constraints.NotNull")) }
-        .doIf(parameter.javaType.validated) { addAnnotation(toAnnotation("javax.validation.Valid")) }.build()
+        .addAnnotations(typeValidationAnnotations)
+        .build()
   }
 
   private fun paramAnnotation(parameter: JavaRegularParameterLocation): AnnotationSpec {
