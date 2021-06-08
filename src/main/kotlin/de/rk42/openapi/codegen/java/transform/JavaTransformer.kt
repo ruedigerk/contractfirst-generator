@@ -45,12 +45,12 @@ class JavaTransformer(private val configuration: CliConfiguration) {
   private fun toJavaOperation(operation: CtrOperation): JavaOperation {
     val requestBodySchemas = operation.requestBody?.contents?.map { it.schema }?.toSet() ?: emptySet()
     if (requestBodySchemas.size > 1) {
-      throw NotSupportedException("Different response body schemas for a single operation are not supported: $operation")
+      throw NotSupportedException("Different request body schemas for a single operation are not supported: $operation")
     }
 
     val requestBodyMediaTypes = operation.requestBody?.contents?.map { it.mediaType }?.toSet() ?: emptySet()
-    val bodyParameter = operation.requestBody?.let { listOf(it).map(::toBodyParameter) } ?: emptyList()
-    val parameters = operation.parameters.map(::toJavaParameter) + bodyParameter
+    val bodyParameterAsList = operation.requestBody?.let { listOf(toBodyParameter(it)) } ?: emptyList()
+    val parameters = operation.parameters.map(::toJavaParameter) + bodyParameterAsList
 
     return JavaOperation(
         operation.operationId.toJavaIdentifier(),

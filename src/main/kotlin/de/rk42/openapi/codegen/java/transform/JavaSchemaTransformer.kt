@@ -146,5 +146,5 @@ private class JavaSchemaToTypeTransformer(private val configuration: CliConfigur
     }
   }
 
-  private fun createUniqueTypeName(): String = "Type$uniqueNameCounter"
+  private fun createUniqueTypeName(): String = "Type$uniqueNameCounter".also { uniqueNameCounter++ }
 }
