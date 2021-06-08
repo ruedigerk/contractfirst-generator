@@ -10,6 +10,7 @@ import de.rk42.openapi.codegen.CliConfiguration
 import de.rk42.openapi.codegen.java.Identifiers.capitalize
 import de.rk42.openapi.codegen.java.Identifiers.mediaTypeToJavaIdentifier
 import de.rk42.openapi.codegen.java.generator.GeneratorCommon
+import de.rk42.openapi.codegen.java.generator.GeneratorCommon.NOT_NULL_ANNOTATION
 import de.rk42.openapi.codegen.java.generator.GeneratorCommon.toAnnotation
 import de.rk42.openapi.codegen.java.generator.GeneratorCommon.toTypeName
 import de.rk42.openapi.codegen.java.generator.JavapoetExtensions.doIf
@@ -85,7 +86,7 @@ class ServerStubGenerator(private val configuration: CliConfiguration) {
 
     return ParameterSpec.builder(parameter.javaType.toTypeName(), parameter.javaIdentifier)
         .doIfNotNull(parameter.location as? JavaRegularParameterLocation) { addAnnotation(paramAnnotation(it)) }
-        .doIf(parameter.required) { addAnnotation(toAnnotation("javax.validation.constraints.NotNull")) }
+        .doIf(parameter.required) { addAnnotation(NOT_NULL_ANNOTATION) }
         .addAnnotations(typeValidationAnnotations)
         .build()
   }

@@ -13,7 +13,8 @@ data class JavaProperty(
     val javadoc: String?,
     val originalName: String,
     val required: Boolean,
-    var type: JavaAnyType
+    val type: JavaAnyType,
+    val initializerType: JavaAnyType?
 )
 
 data class JavaEnumFile(

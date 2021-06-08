@@ -67,13 +67,22 @@ class JavaSchemaTransformer(
 
   private fun toJavaProperty(property: CtrSchemaProperty): JavaProperty {
     val schema = property.schema as? CtrSchemaNonRef ?: throw IllegalArgumentException("Unexpected SchemaRef in $property")
+    val type = referenceTransformer.lookupJavaTypeFor(schema)
+
+    val initializer = when {
+      type is JavaCollectionType && type.name == "Set" -> JavaType("HashSet", "java.util")
+      type is JavaCollectionType -> JavaType("ArrayList", "java.util")
+      type is JavaMapType -> JavaType("HashMap", "java.util")
+      else -> null
+    }
 
     return JavaProperty(
         property.name.toJavaIdentifier(),
         TransformerHelper.toJavadoc(schema),
         property.name,
         property.required,
-        referenceTransformer.lookupJavaTypeFor(schema)
+        type,
+        initializer
     )
   }
 
@@ -121,19 +130,22 @@ private class JavaSchemaToTypeTransformer(private val configuration: CliConfigur
   }
 
   private fun createUniqueTypeName(): String = "Type$uniqueNameCounter".also { uniqueNameCounter++ }
-  
+
   private fun toJavaCollectionType(schema: CtrSchemaArray): JavaCollectionType {
     val elementSchema = schema.itemSchema as? CtrSchemaNonRef ?: throw IllegalArgumentException("Unexpected SchemaRef in $schema")
     val elementType = toJavaType(elementSchema)
     val typeName = if (schema.uniqueItems) "Set" else "List"
-    
-    return JavaCollectionType(typeName, "java.util", elementType, sizeValidations(schema.minItems, schema.maxItems))
+    val elementValidations = if (ValidatedValidation in elementType.validations) listOf(ValidatedValidation) else emptyList()
+
+    return JavaCollectionType(typeName, "java.util", elementType, elementValidations + sizeValidations(schema.minItems, schema.maxItems))
   }
 
   private fun toJavaMapType(schema: CtrSchemaMap): JavaMapType {
     val valuesSchema = schema.valuesSchema as? CtrSchemaNonRef ?: throw IllegalArgumentException("Unexpected SchemaRef in $schema")
     val valuesType = toJavaType(valuesSchema)
-    return JavaMapType("Map", "java.util", valuesType, sizeValidations(schema.minItems, schema.maxItems))
+    val elementValidations = if (ValidatedValidation in valuesType.validations) listOf(ValidatedValidation) else emptyList()
+
+    return JavaMapType("Map", "java.util", valuesType, elementValidations + sizeValidations(schema.minItems, schema.maxItems))
   }
 
   /**
@@ -142,29 +154,29 @@ private class JavaSchemaToTypeTransformer(private val configuration: CliConfigur
    *  - "binary": any sequence of octets
    */
   private fun toJavaBuiltInType(schema: CtrSchemaPrimitive): JavaType = when (schema.type) {
-    
+
     BOOLEAN -> JavaType("Boolean", "java.lang")
-    
+
     INTEGER -> {
       val validations = integralValidations(schema)
-      
+
       when (schema.format) {
         "int32" -> JavaType("Integer", "java.lang", validations)
         "int64" -> JavaType("Long", "java.lang", validations)
         else -> JavaType("BigInteger", "java.math", validations)
       }
     }
-    
+
     NUMBER -> {
       val validations = decimalValidations(schema)
-      
+
       when (schema.format) {
         "float" -> JavaType("Float", "java.lang", validations)
         "double" -> JavaType("Double", "java.lang", validations)
         else -> JavaType("BigDecimal", "java.math", validations)
       }
     }
-    
+
     STRING -> when (schema.format) {
       "date" -> JavaType("LocalDate", "java.time")
       "date-time" -> JavaType("OffsetDateTime", "java.time")
@@ -174,14 +186,14 @@ private class JavaSchemaToTypeTransformer(private val configuration: CliConfigur
 
   private fun integralValidations(schema: CtrSchemaPrimitive): List<TypeValidation> {
     val validations = mutableListOf<TypeValidation>()
-    
+
     if (schema.minimum != null) {
       validations.add(IntegralValidation(MIN, schema.minimum.toLong()))
     }
     if (schema.maximum != null) {
       validations.add(IntegralValidation(MAX, schema.maximum.toLong()))
     }
-    
+
     return validations.toList()
   }
 

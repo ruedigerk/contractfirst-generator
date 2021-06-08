@@ -19,6 +19,10 @@ import de.rk42.openapi.codegen.java.model.ValidatedValidation
 
 object GeneratorCommon {
 
+  private val VALID_ANNOTATION: AnnotationSpec = toAnnotation("javax.validation.Valid")
+  
+  val NOT_NULL_ANNOTATION: AnnotationSpec = toAnnotation("javax.validation.constraints.NotNull")
+  
   fun String.toTypeName(): ClassName = ClassName.bestGuess(this)
 
   fun JavaAnyType.toTypeName(): TypeName {
@@ -84,7 +88,7 @@ object GeneratorCommon {
       is PatternValidation ->
         AnnotationSpec.builder("javax.validation.constraints.Pattern".toTypeName()).addMember("regexp", "\$S", validation.pattern).build()
 
-      is ValidatedValidation -> toAnnotation("javax.validation.Valid")
+      is ValidatedValidation -> VALID_ANNOTATION
     }
   }
 }

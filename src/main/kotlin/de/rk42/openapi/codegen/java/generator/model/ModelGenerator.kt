@@ -9,6 +9,7 @@ import com.squareup.javapoet.TypeSpec
 import de.rk42.openapi.codegen.CliConfiguration
 import de.rk42.openapi.codegen.java.Identifiers.capitalize
 import de.rk42.openapi.codegen.java.generator.GeneratorCommon
+import de.rk42.openapi.codegen.java.generator.GeneratorCommon.NOT_NULL_ANNOTATION
 import de.rk42.openapi.codegen.java.generator.GeneratorCommon.toAnnotation
 import de.rk42.openapi.codegen.java.generator.GeneratorCommon.toTypeName
 import de.rk42.openapi.codegen.java.generator.JavapoetExtensions.doIf
@@ -101,19 +102,21 @@ class ModelGenerator(configuration: CliConfiguration) {
 
   private fun generateGetter(property: JavaProperty, propertyTypeName: TypeName): MethodSpec {
     val typeValidationAnnotations = property.type.validations.map(GeneratorCommon::toAnnotation)
-    
+
     return MethodSpec.methodBuilder("get${property.javaName.capitalize()}")
         .doIfNotNull(property.javadoc) { addJavadoc(it) }
         .addModifiers(PUBLIC)
         .returns(propertyTypeName)
         .addStatement("return \$N", property.javaName)
-        .doIf(property.required) { addAnnotation("javax.validation.constraints.NotNull".toTypeName()) }
+        .doIf(property.required) { addAnnotation(NOT_NULL_ANNOTATION) }
         .addAnnotations(typeValidationAnnotations)
         .build()
   }
 
   private fun toField(property: JavaProperty): FieldSpec {
-    return FieldSpec.builder(property.type.toTypeName(), property.javaName, PRIVATE).build()
+    return FieldSpec.builder(property.type.toTypeName(), property.javaName, PRIVATE)
+        .doIfNotNull(property.initializerType) { initializer("new \$T<>()", it.toTypeName()) }
+        .build()
   }
 
   private fun generateEquals(/*nameAllocator: NameAllocator,*/ thisTypeName: TypeName, fields: List<FieldSpec>): MethodSpec {
@@ -227,6 +230,7 @@ class ModelGenerator(configuration: CliConfiguration) {
 
   private fun toJavaEnum(enumFile: JavaEnumFile): TypeSpec {
     val builder = TypeSpec.enumBuilder(enumFile.className)
+        .doIfNotNull(enumFile.javadoc) { addJavadoc(it) }
         .addModifiers(PUBLIC)
 
     enumFile.values.forEach { enumConstant ->
