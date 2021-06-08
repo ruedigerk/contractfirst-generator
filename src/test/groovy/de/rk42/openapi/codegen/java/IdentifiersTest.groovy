@@ -1,12 +1,12 @@
-package de.rk42.openapi.codegen
+package de.rk42.openapi.codegen.java
 
 import spock.lang.Specification
 
-class NamesTest extends Specification {
+class IdentifiersTest extends Specification {
 
   def "toJavaIdentifier"() {
     expect:
-    Names.toJavaIdentifier(input) == expected
+    Identifiers.toJavaIdentifier(input) == expected
 
     where:
     input                    | expected
@@ -24,7 +24,7 @@ class NamesTest extends Specification {
 
   def "toJavaTypeIdentifier"() {
     expect:
-    Names.toJavaTypeIdentifier(input) == expected
+    Identifiers.toJavaTypeIdentifier(input) == expected
 
     where:
     input                    | expected
@@ -42,7 +42,7 @@ class NamesTest extends Specification {
 
   def "toJavaConstant"() {
     expect:
-    Names.toJavaConstant(input) == expected
+    Identifiers.toJavaConstant(input) == expected
 
     where:
     input                    | expected
@@ -62,7 +62,7 @@ class NamesTest extends Specification {
 
   def "mediaTypeToJavaIdentifier"() {
     expect:
-    Names.mediaTypeToJavaIdentifier(input) == expected
+    Identifiers.mediaTypeToJavaIdentifier(input) == expected
 
     where:
     input                             | expected
@@ -75,7 +75,7 @@ class NamesTest extends Specification {
 
   def "capitalize"() {
     expect:
-    Names.capitalize(input) == expected
+    Identifiers.capitalize(input) == expected
 
     where:
     input   | expected
@@ -87,7 +87,7 @@ class NamesTest extends Specification {
 
   def "camelize"() {
     expect:
-    Names.toCamelCase(input, uppercaseFirstLetter) == expected
+    Identifiers.toCamelCase(input, uppercaseFirstLetter) == expected
 
     where:
     input                    | uppercaseFirstLetter | expected

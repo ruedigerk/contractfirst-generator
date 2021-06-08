@@ -1,13 +1,12 @@
 package codegen
 
-import codegen.testframework.GeneratorHarness
 import spock.lang.Specification
 
 class GeneratorTest extends Specification {
 
   static def simpleHarness = new GeneratorHarness("src/test/contract/petstore-simple.yaml", "petstoresimple")
   
-  def "Test petstore-simple.yaml"() {
+  def "Test petstore-simple: #fileName"() {
     when:
     simpleHarness.runGenerator()
     
@@ -18,6 +17,7 @@ class GeneratorTest extends Specification {
     generatedFile.text == referenceFile.text
 
     where:
+    fileName << simpleHarness.relativePathNames
     referenceFile << simpleHarness.referenceFiles
     generatedFile << simpleHarness.generatedFiles
   }
