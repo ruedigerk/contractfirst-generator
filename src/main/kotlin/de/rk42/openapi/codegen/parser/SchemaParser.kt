@@ -15,12 +15,17 @@ import de.rk42.openapi.codegen.parser.ParserHelper.normalize
 import de.rk42.openapi.codegen.parser.ParserHelper.nullToEmpty
 import io.swagger.v3.oas.models.media.ArraySchema
 import io.swagger.v3.oas.models.media.Schema
+import org.slf4j.Logger
+import org.slf4j.LoggerFactory
 
 object SchemaParser {
 
+  private val log: Logger = LoggerFactory.getLogger(SchemaParser::class.java)
+  
   fun parseTopLevelSchemas(schemas: Map<String, Schema<Any>>): Map<CtrSchemaRef, CtrSchemaNonRef> = schemas
       .mapKeys { CtrSchemaRef("#/components/schemas/${it.key}") }
       .mapValues { toTopLevelSchema(it.value) }
+      .onEach { log.debug("Parsed schema: {}", it.key.reference) }
 
   private fun toTopLevelSchema(schema: Schema<Any>): CtrSchemaNonRef =
       (parseSchema(schema) as? CtrSchemaNonRef) ?: throw NotSupportedException("Unsupported schema reference in #/components/schemas: $schema")
@@ -82,10 +87,10 @@ object SchemaParser {
       throw NotSupportedException("Object schemas having both properties and additionalProperties are not supported, just either or: $schema")
     }
 
-    val additionalPropertiesSchema = parseAdditionalProperties(schema)
+    val additionalPropertiesValuesSchema = parseAdditionalProperties(schema)
 
-    return if (additionalPropertiesSchema != null) {
-      toMapSchema(schema, additionalPropertiesSchema)
+    return if (additionalPropertiesValuesSchema != null) {
+      toMapSchema(schema, additionalPropertiesValuesSchema)
     } else {
       toObjectSchema(schema)
     }

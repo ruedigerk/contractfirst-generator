@@ -7,6 +7,11 @@ import de.rk42.openapi.codegen.parser.Parser
 
 /**
  * Implements the OpenApiCodegen functionality.
+ * 
+ * TODO:
+ *  - Support inline schemas, e.g. SiCo inline enums.
+ *  - Check why uspto contract generates invalid code.
+ *  - Support allOf, oneOf (anyOf?)
  */
 object OpenApiCodegen {
 

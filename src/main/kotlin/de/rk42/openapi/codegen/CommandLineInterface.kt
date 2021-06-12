@@ -2,26 +2,41 @@ package de.rk42.openapi.codegen
 
 import com.xenomachina.argparser.ArgParser
 import com.xenomachina.argparser.default
+import de.rk42.openapi.codegen.crosscutting.LogbackConfigurator
 import de.rk42.openapi.codegen.parser.ParserException
+import org.slf4j.Logger
+import org.slf4j.LoggerFactory
 
 /**
  * The Command Line Interface for invoking OpenApiCodegen on the command line.
  */
 object CommandLineInterface {
 
+  private val log: Logger = LoggerFactory.getLogger(CommandLineInterface::class.java)
+
   @JvmStatic
   fun main(args: Array<String>) {
-    val configuration = ArgParser(args).parseInto(::CliConfiguration)
+    val config = ArgParser(args).parseInto(::CliConfiguration)
 
-    println("Generating code for contract '${configuration.contractFile}' in output directory '${configuration.outputDir}', package '${configuration.sourcePackage}'")
+    applyLoggingConfiguration(config)
+
+    log.info("Generating code for contract '${config.contractFile}' in output directory '${config.outputDir}', package '${config.sourcePackage}'")
 
     try {
-      OpenApiCodegen.generate(configuration)
+      OpenApiCodegen.generate(config)
     } catch (e: ParserException) {
-      println("Error parsing contract:")
-      e.messages.forEach(::println)
+      val messages = e.messages.joinToString("\n")
+      log.error("Could not parse contract: {}", messages)
     } catch (e: NotSupportedException) {
-      println("Error, contract contains unsupported usage: ${e.message}")
+      log.error("Contract contains unsupported usage: ${e.message}")
+    }
+  }
+
+  private fun applyLoggingConfiguration(config: CliConfiguration) {
+    when {
+      config.verbose && config.quiet -> throw InvalidConfigurationException("Options -q (--quiet) and -v (--verbose) must not be used together")
+      config.verbose -> LogbackConfigurator.verboseLogLevels()
+      config.quiet -> LogbackConfigurator.quietLogLevels()
     }
   }
 }
@@ -32,8 +47,13 @@ class CliConfiguration(parser: ArgParser) {
 
   val outputDir: String by parser.storing("--output-dir", help = "the path to the directory where the generated code is written to")
 
-  // TODO: Validate package for invalid characters etc.
   val sourcePackage: String by parser.storing("--package", help = "the Java package to put generated classes into")
 
   val modelPrefix: String by parser.storing("--model-prefix", help = "the prefix for model file names").default("")
+
+  val verbose: Boolean by parser.flagging("--verbose", "-v", help = "verbose output")
+
+  val quiet: Boolean by parser.flagging("--quit", "-q", help = "quiet output")
 }
+
+class InvalidConfigurationException(msg: String) : RuntimeException(msg)

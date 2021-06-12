@@ -40,7 +40,7 @@ class GeneratorHarness {
   def runGenerator() {
     if (!generatorRan) {
       generatorRan = true
-      CommandLineInterface.main(["--contract", contract, "--output-dir", OUTPUT_DIR, "--package", packageName, "--model-prefix", modelPrefix] as String[])
+      CommandLineInterface.main(["--contract", contract, "--output-dir", OUTPUT_DIR, "--package", packageName, "--model-prefix", modelPrefix, "-v"] as String[])
     }
   }
 
