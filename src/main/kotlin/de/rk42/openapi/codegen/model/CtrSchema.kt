@@ -2,41 +2,50 @@ package de.rk42.openapi.codegen.model
 
 import java.math.BigDecimal
 
+/**
+ * Represents any type of schema in a specification.
+ */
 sealed interface CtrSchema
 
+/**
+ * Represents a schema reference.
+ */
 data class CtrSchemaRef(
     val reference: String
-) : CtrSchema {
+) : CtrSchema
 
-  fun referencedName(): String {
-    val lastSlashIndex = reference.lastIndexOf('/')
-    return reference.substring(lastSlashIndex + 1)
-  }
-}
-
+/**
+ * Represents a schema that is not a schema reference, i.e. a "real" schema.
+ */
 sealed interface CtrSchemaNonRef : CtrSchema {
-  
+
   val title: String?
-  
   val description: String?
-  
-  /** A reference this schema is referenced by (optional) */
-  var referencedBy: CtrSchemaRef?
+  val nameHint: NameHint
 }
 
+/**
+ * Represents an object schema.
+ */
 data class CtrSchemaObject(
     override val title: String?,
     override val description: String?,
     val properties: List<CtrSchemaProperty>,
-    override var referencedBy: CtrSchemaRef? = null
+    override val nameHint: NameHint
 ) : CtrSchemaNonRef
 
+/**
+ * Represents a property of an object schema.
+ */
 data class CtrSchemaProperty(
     val name: String,
     val required: Boolean,
     var schema: CtrSchema
 )
 
+/**
+ * Represents an array schema.
+ */
 data class CtrSchemaArray(
     override val title: String?,
     override val description: String?,
@@ -44,28 +53,35 @@ data class CtrSchemaArray(
     val uniqueItems: Boolean,
     val minItems: Int?,
     val maxItems: Int?,
-    override var referencedBy: CtrSchemaRef? = null,
+    override val nameHint: NameHint
 ) : CtrSchemaNonRef
 
+/**
+ * Represents a special object schema whose property names are not known but only their types, i.e. an additionalProperties schema.
+ */
 data class CtrSchemaMap(
     override val title: String?,
     override val description: String?,
     var valuesSchema: CtrSchema,
     val minItems: Int?,
     val maxItems: Int?,
-    override var referencedBy: CtrSchemaRef? = null
+    override val nameHint: NameHint
 ) : CtrSchemaNonRef
 
 /**
- * Currently Enums are always assumed to habe type "string".
+ * Represents an enum schema.
+ * Currently enums are always assumed to habe type "string".
  */
 data class CtrSchemaEnum(
     override val title: String?,
     override val description: String?,
     val values: List<String>,
-    override var referencedBy: CtrSchemaRef? = null
+    override val nameHint: NameHint
 ) : CtrSchemaNonRef
 
+/**
+ * Represents a schema of a "primitive" type, i.e. a type that is just a boolean, string or number.
+ */
 data class CtrSchemaPrimitive(
     override val title: String?,
     override val description: String?,
@@ -78,10 +94,11 @@ data class CtrSchemaPrimitive(
     val minLength: Int?,
     val maxLength: Int?,
     val pattern: String?,
-    override var referencedBy: CtrSchemaRef? = null
+    override val nameHint: NameHint
 ) : CtrSchemaNonRef
 
 /**
+ * Represents the type of a primitive schema.
  * Type "null" is currently not supported.
  */
 enum class CtrPrimitiveType {

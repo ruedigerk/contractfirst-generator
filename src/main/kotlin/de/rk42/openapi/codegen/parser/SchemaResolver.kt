@@ -5,6 +5,7 @@ import de.rk42.openapi.codegen.model.CtrSchemaMap
 import de.rk42.openapi.codegen.model.CtrSchemaNonRef
 import de.rk42.openapi.codegen.model.CtrSchemaObject
 import de.rk42.openapi.codegen.model.CtrSchemaRef
+import de.rk42.openapi.codegen.model.NameHint
 import io.swagger.v3.oas.models.media.Schema
 
 /**
@@ -19,7 +20,7 @@ class SchemaResolver(topLevelSchemas: Map<String, Schema<Any>>) {
   // Top level schemas are the schemas of the components section of the contract. Only they can be referenced by a $ref.
   private val topLevelSchemas: Map<CtrSchemaRef, CtrSchemaNonRef> = SchemaParser.parseTopLevelSchemas(topLevelSchemas)
 
-  fun resolveSchema(schema: Schema<Any>): CtrSchemaNonRef = when (val parsed = SchemaParser.parseSchema(schema)) {
+  fun resolveSchema(schema: Schema<Any>, location: NameHint): CtrSchemaNonRef = when (val parsed = SchemaParser.parseSchema(schema, location)) {
     is CtrSchemaRef -> lookupSchemaRef(parsed)
     is CtrSchemaNonRef -> {
       referencedSchemas.add(parsed)
@@ -30,7 +31,6 @@ class SchemaResolver(topLevelSchemas: Map<String, Schema<Any>>) {
   private fun lookupSchemaRef(schema: CtrSchemaRef): CtrSchemaNonRef {
     val referencedSchema = topLevelSchemas[schema] ?: throw ParserException("Unresolvable schema reference $schema")
 
-    referencedSchema.referencedBy = schema
     referencedSchemas.add(referencedSchema)
 
     return referencedSchema

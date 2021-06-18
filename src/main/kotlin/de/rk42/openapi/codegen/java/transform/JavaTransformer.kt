@@ -25,14 +25,15 @@ import de.rk42.openapi.codegen.model.CtrSpecification
  */
 class JavaTransformer(private val configuration: CliConfiguration) {
 
-  private lateinit var schemaTransformer: JavaSchemaTransformer
+  private lateinit var typeLookup: JavaTypeLookup
 
   fun transform(specification: CtrSpecification): JavaSpecification {
-    schemaTransformer = JavaSchemaTransformer(configuration, specification.schemas)
+    typeLookup = JavaTypeLookup(configuration, specification.schemas)
+    val schemaTransformer = JavaSchemaTransformer(typeLookup)
 
     return JavaSpecification(
         groupOperations(specification.operations),
-        schemaTransformer.transformJavaModelFiles()
+        schemaTransformer.transformedJavaModelFiles()
     )
   }
 
@@ -88,7 +89,7 @@ class JavaTransformer(private val configuration: CliConfiguration) {
         requestBody.description ?: TransformerHelper.toJavadoc(schema as CtrSchemaNonRef),
         JavaBodyParameter,
         requestBody.required,
-        schemaTransformer.lookupJavaTypeFor(schema)
+        typeLookup.lookupJavaTypeFor(schema)
     )
   }
 
@@ -97,7 +98,7 @@ class JavaTransformer(private val configuration: CliConfiguration) {
       parameter.description ?: TransformerHelper.toJavadoc(parameter.schema as CtrSchemaNonRef),
       JavaRegularParameterLocation(parameter.name, parameter.location),
       parameter.required,
-      schemaTransformer.lookupJavaTypeFor(parameter.schema)
+      typeLookup.lookupJavaTypeFor(parameter.schema)
   )
 
   private fun toJavaResponse(response: CtrResponse): JavaResponse = JavaResponse(
@@ -107,7 +108,7 @@ class JavaTransformer(private val configuration: CliConfiguration) {
 
   private fun toJavaResponseContent(content: CtrContent): JavaContent = JavaContent(
       content.mediaType,
-      schemaTransformer.lookupJavaTypeFor(content.schema)
+      typeLookup.lookupJavaTypeFor(content.schema)
   )
 
   companion object {
