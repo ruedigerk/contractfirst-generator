@@ -98,6 +98,18 @@ components:
           type: string
         species:
           $ref: "#/components/schemas/Species"
+        multiplier:
+          type: string
+          enum:
+            - "1"
+            - "2"
+            - "4"
+        gender:
+          type: string
+          enum:
+            - MALE
+            - FEMALE
+            - OTHER
     Species:
       type: string
       enum:

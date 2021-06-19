@@ -20,10 +20,10 @@ data class JavaProperty(
 data class JavaEnumFile(
     val className: String,
     val javadoc: String?,
-    val values: List<EnumConstant>
+    val constants: List<EnumConstant>
 ) : JavaSourceFile
 
 data class EnumConstant(
     val javaName: String,
-    val originalName: String
+    val value: String
 )

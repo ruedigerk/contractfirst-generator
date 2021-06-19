@@ -233,11 +233,15 @@ class ModelGenerator(configuration: CliConfiguration) {
         .doIfNotNull(enumFile.javadoc) { addJavadoc(it) }
         .addModifiers(PUBLIC)
 
-    enumFile.values.forEach { enumConstant ->
-      val serializedNameAnnotation = toAnnotation("com.google.gson.annotations.SerializedName", enumConstant.originalName)
-      val typeSpec = TypeSpec.anonymousClassBuilder("").addAnnotation(serializedNameAnnotation).build()
+    enumFile.constants.forEach { enumConstant ->
+      val constantBuilder = TypeSpec.anonymousClassBuilder("")
+      
+      if (enumConstant.javaName != enumConstant.value) {
+        val serializedNameAnnotation = toAnnotation("com.google.gson.annotations.SerializedName", enumConstant.value)
+        constantBuilder.addAnnotation(serializedNameAnnotation)
+      }
 
-      builder.addEnumConstant(enumConstant.javaName, typeSpec)
+      builder.addEnumConstant(enumConstant.javaName, constantBuilder.build())
     }
 
     return builder.build()
