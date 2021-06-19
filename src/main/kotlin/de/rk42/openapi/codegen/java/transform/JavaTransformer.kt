@@ -29,7 +29,7 @@ class JavaTransformer(private val configuration: CliConfiguration) {
 
   fun transform(specification: CtrSpecification): JavaSpecification {
     typeLookup = JavaTypeLookup(configuration, specification.schemas)
-    val schemaTransformer = JavaSchemaTransformer(typeLookup)
+    val schemaTransformer = SchemaToJavaSourceFileTransformer(typeLookup)
 
     return JavaSpecification(
         groupOperations(specification.operations),

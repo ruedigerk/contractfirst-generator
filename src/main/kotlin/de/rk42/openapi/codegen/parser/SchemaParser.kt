@@ -41,10 +41,10 @@ object SchemaParser {
     }
 
     return when (schema.type) {
-      "array" -> toArraySchema(schema as ArraySchema, location)
+      "array"                                  -> toArraySchema(schema as ArraySchema, location)
       "boolean", "integer", "number", "string" -> toPrimitiveSchema(CtrPrimitiveType.valueOf(schema.type.uppercase()), schema, location)
-      "object", null -> toObjectOrMapSchema(schema, location)
-      else -> throw NotSupportedException("Schema type '${schema.type}' is not supported: $schema")
+      "object", null                           -> toObjectOrMapSchema(schema, location)
+      else                                     -> throw NotSupportedException("Schema type '${schema.type}' is not supported: $schema")
     }
   }
 
@@ -58,15 +58,17 @@ object SchemaParser {
 
   @Suppress("UNCHECKED_CAST")
   private fun toArraySchema(schema: ArraySchema, location: NameHint): CtrSchemaArray {
+    val itemsSchema = parseSchema(schema.items as Schema<*>, location / "items")
+    
     return CtrSchemaArray(
         schema.title.normalize(),
         schema.description.normalize(),
-        parseSchema(schema.items as Schema<*>, location / "items"),
+        itemsSchema,
         schema.uniqueItems ?: false,
         schema.minItems,
         schema.maxItems,
         location
-    )
+    ).also { itemsSchema.embedIn(it) }
   }
 
   private fun toPrimitiveSchema(primitiveType: CtrPrimitiveType, schema: Schema<*>, location: NameHint): CtrSchemaPrimitive {
@@ -106,8 +108,9 @@ object SchemaParser {
     return if (additionalProperties is Schema<*>) parseSchema(additionalProperties, location / "additionalProperties") else null
   }
 
-  private fun toMapSchema(schema: Schema<*>, additionalPropertiesSchema: CtrSchema, location: NameHint): CtrSchemaMap =
-      CtrSchemaMap(schema.title.normalize(), schema.description.normalize(), additionalPropertiesSchema, schema.minItems, schema.maxItems, location)
+  private fun toMapSchema(schema: Schema<*>, valuesSchema: CtrSchema, location: NameHint): CtrSchemaMap =
+      CtrSchemaMap(schema.title.normalize(), schema.description.normalize(), valuesSchema, schema.minItems, schema.maxItems, location)
+          .also { valuesSchema.embedIn(it) }
 
   private fun toObjectSchema(schema: Schema<*>, location: NameHint): CtrSchemaObject {
     val requiredProperties = schema.required.nullToEmpty().toSet()
@@ -115,11 +118,17 @@ object SchemaParser {
       CtrSchemaProperty(name, requiredProperties.contains(name), parseSchema(schema, location / name))
     }
 
-    return CtrSchemaObject(
-        schema.title.normalize(),
-        schema.description.normalize(),
-        properties,
-        location
-    )
+    val schemaObject = CtrSchemaObject(schema.title.normalize(), schema.description.normalize(), properties, location)
+
+    properties.forEach { it.schema.embedIn(schemaObject) }
+
+    return schemaObject
+  }
+
+  private fun CtrSchema.embedIn(parent: CtrSchemaNonRef) {
+    // Only inline schemas are treated as embedded in another schema, referencing a schema is not treated as embedding. 
+    if (this is CtrSchemaNonRef) {
+      this.embeddedIn = parent
+    }
   }
 }

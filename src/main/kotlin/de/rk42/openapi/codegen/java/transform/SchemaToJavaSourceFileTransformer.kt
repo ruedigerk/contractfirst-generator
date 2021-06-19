@@ -21,7 +21,7 @@ import de.rk42.openapi.codegen.model.CtrSchemaProperty
 /**
  * Transforms the parsed schemas into Java source file representations, appropriate for code generation.
  */
-class JavaSchemaTransformer(private val typeLookup: JavaTypeLookup) {
+class SchemaToJavaSourceFileTransformer(private val typeLookup: JavaTypeLookup) {
 
   fun transformedJavaModelFiles(): List<JavaSourceFile> = typeLookup.allSchemas.mapNotNull(::toJavaSourceFile)
 

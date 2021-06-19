@@ -22,6 +22,7 @@ sealed interface CtrSchemaNonRef : CtrSchema {
   val title: String?
   val description: String?
   val nameHint: NameHint
+  var embeddedIn: CtrSchemaNonRef?
 }
 
 /**
@@ -31,8 +32,11 @@ data class CtrSchemaObject(
     override val title: String?,
     override val description: String?,
     val properties: List<CtrSchemaProperty>,
-    override val nameHint: NameHint
-) : CtrSchemaNonRef
+    override val nameHint: NameHint,
+) : CtrSchemaNonRef {
+
+  override var embeddedIn: CtrSchemaNonRef? = null
+}
 
 /**
  * Represents a property of an object schema.
@@ -53,8 +57,11 @@ data class CtrSchemaArray(
     val uniqueItems: Boolean,
     val minItems: Int?,
     val maxItems: Int?,
-    override val nameHint: NameHint
-) : CtrSchemaNonRef
+    override val nameHint: NameHint,
+) : CtrSchemaNonRef {
+
+  override var embeddedIn: CtrSchemaNonRef? = null
+}
 
 /**
  * Represents a special object schema whose property names are not known but only their types, i.e. an additionalProperties schema.
@@ -65,8 +72,11 @@ data class CtrSchemaMap(
     var valuesSchema: CtrSchema,
     val minItems: Int?,
     val maxItems: Int?,
-    override val nameHint: NameHint
-) : CtrSchemaNonRef
+    override val nameHint: NameHint,
+) : CtrSchemaNonRef {
+
+  override var embeddedIn: CtrSchemaNonRef? = null
+}
 
 /**
  * Represents an enum schema.
@@ -76,8 +86,11 @@ data class CtrSchemaEnum(
     override val title: String?,
     override val description: String?,
     val values: List<String>,
-    override val nameHint: NameHint
-) : CtrSchemaNonRef
+    override val nameHint: NameHint,
+) : CtrSchemaNonRef {
+
+  override var embeddedIn: CtrSchemaNonRef? = null
+}
 
 /**
  * Represents a schema of a "primitive" type, i.e. a type that is just a boolean, string or number.
@@ -94,8 +107,11 @@ data class CtrSchemaPrimitive(
     val minLength: Int?,
     val maxLength: Int?,
     val pattern: String?,
-    override val nameHint: NameHint
-) : CtrSchemaNonRef
+    override val nameHint: NameHint,
+) : CtrSchemaNonRef {
+
+  override var embeddedIn: CtrSchemaNonRef? = null
+}
 
 /**
  * Represents the type of a primitive schema.

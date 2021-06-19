@@ -4,7 +4,7 @@ val generatedTestSourcesDir = "${buildDir}/generatedTestSources"
 
 plugins {
   // Apply the Kotlin JVM plugin to add support for Kotlin on the JVM, see https://kotlinlang.org/docs/reference/using-gradle.html
-  kotlin("jvm").version("1.5.0")
+  kotlin("jvm").version("1.5.10")
 
   // Apply the groovy plugin to add support for Groovy/Spock
   groovy
@@ -24,11 +24,14 @@ dependencies {
   // For parsing OpenAPI specifications 
   implementation("io.swagger.parser.v3:swagger-parser:2.0.25")
   
+  // For serializing YAML output
+  implementation("com.fasterxml.jackson.dataformat:jackson-dataformat-yaml:2.12.3")
+  
   // For generating Java source files
   implementation("com.squareup:javapoet:1.13.0")
   
-  // For Logging (TODO: do we need this or just use System.out?)
-  runtimeOnly("ch.qos.logback:logback-classic:1.2.3")
+  // For Logging
+  implementation("ch.qos.logback:logback-classic:1.2.3")
 
   // Testing with Groovy/Spock
   testImplementation("org.spockframework:spock-core:2.0-groovy-3.0")

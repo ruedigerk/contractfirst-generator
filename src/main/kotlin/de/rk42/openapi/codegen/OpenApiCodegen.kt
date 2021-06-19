@@ -9,7 +9,9 @@ import de.rk42.openapi.codegen.parser.Parser
  * Implements the OpenApiCodegen functionality.
  * 
  * TODO:
- *  - Fix names of inline/embedded types, e.g. SiCo RestPaydirektTransaktion / RestPaydirektTransaktionTransaktionstyp
+ *  - Non-string enums
+ *  - Only generate enum constants with @SerializedName if necessary.
+ *  - Store the "real" value of an enum constant in a "value" field with getter.
  *  - Add JSON-Pointers to exceptions/error messages to pinpoint the error origin.
  *  - Print out the YAML in case of error, to help showing to where the JSON-Pointers point, as swagger-parser inlines external references. 
  *  - Check why uspto contract generates invalid code.

@@ -20,24 +20,24 @@ class SchemaResolver(topLevelSchemas: Map<String, Schema<Any>>) {
   // Top level schemas are the schemas of the components section of the contract. Only they can be referenced by a $ref.
   private val topLevelSchemas: Map<CtrSchemaRef, CtrSchemaNonRef> = SchemaParser.parseTopLevelSchemas(topLevelSchemas)
 
-  fun resolveSchema(schema: Schema<Any>, location: NameHint): CtrSchemaNonRef = when (val parsed = SchemaParser.parseSchema(schema, location)) {
-    is CtrSchemaRef -> lookupSchemaRef(parsed)
-    is CtrSchemaNonRef -> {
-      referencedSchemas.add(parsed)
-      parsed
-    }
-  }
+  fun resolveSchema(schema: Schema<Any>, location: NameHint): CtrSchemaNonRef =
+      when (val parsed = SchemaParser.parseSchema(schema, location)) {
+        is CtrSchemaRef    -> lookupSchemaRef(parsed)
+        is CtrSchemaNonRef -> {
+          referencedSchemas.add(parsed)
+          parsed
+        }
+      }
 
   private fun lookupSchemaRef(schema: CtrSchemaRef): CtrSchemaNonRef {
     val referencedSchema = topLevelSchemas[schema] ?: throw ParserException("Unresolvable schema reference $schema")
-
     referencedSchemas.add(referencedSchema)
-
     return referencedSchema
   }
 
   /**
-   * Return all schemas actually being used in the contract.
+   * Resolves all schemas actually being used in the contract and returns them. A schema is resolved, when all schema references in its children (its
+   * properties, items, etc.) have been replaced with the referenced schemas and these referenced schemas themselves have been resolved, too.
    */
   fun determineAndResolveReferencedSchemas(): List<CtrSchemaNonRef> {
     if (referencedSchemas.isEmpty()) {
@@ -47,7 +47,7 @@ class SchemaResolver(topLevelSchemas: Map<String, Schema<Any>>) {
     val resolvedSchemas = mutableSetOf<CtrSchemaNonRef>()
     var schemasForResolving = referencedSchemas.toSet()
 
-    // Iteratively resolve all schemas
+    // Iteratively resolve all child schemas. Not being done recursively to avoid endless cycles on self-referencing schemas/cyclic schemas.
     do {
       schemasForResolving.forEach(::resolveSchemaComponents)
       resolvedSchemas.addAll(schemasForResolving)
@@ -59,9 +59,9 @@ class SchemaResolver(topLevelSchemas: Map<String, Schema<Any>>) {
 
   private fun resolveSchemaComponents(schema: CtrSchemaNonRef) = when (schema) {
     is CtrSchemaObject -> resolveObjectProperties(schema)
-    is CtrSchemaArray -> resolveArrayElements(schema)
-    is CtrSchemaMap -> resolveMapValues(schema)
-    else -> {
+    is CtrSchemaArray  -> resolveArrayElements(schema)
+    is CtrSchemaMap    -> resolveMapValues(schema)
+    else               -> {
       // do nothing 
     }
   }
@@ -76,7 +76,7 @@ class SchemaResolver(topLevelSchemas: Map<String, Schema<Any>>) {
   private fun resolveObjectProperties(schema: CtrSchemaObject) {
     schema.properties.forEach { property ->
       when (val propertySchema = property.schema) {
-        is CtrSchemaRef -> property.schema = lookupSchemaRef(propertySchema)
+        is CtrSchemaRef    -> property.schema = lookupSchemaRef(propertySchema)
         is CtrSchemaNonRef -> resolveFurther(propertySchema)
       }
     }
@@ -84,14 +84,14 @@ class SchemaResolver(topLevelSchemas: Map<String, Schema<Any>>) {
 
   private fun resolveArrayElements(schema: CtrSchemaArray) {
     when (val itemSchema = schema.itemSchema) {
-      is CtrSchemaRef -> schema.itemSchema = lookupSchemaRef(itemSchema)
+      is CtrSchemaRef    -> schema.itemSchema = lookupSchemaRef(itemSchema)
       is CtrSchemaNonRef -> resolveFurther(itemSchema)
     }
   }
 
   private fun resolveMapValues(schema: CtrSchemaMap) {
     when (val valuesSchema = schema.valuesSchema) {
-      is CtrSchemaRef -> schema.valuesSchema = lookupSchemaRef(valuesSchema)
+      is CtrSchemaRef    -> schema.valuesSchema = lookupSchemaRef(valuesSchema)
       is CtrSchemaNonRef -> resolveFurther(valuesSchema)
     }
   }
