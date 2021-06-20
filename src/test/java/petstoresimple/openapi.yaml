@@ -1,0 +1,139 @@
+openapi: 3.0.0
+info:
+  license:
+    name: MIT
+  title: Swagger Petstore
+  version: 1.0.0
+servers:
+- url: http://petstore.swagger.io/v1
+paths:
+  /pets:
+    get:
+      operationId: listPets
+      parameters:
+      - description: How many items to return at one time (max 100)
+        explode: true
+        in: query
+        name: limit
+        required: false
+        schema:
+          format: int32
+          type: integer
+        style: form
+      responses:
+        "200":
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Pets'
+            application/xml:
+              schema:
+                $ref: '#/components/schemas/Pets'
+          description: An paged array of pets
+          headers:
+            x-next:
+              description: A link to the next page of responses
+              explode: false
+              schema:
+                type: string
+              style: simple
+        default:
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+          description: unexpected error
+      summary: List all pets
+      tags:
+      - pets
+    post:
+      operationId: createPets
+      responses:
+        "201":
+          description: Null response
+        default:
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+          description: unexpected error
+      summary: Create a pet
+      tags:
+      - pets
+  /pets/{petId}:
+    get:
+      operationId: showPetById
+      parameters:
+      - description: The id of the pet to retrieve
+        explode: false
+        in: path
+        name: petId
+        required: true
+        schema:
+          type: string
+        style: simple
+      responses:
+        "200":
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Pets'
+          description: Expected response to a valid request
+        default:
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+          description: unexpected error
+      summary: Info for a specific pet
+      tags:
+      - pets
+components:
+  schemas:
+    Pet:
+      properties:
+        id:
+          format: int64
+          type: integer
+        name:
+          type: string
+        tag:
+          type: string
+        species:
+          $ref: '#/components/schemas/Species'
+        multiplier:
+          enum:
+          - "1"
+          - "2"
+          - "4"
+          type: string
+        gender:
+          enum:
+          - MALE
+          - FEMALE
+          - OTHER
+          type: string
+      required:
+      - id
+      - name
+    Species:
+      enum:
+      - Cat
+      - Dog
+      - Mouse
+      - Common Boar
+      type: string
+    Pets:
+      items:
+        $ref: '#/components/schemas/Pet'
+      type: array
+    Error:
+      properties:
+        code:
+          format: int32
+          type: integer
+        message:
+          type: string
+      required:
+      - code
+      - message

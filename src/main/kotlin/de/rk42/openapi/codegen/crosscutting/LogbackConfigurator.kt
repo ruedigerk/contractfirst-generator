@@ -8,6 +8,7 @@ import ch.qos.logback.classic.spi.ILoggingEvent
 import ch.qos.logback.core.ConsoleAppender
 import ch.qos.logback.core.encoder.LayoutWrappingEncoder
 import ch.qos.logback.core.spi.ContextAwareBase
+import de.rk42.openapi.codegen.Configuration
 
 /**
  * Configures Logback logging.
@@ -21,7 +22,7 @@ class LogbackConfigurator : ContextAwareBase(), Configurator {
       addAppender(createConsoleAppender(loggerContext))
     }
 
-    defaultLogLevels()
+    applyLoggingVerbosity(Configuration.Verbosity.NORMAL)
   }
 
   private fun createConsoleAppender(loggerContext: LoggerContext): ConsoleAppender<ILoggingEvent> {
@@ -47,17 +48,18 @@ class LogbackConfigurator : ContextAwareBase(), Configurator {
 
     private var cachedLoggerContext: LoggerContext? = null
 
-    fun defaultLogLevels() {
-      rootLogger().level = Level.INFO
-      logger("io.swagger.v3").level = Level.WARN
-    }
-    
-    fun verboseLogLevels() {
-      rootLogger().level = Level.DEBUG
-    }
+    /**
+     * Applies a logging configuration according to the supplied verbosity.
+     */
+    fun applyLoggingVerbosity(verbosity: Configuration.Verbosity) {
+      val rootLoggerLevel = when (verbosity) {
+        Configuration.Verbosity.VERBOSE -> Level.DEBUG
+        Configuration.Verbosity.NORMAL -> Level.INFO
+        Configuration.Verbosity.QUIET -> Level.WARN
+      }
 
-    fun quietLogLevels() {
-      rootLogger().level = Level.WARN
+      rootLogger().level = rootLoggerLevel
+      logger("io.swagger.v3").level = Level.WARN
     }
 
     private fun logger(name: String): Logger = cachedLoggerContext!!.getLogger(name)

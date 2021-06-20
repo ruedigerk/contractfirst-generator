@@ -6,7 +6,7 @@ import com.squareup.javapoet.JavaFile
 import com.squareup.javapoet.MethodSpec
 import com.squareup.javapoet.ParameterSpec
 import com.squareup.javapoet.TypeSpec
-import de.rk42.openapi.codegen.CliConfiguration
+import de.rk42.openapi.codegen.Configuration
 import de.rk42.openapi.codegen.java.Identifiers.capitalize
 import de.rk42.openapi.codegen.java.Identifiers.mediaTypeToJavaIdentifier
 import de.rk42.openapi.codegen.java.generator.GeneratorCommon
@@ -37,7 +37,7 @@ import javax.lang.model.element.Modifier.STATIC
 /**
  * Generates the code for the server stubs.
  */
-class ServerStubGenerator(private val configuration: CliConfiguration) {
+class ServerStubGenerator(private val configuration: Configuration) {
 
   private val outputDir = File(configuration.outputDir)
   private val apiPackage = "${configuration.sourcePackage}.$API_PACKAGE"

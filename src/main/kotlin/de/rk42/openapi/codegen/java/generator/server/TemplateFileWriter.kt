@@ -1,6 +1,6 @@
 package de.rk42.openapi.codegen.java.generator.server
 
-import de.rk42.openapi.codegen.CliConfiguration
+import de.rk42.openapi.codegen.Configuration
 import java.io.BufferedOutputStream
 import java.io.File
 import java.io.InputStream
@@ -8,7 +8,7 @@ import java.io.InputStream
 /**
  * Used for writing template source files. Template source files are static resource files that get added a package statement, when being written.
  */
-class TemplateFileWriter(private val configuration: CliConfiguration) {
+class TemplateFileWriter(private val configuration: Configuration) {
 
   fun writeTemplateFile(destinationPackage: String, templateFileName: String) {
     val packageAsDirectory = destinationPackage.replace('.', '/')

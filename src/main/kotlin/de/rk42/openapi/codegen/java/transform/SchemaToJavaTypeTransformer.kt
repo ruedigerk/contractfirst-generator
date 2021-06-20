@@ -1,6 +1,7 @@
 package de.rk42.openapi.codegen.java.transform
 
-import de.rk42.openapi.codegen.CliConfiguration
+import de.rk42.openapi.codegen.Configuration
+import de.rk42.openapi.codegen.crosscutting.Log.Companion.getLogger
 import de.rk42.openapi.codegen.java.Identifiers.toJavaTypeIdentifier
 import de.rk42.openapi.codegen.java.model.DecimalValidation
 import de.rk42.openapi.codegen.java.model.IntegralValidation
@@ -30,7 +31,9 @@ import de.rk42.openapi.codegen.model.NameHint
  * Transforms the parsed Schemas into Java types, assigning unique and valid type names. This needs to be done before creating Java source file models for these
  * types.
  */
-class SchemaToJavaTypeTransformer(private val configuration: CliConfiguration) {
+class SchemaToJavaTypeTransformer(private val configuration: Configuration) {
+
+  private val log = getLogger()
 
   private val modelPackage = "${configuration.sourcePackage}.model"
   private val schemaToTypeLookup: MutableMap<CtrSchemaNonRef, JavaAnyType> = mutableMapOf()
@@ -40,16 +43,19 @@ class SchemaToJavaTypeTransformer(private val configuration: CliConfiguration) {
    * Using the schemaToTypeLookup is necessary for correctness, as calling toJavaType multiple times for the same schema would otherwise generate a new type 
    * name for generated types each time. 
    */
-  fun toJavaType(schema: CtrSchemaNonRef): JavaAnyType =
-      schemaToTypeLookup.getOrPut(schema) {
-        when (schema) {
-          is CtrSchemaObject    -> toGeneratedJavaType(schema, false)
-          is CtrSchemaEnum      -> toGeneratedJavaType(schema, true)
-          is CtrSchemaArray     -> toJavaCollectionType(schema)
-          is CtrSchemaMap       -> toJavaMapType(schema)
-          is CtrSchemaPrimitive -> toJavaBuiltInType(schema)
-        }
+  fun toJavaType(schema: CtrSchemaNonRef): JavaAnyType {
+    log.debug { "toJavaType ${schema.nameHint}" }
+    
+    return schemaToTypeLookup.getOrPut(schema) {
+      when (schema) {
+        is CtrSchemaObject    -> toGeneratedJavaType(schema, false)
+        is CtrSchemaEnum      -> toGeneratedJavaType(schema, true)
+        is CtrSchemaArray     -> toJavaCollectionType(schema)
+        is CtrSchemaMap       -> toJavaMapType(schema)
+        is CtrSchemaPrimitive -> toJavaBuiltInType(schema)
       }
+    }
+  }
 
   private fun toGeneratedJavaType(schema: CtrSchemaNonRef, isEnum: Boolean): JavaType {
     val typeName = determineName(schema)

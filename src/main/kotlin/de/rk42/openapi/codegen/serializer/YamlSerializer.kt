@@ -3,18 +3,19 @@ package de.rk42.openapi.codegen.serializer
 import com.fasterxml.jackson.core.JsonGenerator
 import com.fasterxml.jackson.core.JsonProcessingException
 import com.fasterxml.jackson.databind.JsonSerializer
+import com.fasterxml.jackson.databind.MapperFeature
 import com.fasterxml.jackson.databind.ObjectMapper
 import com.fasterxml.jackson.databind.SerializerProvider
 import com.fasterxml.jackson.databind.module.SimpleModule
 import com.fasterxml.jackson.dataformat.yaml.YAMLFactory
-import com.fasterxml.jackson.dataformat.yaml.YAMLGenerator.Feature.MINIMIZE_QUOTES
+import com.fasterxml.jackson.dataformat.yaml.YAMLGenerator.Feature
 import io.swagger.v3.core.util.Yaml
 import io.swagger.v3.oas.models.OpenAPI
 import java.io.IOException
 
 /**
  * Serializes OpenAPI contracts or parts of them to YAML.
- * 
+ *
  * TODO: Add Test parsing and serializing OpenAPI Contract.
  */
 object YamlSerializer {
@@ -41,7 +42,14 @@ object YamlSerializer {
 
   private fun createMapper(): ObjectMapper {
     return Yaml.mapper().copy().apply {
-      (factory as YAMLFactory).disable(MINIMIZE_QUOTES)
+      enable(MapperFeature.SORT_PROPERTIES_ALPHABETICALLY)
+
+      with(factory as YAMLFactory) {
+        enable(Feature.MINIMIZE_QUOTES)
+        enable(Feature.ALWAYS_QUOTE_NUMBERS_AS_STRINGS)
+        enable(Feature.LITERAL_BLOCK_STYLE)
+        disable(Feature.SPLIT_LINES)
+      }
     }
   }
 }

@@ -1,7 +1,8 @@
 package codegen
 
 import de.rk42.openapi.codegen.CommandLineInterface
-import groovy.io.FileType 
+import groovy.io.FileType
+
 /**
  * Test are being run with the project dir as the working directory, e.g. C:/Development/Workspace/OpenApiCodegen
  */
@@ -12,7 +13,7 @@ class GeneratorHarness {
   final List<String> relativePathNames
   final List<File> referenceFiles
   final List<File> generatedFiles
-  
+
   private final String referenceDir
   private final String generatedDir
   private final String contract
@@ -25,22 +26,35 @@ class GeneratorHarness {
     this.contract = contract
     this.packageName = packageName
     this.modelPrefix = modelPrefix
-    
+
     referenceDir = "src/test/java/$packageName"
     generatedDir = "$OUTPUT_DIR/$packageName"
 
     relativePathNames = discoverFiles(referenceDir)
-    
-    referenceFiles = relativePathNames.collect {new File(referenceDir, it) }
-    generatedFiles = relativePathNames.collect {new File(generatedDir, it) }
-    
+
+    referenceFiles = relativePathNames.collect {
+      new File(referenceDir, it)
+    }
+    generatedFiles = relativePathNames.collect {
+      new File(generatedDir, it)
+    }
+
     assert !relativePathNames.isEmpty()
   }
 
   def runGenerator() {
     if (!generatorRan) {
       generatorRan = true
-      CommandLineInterface.main(["--contract", contract, "--output-dir", OUTPUT_DIR, "--package", packageName, "--model-prefix", modelPrefix, "-v"] as String[])
+      CommandLineInterface.main(
+          [
+              "--contract", contract,
+              "--output-dir", OUTPUT_DIR,
+              "--package", packageName,
+              "--model-prefix", modelPrefix,
+              "--contract-output-file", "$packageName/openapi.yaml",
+              "-v"
+          ] as String[]
+      )
     }
   }
 

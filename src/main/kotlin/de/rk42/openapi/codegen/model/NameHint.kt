@@ -16,6 +16,8 @@ data class NameHint(val path: List<String>) {
         removePrefix(prefix.drop(1), names.drop(1))
       }
 
+  override fun toString(): String = path.toString()
+  
   companion object {
 
     operator fun invoke(rootElement: String): NameHint = NameHint(listOf(rootElement))

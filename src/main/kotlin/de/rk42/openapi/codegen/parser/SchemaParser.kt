@@ -1,6 +1,7 @@
 package de.rk42.openapi.codegen.parser
 
 import de.rk42.openapi.codegen.NotSupportedException
+import de.rk42.openapi.codegen.crosscutting.Log.Companion.getLogger
 import de.rk42.openapi.codegen.model.CtrPrimitiveType
 import de.rk42.openapi.codegen.model.CtrSchema
 import de.rk42.openapi.codegen.model.CtrSchemaArray
@@ -16,12 +17,10 @@ import de.rk42.openapi.codegen.parser.ParserHelper.normalize
 import de.rk42.openapi.codegen.parser.ParserHelper.nullToEmpty
 import io.swagger.v3.oas.models.media.ArraySchema
 import io.swagger.v3.oas.models.media.Schema
-import org.slf4j.Logger
-import org.slf4j.LoggerFactory
 
 object SchemaParser {
 
-  private val log: Logger = LoggerFactory.getLogger(SchemaParser::class.java)
+  private val log = getLogger()
 
   fun parseTopLevelSchemas(schemas: Map<String, Schema<*>>): Map<CtrSchemaRef, CtrSchemaNonRef> = schemas
       .mapValues { toTopLevelSchema(it.value, NameHint(it.key)) }
@@ -31,7 +30,7 @@ object SchemaParser {
       (parseSchema(schema, location) as? CtrSchemaNonRef) ?: throw NotSupportedException("Unsupported schema reference in #/components/schemas: $schema")
 
   fun parseSchema(schema: Schema<*>, location: NameHint): CtrSchema {
-    log.debug("Parsing schema {} of {}", location.path, schema.javaClass.simpleName)
+    log.debug { "Parsing schema ${location.path} of ${schema.javaClass.simpleName}" }
 
     if (schema.`$ref` != null) {
       return CtrSchemaRef(schema.`$ref`)
@@ -41,10 +40,10 @@ object SchemaParser {
     }
 
     return when (schema.type) {
-      "array"                                  -> toArraySchema(schema as ArraySchema, location)
+      "array" -> toArraySchema(schema as ArraySchema, location)
       "boolean", "integer", "number", "string" -> toPrimitiveSchema(CtrPrimitiveType.valueOf(schema.type.uppercase()), schema, location)
-      "object", null                           -> toObjectOrMapSchema(schema, location)
-      else                                     -> throw NotSupportedException("Schema type '${schema.type}' is not supported: $schema")
+      "object", null -> toObjectOrMapSchema(schema, location)
+      else -> throw NotSupportedException("Schema type '${schema.type}' is not supported: $schema")
     }
   }
 
@@ -59,7 +58,7 @@ object SchemaParser {
   @Suppress("UNCHECKED_CAST")
   private fun toArraySchema(schema: ArraySchema, location: NameHint): CtrSchemaArray {
     val itemsSchema = parseSchema(schema.items as Schema<*>, location / "items")
-    
+
     return CtrSchemaArray(
         schema.title.normalize(),
         schema.description.normalize(),

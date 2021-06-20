@@ -2,46 +2,69 @@ package de.rk42.openapi.codegen
 
 import com.xenomachina.argparser.ArgParser
 import com.xenomachina.argparser.default
-import de.rk42.openapi.codegen.crosscutting.LogbackConfigurator
+import de.rk42.openapi.codegen.crosscutting.Log.Companion.getLogger
 import de.rk42.openapi.codegen.parser.ParserException
-import org.slf4j.Logger
-import org.slf4j.LoggerFactory
+import kotlin.system.exitProcess
 
 /**
  * The Command Line Interface for invoking OpenApiCodegen on the command line.
  */
 object CommandLineInterface {
 
-  private val log: Logger = LoggerFactory.getLogger(CommandLineInterface::class.java)
+  private val log = getLogger()
 
   @JvmStatic
   fun main(args: Array<String>) {
-    val config = ArgParser(args).parseInto(::CliConfiguration)
+    val config = readConfiguration(args)
+    OpenApiCodegen.applyLoggingVerbosity(config.verbosity)
 
-    applyLoggingConfiguration(config)
+    log.info { "Generating code for contract '${config.contractFile}' in output directory '${config.outputDir}', package '${config.sourcePackage}'" }
 
-    log.info("Generating code for contract '${config.contractFile}' in output directory '${config.outputDir}', package '${config.sourcePackage}'")
+    generate(config)
+  }
 
+  private fun readConfiguration(args: Array<String>): Configuration {
+    return try {
+      val cliConfiguration = ArgParser(args).parseInto(::CliConfiguration)
+      mapToConfiguration(cliConfiguration)
+    } catch (e: InvalidConfigurationException) {
+      exit(1) { "Parameters invalid: ${e.message}" }
+    }
+  }
+
+  private fun generate(config: Configuration) {
     try {
       OpenApiCodegen.generate(config)
     } catch (e: ParserException) {
-      val messages = e.messages.joinToString("\n")
-      log.error("Could not parse contract: {}", messages)
+      exit(2) { "Could not parse contract: ${e.messages.joinToString("\n")}" }
     } catch (e: NotSupportedException) {
-      log.error("Contract contains unsupported usage: ${e.message}")
+      exit(3) { "Contract contains unsupported usage: ${e.message}" }
     }
   }
 
-  private fun applyLoggingConfiguration(config: CliConfiguration) {
-    when {
-      config.verbose && config.quiet -> throw InvalidConfigurationException("Options -q (--quiet) and -v (--verbose) must not be used together")
-      config.verbose -> LogbackConfigurator.verboseLogLevels()
-      config.quiet -> LogbackConfigurator.quietLogLevels()
-    }
+  private fun exit(errorCode: Int, msg: () -> String): Nothing {
+    log.error(msg)
+    exitProcess(errorCode)
+  }
+
+  private fun mapToConfiguration(cliConfiguration: CliConfiguration) = Configuration(
+      cliConfiguration.contractFile,
+      cliConfiguration.contractOutputFile,
+      cliConfiguration.outputDir,
+      cliConfiguration.outputContract,
+      cliConfiguration.sourcePackage,
+      cliConfiguration.modelPrefix,
+      toLoggingVerbosity(cliConfiguration)
+  )
+
+  private fun toLoggingVerbosity(config: CliConfiguration): Configuration.Verbosity = when {
+    config.verbose -> Configuration.Verbosity.VERBOSE
+    config.quiet -> Configuration.Verbosity.QUIET
+    else -> Configuration.Verbosity.NORMAL
   }
 }
 
-class CliConfiguration(parser: ArgParser) {
+private class CliConfiguration(parser: ArgParser) {
 
   val contractFile: String by parser.storing("--contract", help = "the path to the file containing the OpenAPI contract to use as input")
 
@@ -53,7 +76,23 @@ class CliConfiguration(parser: ArgParser) {
 
   val verbose: Boolean by parser.flagging("--verbose", "-v", help = "verbose output")
 
-  val quiet: Boolean by parser.flagging("--quit", "-q", help = "quiet output")
+  val quiet: Boolean by parser.flagging("--quiet", "-q", help = "quiet output")
+
+  val outputContract: Boolean by parser.storing(
+      "--output-contract",
+      help = "whether to output the parsed contract as an all-in-one contract"
+  ) { toBoolean() }.default(true)
+
+  val contractOutputFile: String by parser.storing(
+      "--contract-output-file",
+      help = "the location to output the 'all in one' contract file to"
+  ).default("openapi.yaml")
+
+  init {
+    if (verbose && quiet) {
+      throw InvalidConfigurationException("Options -q (--quiet) and -v (--verbose) must not be used together")
+    }
+  }
 }
 
-class InvalidConfigurationException(msg: String) : RuntimeException(msg)
+private class InvalidConfigurationException(msg: String) : RuntimeException(msg)

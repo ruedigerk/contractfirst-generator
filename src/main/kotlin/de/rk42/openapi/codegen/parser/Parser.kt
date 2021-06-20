@@ -40,10 +40,8 @@ class Parser {
     val parseOptions = ParseOptions().apply {
       // Replace remote/relative references with a local references, e.g. "#/components/schemas/NameOfRemoteSchema".
       isResolve = true
-      // Move all inline schemas (e.g. a response schema) to the components/schemas section and replace them with a reference.
+      // Move all inline schemas to the components/schemas section and replace them with a reference.
       isFlatten = true
-      // Not really clear what this does, as it is undocumented. TODO: Remove?
-      isFlattenComposedSchemas = true
     }
 
     val result = OpenAPIParser().readLocation(specFile, null, parseOptions)
@@ -61,7 +59,7 @@ class Parser {
     val operations = toOperations(openApi.paths)
     val referencedSchemas = schemaResolver.determineAndResolveReferencedSchemas()
 
-    return CtrSpecification(operations, referencedSchemas)
+    return CtrSpecification(operations, referencedSchemas, openApi)
   }
 
   private fun toOperations(pathItemMap: Map<String, PathItem>): List<CtrOperation> {

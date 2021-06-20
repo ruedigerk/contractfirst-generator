@@ -6,7 +6,7 @@ import com.squareup.javapoet.MethodSpec
 import com.squareup.javapoet.NameAllocator
 import com.squareup.javapoet.TypeName
 import com.squareup.javapoet.TypeSpec
-import de.rk42.openapi.codegen.CliConfiguration
+import de.rk42.openapi.codegen.Configuration
 import de.rk42.openapi.codegen.java.Identifiers.capitalize
 import de.rk42.openapi.codegen.java.generator.GeneratorCommon
 import de.rk42.openapi.codegen.java.generator.GeneratorCommon.NOT_NULL_ANNOTATION
@@ -29,7 +29,7 @@ import javax.lang.model.element.Modifier.PUBLIC
  *
  * TODO: Properly use NameAllocator with scopes, see https://github.com/square/wire/blob/d48be72904d7f6e1458b762cd936b1a7069c2813/wire-java-generator/src/main/java/com/squareup/wire/java/JavaGenerator.java#L1278-L1403
  */
-class ModelGenerator(configuration: CliConfiguration) {
+class ModelGenerator(configuration: Configuration) {
 
   private val outputDir = File(configuration.outputDir)
   private val modelPackage = "${configuration.sourcePackage}.model"

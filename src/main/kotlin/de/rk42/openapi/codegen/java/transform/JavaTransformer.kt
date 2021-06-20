@@ -1,6 +1,6 @@
 package de.rk42.openapi.codegen.java.transform
 
-import de.rk42.openapi.codegen.CliConfiguration
+import de.rk42.openapi.codegen.Configuration
 import de.rk42.openapi.codegen.NotSupportedException
 import de.rk42.openapi.codegen.java.Identifiers.toJavaIdentifier
 import de.rk42.openapi.codegen.java.Identifiers.toJavaTypeIdentifier
@@ -23,7 +23,7 @@ import de.rk42.openapi.codegen.model.CtrSpecification
 /**
  * Transforms the parsed specification into a Java-specific specification, appropriate for code generation.
  */
-class JavaTransformer(private val configuration: CliConfiguration) {
+class JavaTransformer(private val configuration: Configuration) {
 
   private lateinit var typeLookup: JavaTypeLookup
 
