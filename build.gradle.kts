@@ -95,6 +95,6 @@ tasks.withType<org.gradle.jvm.tasks.Jar>{
 //}
 
 tasks.wrapper {
-  gradleVersion = "7.0.1"
+  gradleVersion = "7.1"
   distributionType = Wrapper.DistributionType.ALL
 }
