@@ -4,7 +4,7 @@ val generatedTestSourcesDir = "${buildDir}/generatedTestSources"
 
 plugins {
   // Apply the Kotlin JVM plugin to add support for Kotlin on the JVM, see https://kotlinlang.org/docs/reference/using-gradle.html
-  kotlin("jvm").version("1.5.10")
+  kotlin("jvm").version("1.5.20")
 
   // Apply the groovy plugin to add support for Groovy/Spock
   groovy
@@ -95,6 +95,6 @@ tasks.withType<org.gradle.jvm.tasks.Jar>{
 //}
 
 tasks.wrapper {
-  gradleVersion = "7.1"
+  gradleVersion = "7.1.1"
   distributionType = Wrapper.DistributionType.ALL
 }
