@@ -15,8 +15,6 @@ import java.io.IOException
 
 /**
  * Serializes OpenAPI contracts or parts of them to YAML.
- *
- * TODO: Add Test parsing and serializing OpenAPI Contract.
  */
 object YamlSerializer {
 

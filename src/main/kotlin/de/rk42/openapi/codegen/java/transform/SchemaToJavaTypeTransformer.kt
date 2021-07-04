@@ -97,11 +97,6 @@ class SchemaToJavaTypeTransformer(private val configuration: Configuration) {
     return JavaMapType("Map", "java.util", valuesType, elementValidations + sizeValidations(schema.minItems, schema.maxItems))
   }
 
-  /**
-   * TODO: Support the following "string" formats:
-   *  - "byte": base64 encoded characters
-   *  - "binary": any sequence of octets
-   */
   private fun toJavaBuiltInType(schema: CtrSchemaPrimitive): JavaType = when (schema.type) {
 
     BOOLEAN -> JavaType("Boolean", "java.lang")
