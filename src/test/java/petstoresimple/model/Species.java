@@ -2,6 +2,9 @@ package petstoresimple.model;
 
 import com.google.gson.annotations.SerializedName;
 
+/**
+ * An enum for each species.
+ */
 public enum Species {
   @SerializedName("Cat")
   CAT,

@@ -88,9 +88,37 @@ paths:
       summary: Info for a specific pet
       tags:
       - pets
+  /petTransformer:
+    post:
+      operationId: transformPet
+      requestBody:
+        content:
+          application/octet-stream:
+            schema:
+              format: binary
+              type: string
+        required: true
+      responses:
+        "200":
+          content:
+            application/octet-stream:
+              schema:
+                format: binary
+                type: string
+          description: the transformed pet.
+        default:
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+          description: unexpected error
+      summary: Transform a pet in binary form.
+      tags:
+      - pets
 components:
   schemas:
     Pet:
+      description: The model for pets sold in the pet store.
       properties:
         id:
           format: int64
@@ -117,6 +145,7 @@ components:
       - id
       - name
     Species:
+      description: An enum for each species.
       enum:
       - Cat
       - Dog
@@ -133,6 +162,7 @@ components:
           format: int32
           type: integer
         message:
+          minLength: 1
           type: string
       required:
       - code

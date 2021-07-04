@@ -3,13 +3,21 @@ package petstoresimple.model;
 import java.util.Objects;
 import javax.validation.constraints.NotNull;
 
+/**
+ * The model for pets sold in the pet store.
+ */
 public class Pet {
+  @NotNull
   private Long id;
 
+  @NotNull
   private String name;
 
   private String tag;
 
+  /**
+   * An enum for each species.
+   */
   private Species species;
 
   private PetMultiplier multiplier;
@@ -21,7 +29,6 @@ public class Pet {
     return this;
   }
 
-  @NotNull
   public Long getId() {
     return id;
   }
@@ -35,7 +42,6 @@ public class Pet {
     return this;
   }
 
-  @NotNull
   public String getName() {
     return name;
   }

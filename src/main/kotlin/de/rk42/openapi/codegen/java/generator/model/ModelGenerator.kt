@@ -101,20 +101,20 @@ class ModelGenerator(configuration: Configuration) {
           .build()
 
   private fun generateGetter(property: JavaProperty, propertyTypeName: TypeName): MethodSpec {
-    val typeValidationAnnotations = property.type.validations.map(GeneratorCommon::toAnnotation)
-
     return MethodSpec.methodBuilder("get${property.javaName.capitalize()}")
-        .doIfNotNull(property.javadoc) { addJavadoc(it) }
         .addModifiers(PUBLIC)
         .returns(propertyTypeName)
         .addStatement("return \$N", property.javaName)
-        .doIf(property.required) { addAnnotation(NOT_NULL_ANNOTATION) }
-        .addAnnotations(typeValidationAnnotations)
         .build()
   }
 
   private fun toField(property: JavaProperty): FieldSpec {
+    val typeValidationAnnotations = property.type.validations.map(GeneratorCommon::toAnnotation)
+    
     return FieldSpec.builder(property.type.toTypeName(), property.javaName, PRIVATE)
+        .doIfNotNull(property.javadoc) { addJavadoc(it) }
+        .doIf(property.required) { addAnnotation(NOT_NULL_ANNOTATION) }
+        .addAnnotations(typeValidationAnnotations)
         .doIfNotNull(property.initializerType) { initializer("new \$T<>()", it.toTypeName()) }
         .build()
   }

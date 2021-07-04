@@ -1,7 +1,9 @@
 package petstoresimple.resources;
 
+import java.io.InputStream;
 import java.util.List;
 import javax.validation.constraints.NotNull;
+import javax.ws.rs.Consumes;
 import javax.ws.rs.GET;
 import javax.ws.rs.POST;
 import javax.ws.rs.Path;
@@ -45,6 +47,18 @@ public interface PetsApi {
   @Path("/pets/{petId}")
   @Produces("application/json")
   ShowPetByIdResponse showPetById(@PathParam("petId") @NotNull String petId);
+
+  /**
+   * Transform a pet in binary form.
+   */
+  @POST
+  @Path("/petTransformer")
+  @Consumes("application/octet-stream")
+  @Produces({
+      "application/json",
+      "application/octet-stream"
+  })
+  TransformPetResponse transformPet(@NotNull InputStream requestBody);
 
   class ListPetsResponse extends ResponseWrapper {
     private ListPetsResponse(Response delegate) {
@@ -101,6 +115,24 @@ public interface PetsApi {
 
     public static ShowPetByIdResponse withCustomResponse(Response response) {
       return new ShowPetByIdResponse(response);
+    }
+  }
+
+  class TransformPetResponse extends ResponseWrapper {
+    private TransformPetResponse(Response delegate) {
+      super(delegate);
+    }
+
+    public static TransformPetResponse with200ApplicationOctetStream(InputStream entity) {
+      return new TransformPetResponse(Response.status(200).header("Content-Type", "application/octet-stream").entity(entity).build());
+    }
+
+    public static TransformPetResponse withApplicationJson(int status, Error entity) {
+      return new TransformPetResponse(Response.status(status).header("Content-Type", "application/json").entity(entity).build());
+    }
+
+    public static TransformPetResponse withCustomResponse(Response response) {
+      return new TransformPetResponse(response);
     }
   }
 }

@@ -2,10 +2,16 @@ package petstoresimple.model;
 
 import java.util.Objects;
 import javax.validation.constraints.NotNull;
+import javax.validation.constraints.Size;
 
 public class Error {
+  @NotNull
   private Integer code;
 
+  @NotNull
+  @Size(
+      min = 1
+  )
   private String message;
 
   public Error code(Integer code) {
@@ -13,7 +19,6 @@ public class Error {
     return this;
   }
 
-  @NotNull
   public Integer getCode() {
     return code;
   }
@@ -27,7 +32,6 @@ public class Error {
     return this;
   }
 
-  @NotNull
   public String getMessage() {
     return message;
   }

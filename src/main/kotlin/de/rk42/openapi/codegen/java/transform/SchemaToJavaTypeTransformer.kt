@@ -45,13 +45,13 @@ class SchemaToJavaTypeTransformer(private val configuration: Configuration) {
    */
   fun toJavaType(schema: CtrSchemaNonRef): JavaAnyType {
     log.debug { "toJavaType ${schema.nameHint}" }
-    
+
     return schemaToTypeLookup.getOrPut(schema) {
       when (schema) {
-        is CtrSchemaObject    -> toGeneratedJavaType(schema, false)
-        is CtrSchemaEnum      -> toGeneratedJavaType(schema, true)
-        is CtrSchemaArray     -> toJavaCollectionType(schema)
-        is CtrSchemaMap       -> toJavaMapType(schema)
+        is CtrSchemaObject -> toGeneratedJavaType(schema, false)
+        is CtrSchemaEnum -> toGeneratedJavaType(schema, true)
+        is CtrSchemaArray -> toJavaCollectionType(schema)
+        is CtrSchemaMap -> toJavaMapType(schema)
         is CtrSchemaPrimitive -> toJavaBuiltInType(schema)
       }
     }
@@ -66,19 +66,19 @@ class SchemaToJavaTypeTransformer(private val configuration: Configuration) {
 
   private fun determineName(schema: CtrSchemaNonRef): String {
     val parentSchema = schema.embeddedIn
-    
+
     val name = if (parentSchema == null) {
       configuration.modelPrefix + suggestName(schema)
     } else {
       val parentType = toJavaType(parentSchema)
       parentType.name + suggestName(schema, schema.nameHint.removePrefix(parentSchema.nameHint))
     }
-    
+
     return uniqueNameFinder.toUniqueName(name)
   }
 
-  private fun suggestName(schema: CtrSchemaNonRef, nameHint: NameHint = schema.nameHint) = 
-      (schema.title ?: nameHint.path.joinToString("/")).toJavaTypeIdentifier()
+  private fun suggestName(schema: CtrSchemaNonRef, nameHint: NameHint = schema.nameHint) =
+      nameHint.path.joinToString("/").toJavaTypeIdentifier()
 
   private fun toJavaCollectionType(schema: CtrSchemaArray): JavaCollectionType {
     val elementSchema = schema.itemSchema as? CtrSchemaNonRef ?: throw IllegalArgumentException("Unexpected SchemaRef in $schema")
@@ -108,28 +108,27 @@ class SchemaToJavaTypeTransformer(private val configuration: Configuration) {
 
     INTEGER -> {
       val validations = integralValidations(schema)
-
       when (schema.format) {
         "int32" -> JavaType("Integer", "java.lang", validations)
         "int64" -> JavaType("Long", "java.lang", validations)
-        else    -> JavaType("BigInteger", "java.math", validations)
+        else -> JavaType("BigInteger", "java.math", validations)
       }
     }
 
-    NUMBER  -> {
+    NUMBER -> {
       val validations = decimalValidations(schema)
-
       when (schema.format) {
-        "float"  -> JavaType("Float", "java.lang", validations)
+        "float" -> JavaType("Float", "java.lang", validations)
         "double" -> JavaType("Double", "java.lang", validations)
-        else     -> JavaType("BigDecimal", "java.math", validations)
+        else -> JavaType("BigDecimal", "java.math", validations)
       }
     }
 
-    STRING  -> when (schema.format) {
-      "date"      -> JavaType("LocalDate", "java.time")
+    STRING -> when (schema.format) {
+      "date" -> JavaType("LocalDate", "java.time")
       "date-time" -> JavaType("OffsetDateTime", "java.time")
-      else        -> JavaType("String", "java.lang", sizeValidations(schema.minLength, schema.maxLength) + patternValidations(schema))
+      "binary" -> JavaType("InputStream", "java.io")
+      else -> JavaType("String", "java.lang", sizeValidations(schema.minLength, schema.maxLength) + patternValidations(schema))
     }
   }
 
