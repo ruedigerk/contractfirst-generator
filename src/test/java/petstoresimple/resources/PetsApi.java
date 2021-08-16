@@ -12,6 +12,7 @@ import javax.ws.rs.Produces;
 import javax.ws.rs.QueryParam;
 import javax.ws.rs.core.Response;
 import petstoresimple.model.Error;
+import petstoresimple.model.GetPetTransformer200;
 import petstoresimple.model.Pet;
 import petstoresimple.resources.support.ResponseWrapper;
 
@@ -47,6 +48,14 @@ public interface PetsApi {
   @Path("/pets/{petId}")
   @Produces("application/json")
   ShowPetByIdResponse showPetById(@PathParam("petId") @NotNull String petId);
+
+  /**
+   * A test case for the SchemaToJavaTypeTransformer.
+   */
+  @GET
+  @Path("/petTransformer")
+  @Produces("application/json")
+  GetPetTransformerResponse getPetTransformer();
 
   /**
    * Transform a pet in binary form.
@@ -115,6 +124,21 @@ public interface PetsApi {
 
     public static ShowPetByIdResponse withCustomResponse(Response response) {
       return new ShowPetByIdResponse(response);
+    }
+  }
+
+  class GetPetTransformerResponse extends ResponseWrapper {
+    private GetPetTransformerResponse(Response delegate) {
+      super(delegate);
+    }
+
+    public static GetPetTransformerResponse with200ApplicationJson(
+        List<GetPetTransformer200> entity) {
+      return new GetPetTransformerResponse(Response.status(200).header("Content-Type", "application/json").entity(entity).build());
+    }
+
+    public static GetPetTransformerResponse withCustomResponse(Response response) {
+      return new GetPetTransformerResponse(response);
     }
   }
 

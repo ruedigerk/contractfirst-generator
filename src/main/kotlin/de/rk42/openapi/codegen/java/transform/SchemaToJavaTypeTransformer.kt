@@ -58,6 +58,11 @@ class SchemaToJavaTypeTransformer(private val configuration: Configuration) {
   }
 
   private fun toGeneratedJavaType(schema: CtrSchemaNonRef, isEnum: Boolean): JavaType {
+    // Objects without properties seem to be used in the wild. Special-case to java.lang.Object.
+    if (schema is CtrSchemaObject && schema.properties.isEmpty()) {
+      return JavaType("Object", "java.lang")
+    }
+
     val typeName = determineName(schema)
     val validations = if (isEnum) emptyList() else listOf(ValidatedValidation)
 
@@ -65,13 +70,9 @@ class SchemaToJavaTypeTransformer(private val configuration: Configuration) {
   }
 
   private fun determineName(schema: CtrSchemaNonRef): String {
-    val parentSchema = schema.embeddedIn
-
-    val name = if (parentSchema == null) {
-      configuration.modelPrefix + suggestName(schema)
-    } else {
-      val parentType = toJavaType(parentSchema)
-      parentType.name + suggestName(schema, schema.nameHint.removePrefix(parentSchema.nameHint))
+    val name = when (val parent = schema.embeddedIn) {
+      is CtrSchemaObject -> toJavaType(parent).name + suggestName(schema, schema.nameHint.removePrefix(parent.nameHint))
+      else -> configuration.modelPrefix + suggestName(schema)
     }
 
     return uniqueNameFinder.toUniqueName(name)

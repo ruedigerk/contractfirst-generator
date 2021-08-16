@@ -51,6 +51,7 @@ class Log(val underlyingLogger: Logger) {
     /**
      * Retrieves the logger for the current class. For the idea, see: https://github.com/MicroUtils/kotlin-logging/issues/179
      */
+    @Suppress("unused") // IDEA thinks that the generic parameter T is unused, but it is needed.
     inline fun <reified T> T.getLogger(): Log {
       val loggingClass = T::class.java
       return Log(LoggerFactory.getLogger(loggingClass))

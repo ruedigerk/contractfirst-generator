@@ -89,6 +89,24 @@ paths:
       tags:
       - pets
   /petTransformer:
+    get:
+      description: A test case for the SchemaToJavaTypeTransformer.
+      operationId: getPetTransformer
+      responses:
+        "200":
+          content:
+            application/json:
+              schema:
+                items:
+                  properties:
+                    someProperty:
+                      type: string
+                  type: object
+                type: array
+          description: Return an object embedded inline in an array.
+      summary: Return Transformer
+      tags:
+      - pets
     post:
       operationId: transformPet
       requestBody:

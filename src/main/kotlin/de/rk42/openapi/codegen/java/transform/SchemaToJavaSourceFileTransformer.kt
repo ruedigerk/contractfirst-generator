@@ -33,10 +33,15 @@ class SchemaToJavaSourceFileTransformer(private val typeLookup: JavaTypeLookup) 
     is CtrSchemaPrimitive -> null
   }
 
-  private fun toJavaClassFile(schema: CtrSchemaObject): JavaClassFile {
+  private fun toJavaClassFile(schema: CtrSchemaObject): JavaClassFile? {
     val type = typeLookup.lookupJavaTypeFor(schema)
     val className = type.name
     val properties = schema.properties.map(::toJavaProperty)
+
+    // Special case for empty object schemas, the are generated as java.lang.Object, so no class file need to be generated.
+    if (properties.isEmpty()) {
+      return null
+    }
 
     return JavaClassFile(className, TransformerHelper.toJavadoc(schema), properties)
   }

@@ -10,7 +10,7 @@ import io.swagger.v3.oas.models.media.Schema
 
 /**
  * Used for resolving schema references and determining the set of all schemas of the contract that are actually used. Not all schemas in the
- * "/components/schemas" section of a contract are necessarly used/referenced in the contract. Also, there can be inline schemas in the contract.
+ * "/components/schemas" section of a contract are necessarily used/referenced in the contract. Also, there can be inline schemas in the contract.
  */
 class SchemaResolver(topLevelSchemas: Map<String, Schema<Any>>) {
 
@@ -47,7 +47,7 @@ class SchemaResolver(topLevelSchemas: Map<String, Schema<Any>>) {
     val resolvedSchemas = mutableSetOf<CtrSchemaNonRef>()
     var schemasForResolving = referencedSchemas.toSet()
 
-    // Iteratively resolve all child schemas. Not being done recursively to avoid endless cycles on self-referencing schemas/cyclic schemas.
+    // Iteratively resolve all child schemas. Not done recursively to avoid endless cycles on self-referencing schemas/cyclic schemas.
     do {
       schemasForResolving.forEach(::resolveSchemaComponents)
       resolvedSchemas.addAll(schemasForResolving)

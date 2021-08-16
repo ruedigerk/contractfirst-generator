@@ -30,7 +30,7 @@ object SchemaParser {
       (parseSchema(schema, location) as? CtrSchemaNonRef) ?: throw NotSupportedException("Unsupported schema reference in #/components/schemas: $schema")
 
   fun parseSchema(schema: Schema<*>, location: NameHint): CtrSchema {
-    log.debug { "Parsing schema ${location.path} of ${schema.javaClass.simpleName}" }
+    log.debug { "Parsing schema $location of ${schema.javaClass.simpleName}" }
 
     if (schema.`$ref` != null) {
       return CtrSchemaRef(schema.`$ref`)
@@ -57,7 +57,7 @@ object SchemaParser {
 
   @Suppress("UNCHECKED_CAST")
   private fun toArraySchema(schema: ArraySchema, location: NameHint): CtrSchemaArray {
-    val itemsSchema = parseSchema(schema.items as Schema<*>, location / "items")
+    val itemsSchema = parseSchema(schema.items as Schema<*>, location)
 
     return CtrSchemaArray(
         schema.title.normalize(),
@@ -88,23 +88,17 @@ object SchemaParser {
   }
 
   private fun toObjectOrMapSchema(schema: Schema<*>, location: NameHint): CtrSchemaNonRef {
-    if (schema.properties.nullToEmpty().isNotEmpty() && schema.additionalProperties != null) {
-      throw NotSupportedException("Object schemas having both properties and additionalProperties are not supported, just either or: $schema")
+    val properties = schema.properties.nullToEmpty()
+    val additionalProperties = schema.additionalProperties as? Schema<*>
+    // TODO: additionalProperties of type Boolean instead of Schema are ignored.
+
+    return when {
+      properties.isNotEmpty() && additionalProperties != null -> {
+        throw NotSupportedException("Object schemas having both properties and additionalProperties are not supported, just either or: $schema")
+      }
+      additionalProperties != null -> toMapSchema(schema, parseSchema(additionalProperties, location / "additionalProperties"), location)
+      else -> toObjectSchema(schema, location)
     }
-
-    val additionalPropertiesValuesSchema = parseAdditionalProperties(schema, location)
-
-    return if (additionalPropertiesValuesSchema != null) {
-      toMapSchema(schema, additionalPropertiesValuesSchema, location)
-    } else {
-      toObjectSchema(schema, location)
-    }
-  }
-
-  @Suppress("UNCHECKED_CAST")
-  private fun parseAdditionalProperties(schema: Schema<*>, location: NameHint): CtrSchema? {
-    val additionalProperties = schema.additionalProperties
-    return if (additionalProperties is Schema<*>) parseSchema(additionalProperties, location / "additionalProperties") else null
   }
 
   private fun toMapSchema(schema: Schema<*>, valuesSchema: CtrSchema, location: NameHint): CtrSchemaMap =

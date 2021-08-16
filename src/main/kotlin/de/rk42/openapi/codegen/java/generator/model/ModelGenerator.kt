@@ -37,7 +37,7 @@ class ModelGenerator(configuration: Configuration) {
   fun generateCode(specification: JavaSpecification) {
     specification.modelFiles.asSequence()
         .map(::toJavaFile)
-        .forEach(this::writeFile)
+        .forEach(::writeFile)
   }
 
   private fun writeFile(javaFile: JavaFile) {
@@ -110,7 +110,7 @@ class ModelGenerator(configuration: Configuration) {
 
   private fun toField(property: JavaProperty): FieldSpec {
     val typeValidationAnnotations = property.type.validations.map(GeneratorCommon::toAnnotation)
-    
+
     return FieldSpec.builder(property.type.toTypeName(), property.javaName, PRIVATE)
         .doIfNotNull(property.javadoc) { addJavadoc(it) }
         .doIf(property.required) { addAnnotation(NOT_NULL_ANNOTATION) }
@@ -235,7 +235,7 @@ class ModelGenerator(configuration: Configuration) {
 
     enumFile.constants.forEach { enumConstant ->
       val constantBuilder = TypeSpec.anonymousClassBuilder("")
-      
+
       if (enumConstant.javaName != enumConstant.value) {
         val serializedNameAnnotation = toAnnotation("com.google.gson.annotations.SerializedName", enumConstant.value)
         constantBuilder.addAnnotation(serializedNameAnnotation)

@@ -40,8 +40,6 @@ class Parser {
     val parseOptions = ParseOptions().apply {
       // Replace remote/relative references with a local references, e.g. "#/components/schemas/NameOfRemoteSchema".
       isResolve = true
-      // Move all inline schemas to the components/schemas section and replace them with a reference.
-      isFlatten = true
     }
 
     val result = OpenAPIParser().readLocation(specFile, null, parseOptions)
@@ -101,7 +99,7 @@ class Parser {
         operation.summary.normalize(),
         operation.description.normalize(),
         operation.operationId,
-        operation.requestBody?.let { toRequestBody(it, nameHint / "Request") },
+        operation.requestBody?.let { toRequestBody(it, nameHint / "RequestBody") },
         joinParameters(operation.parameters.nullToEmpty(), commonParameters, nameHint),
         toResponses(operation.responses, nameHint)
     )
@@ -117,7 +115,7 @@ class Parser {
     val operationParametersAsMap = operationParameters.map { toParameter(it, nameHint) }.associateBy { it.name }
     val pathParametersAsMap = pathParameters.associateBy { it.name }
 
-    return pathParametersAsMap.plus(operationParametersAsMap).values.toList()
+    return (pathParametersAsMap + operationParametersAsMap).values.toList()
   }
 
   private fun toParameter(parameter: Parameter, nameHint: NameHint): CtrParameter {

@@ -83,6 +83,24 @@ paths:
               schema:
                 $ref: "#/components/schemas/Error"
   /petTransformer:
+    get:
+      summary: Return Transformer
+      description: A test case for the SchemaToJavaTypeTransformer.
+      tags:
+        - pets
+      operationId: getPetTransformer
+      responses: 
+        "200":
+          description: Return an object embedded inline in an array.
+          content: 
+            application/json:
+              schema: 
+                type: array
+                items: 
+                  type: object
+                  properties: 
+                    someProperty:
+                      type: string
     post:
       summary: Transform a pet in binary form.
       operationId: transformPet
