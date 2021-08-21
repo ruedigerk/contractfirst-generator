@@ -4,11 +4,11 @@ import de.rk42.openapi.codegen.CommandLineInterface
 import groovy.io.FileType
 
 /**
- * Test are being run with the project dir as the working directory, e.g. C:/Development/Workspace/OpenApiCodegen
+ * Tests are being run with the project dir as the working directory, e.g. C:/Development/Workspace/OpenApiCodegen
  */
 class GeneratorHarness {
 
-  static final String OUTPUT_DIR = "build/generatedTestOutput"
+  static final String OUTPUT_DIR = "target/generatedTestOutput"
 
   final List<String> relativePathNames
   final List<File> referenceFiles
@@ -45,17 +45,31 @@ class GeneratorHarness {
   def runGenerator() {
     if (!generatorRan) {
       generatorRan = true
-      CommandLineInterface.main(
-          [
-              "--contract", contract,
-              "--output-dir", OUTPUT_DIR,
-              "--package", packageName,
-              "--model-prefix", modelPrefix,
-              "--contract-output-file", "$packageName/openapi.yaml",
-              "-v"
-          ] as String[]
-      )
+
+      deleteOutputDirectory()
+      executeGenerator()
     }
+  }
+
+  private void deleteOutputDirectory() {
+    def outputDir = new File(generatedDir)
+
+    if (outputDir.exists()) {
+      outputDir.deleteDir()
+    }
+  }
+
+  private executeGenerator() {
+    CommandLineInterface.main(
+        [
+            "--contract", contract,
+            "--output-dir", OUTPUT_DIR,
+            "--package", packageName,
+            "--model-prefix", modelPrefix,
+            "--contract-output-file", "$packageName/openapi.yaml",
+            "-v"
+        ] as String[]
+    )
   }
 
   private static List<String> discoverFiles(String dir) {

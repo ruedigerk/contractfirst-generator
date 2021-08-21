@@ -1,9 +1,11 @@
 package de.rk42.openapi.codegen.java
 
 import spock.lang.Specification
+import spock.lang.Unroll
 
 class IdentifiersTest extends Specification {
 
+  @Unroll
   def "toJavaIdentifier"() {
     expect:
     Identifiers.toJavaIdentifier(input) == expected
@@ -22,6 +24,7 @@ class IdentifiersTest extends Specification {
     "\$123"                  | "\$123"
   }
 
+  @Unroll
   def "toJavaTypeIdentifier"() {
     expect:
     Identifiers.toJavaTypeIdentifier(input) == expected
@@ -40,6 +43,7 @@ class IdentifiersTest extends Specification {
     "\$123"                  | "\$123"
   }
 
+  @Unroll
   def "toJavaConstant"() {
     expect:
     Identifiers.toJavaConstant(input) == expected
@@ -60,6 +64,7 @@ class IdentifiersTest extends Specification {
     "\$123"                  | "\$123"
   }
 
+  @Unroll
   def "mediaTypeToJavaIdentifier"() {
     expect:
     Identifiers.mediaTypeToJavaIdentifier(input) == expected
@@ -73,6 +78,7 @@ class IdentifiersTest extends Specification {
     "application/json; charset=UTF-8" | "ApplicationJsonCharsetUtf8"
   }
 
+  @Unroll
   def "capitalize"() {
     expect:
     Identifiers.capitalize(input) == expected
@@ -85,6 +91,7 @@ class IdentifiersTest extends Specification {
     "Test"  | "Test"
   }
 
+  @Unroll
   def "camelize"() {
     expect:
     Identifiers.toCamelCase(input, uppercaseFirstLetter) == expected

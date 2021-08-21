@@ -19,7 +19,7 @@ class TemplateFileWriter(private val configuration: Configuration) {
 
     destinationDirectory.resolve(templateFileName).outputStream().buffered().use { outputStream ->
       outputStream.writePackageStatement(destinationPackage)
-      templateInputStream.use { it.transferTo(outputStream) }
+      templateInputStream.use { it.copyTo(outputStream) }
     }
   }
 
