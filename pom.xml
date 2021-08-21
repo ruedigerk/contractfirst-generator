@@ -3,8 +3,9 @@
    <modelVersion>4.0.0</modelVersion>
 
    <groupId>de.rk42.openapi-codegen</groupId>
-   <artifactId>openapi-codegen</artifactId>
+   <artifactId>openapi-codegen-parent</artifactId>
    <version>1.0-SNAPSHOT</version>
+   <packaging>pom</packaging>
 
    <properties>
       <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
@@ -30,6 +31,10 @@
 
       <gmavenplus-plugin.version>1.12.1</gmavenplus-plugin.version>
    </properties>
+
+   <modules>
+      <module>codegen</module>
+   </modules>
 
    <build>
       <pluginManagement>
@@ -106,72 +111,6 @@
             </plugin>
          </plugins>
       </pluginManagement>
-
-      <plugins>
-         <plugin>
-            <!-- Kotlin compiler plugin needs to run before Java compiler plugin -->
-            <groupId>org.jetbrains.kotlin</groupId>
-            <artifactId>kotlin-maven-plugin</artifactId>
-            <version>${kotlin.version}</version>
-            <executions>
-               <execution>
-                  <id>compile</id>
-                  <goals>
-                     <goal>compile</goal>
-                  </goals>
-                  <configuration>
-                     <sourceDirs>
-                        <sourceDir>${project.basedir}/src/main/kotlin</sourceDir>
-                     </sourceDirs>
-                  </configuration>
-               </execution>
-            </executions>
-            <configuration>
-               <args>
-                  <!-- Progressive mode for the Kotlin compiler: https://kotlinlang.org/docs/compiler-reference.html#progressive -->
-                  <arg>-progressive</arg>
-               </args>
-            </configuration>
-         </plugin>
-
-         <plugin>
-            <!-- Java compiler needs to run after Kotlin compiler, see https://kotlinlang.org/docs/maven.html#compile-kotlin-and-java-sources -->
-            <groupId>org.apache.maven.plugins</groupId>
-            <artifactId>maven-compiler-plugin</artifactId>
-            <executions>
-               <execution>
-                  <!-- Replacing default-compile as it is treated specially by maven -->
-                  <id>default-compile</id>
-                  <phase>none</phase>
-               </execution>
-               <execution>
-                  <!-- Replacing default-testCompile as it is treated specially by maven -->
-                  <id>default-testCompile</id>
-                  <phase>none</phase>
-               </execution>
-               <execution>
-                  <id>java-compile</id>
-                  <phase>compile</phase>
-                  <goals>
-                     <goal>compile</goal>
-                  </goals>
-               </execution>
-               <execution>
-                  <id>java-test-compile</id>
-                  <phase>test-compile</phase>
-                  <goals>
-                     <goal>testCompile</goal>
-                  </goals>
-               </execution>
-            </executions>
-         </plugin>
-
-         <plugin>
-            <!-- Groovy-Plugin for testing with Spock -->
-            <groupId>org.codehaus.gmavenplus</groupId>
-            <artifactId>gmavenplus-plugin</artifactId>
-         </plugin>
-      </plugins>
    </build>
 
    <dependencyManagement>
@@ -219,104 +158,5 @@
          </dependency>
       </dependencies>
    </dependencyManagement>
-
-   <dependencies>
-      <!-- #################### -->
-      <!-- Compile dependencies -->
-      <!-- #################### -->
-      <dependency>
-         <!-- Kotlin standard library for JDK 8+ -->
-         <groupId>org.jetbrains.kotlin</groupId>
-         <artifactId>kotlin-stdlib-jdk8</artifactId>
-         <version>${kotlin.version}</version>
-      </dependency>
-      <dependency>
-         <!-- For reading command line arguments -->
-         <groupId>com.xenomachina</groupId>
-         <artifactId>kotlin-argparser</artifactId>
-         <version>2.0.7</version>
-      </dependency>
-      <dependency>
-         <!-- For parsing OpenAPI specifications -->
-         <groupId>io.swagger.parser.v3</groupId>
-         <artifactId>swagger-parser</artifactId>
-         <version>2.0.25</version>
-      </dependency>
-      <dependency>
-         <!-- For serializing YAML output -->
-         <groupId>com.fasterxml.jackson.dataformat</groupId>
-         <artifactId>jackson-dataformat-yaml</artifactId>
-         <version>2.12.3</version>
-      </dependency>
-      <dependency>
-         <!-- For generating Java source files -->
-         <groupId>com.squareup</groupId>
-         <artifactId>javapoet</artifactId>
-         <version>1.13.0</version>
-      </dependency>
-      <dependency>
-         <!-- For Logging -->
-         <groupId>ch.qos.logback</groupId>
-         <artifactId>logback-classic</artifactId>
-         <version>1.2.3</version>
-      </dependency>
-
-      <!-- ################# -->
-      <!-- Test dependencies -->
-      <!-- ################# -->
-      <dependency>
-         <groupId>junit</groupId>
-         <artifactId>junit</artifactId>
-         <version>4.13.2</version>
-         <scope>test</scope>
-      </dependency>
-      <dependency>
-         <groupId>org.codehaus.groovy</groupId>
-         <artifactId>groovy</artifactId>
-         <version>${groovy.version}</version>
-         <scope>test</scope>
-      </dependency>
-      <dependency>
-         <!-- For testing with Spock -->
-         <groupId>org.spockframework</groupId>
-         <artifactId>spock-core</artifactId>
-         <version>1.3-groovy-2.5</version>
-         <scope>test</scope>
-      </dependency>
-      <dependency>
-         <!-- Allows mocking of classes in Spock (in addition to interfaces). -->
-         <groupId>net.bytebuddy</groupId>
-         <artifactId>byte-buddy</artifactId>
-         <version>1.11.0</version>
-         <scope>test</scope>
-      </dependency>
-      <dependency>
-         <!-- Allows mocking of classes without default constructor in Spock (together with ByteBuddy). -->
-         <groupId>org.objenesis</groupId>
-         <artifactId>objenesis</artifactId>
-         <version>3.2</version>
-         <scope>test</scope>
-      </dependency>
-
-      <!-- Dependencies of the generated Code -->
-      <dependency>
-         <groupId>javax.ws.rs</groupId>
-         <artifactId>javax.ws.rs-api</artifactId>
-         <version>2.1.1</version>
-         <scope>test</scope>
-      </dependency>
-      <dependency>
-         <groupId>javax.validation</groupId>
-         <artifactId>validation-api</artifactId>
-         <version>1.1.0.Final</version>
-         <scope>test</scope>
-      </dependency>
-      <dependency>
-         <groupId>com.google.code.gson</groupId>
-         <artifactId>gson</artifactId>
-         <version>2.8.7</version>
-         <scope>test</scope>
-      </dependency>
-   </dependencies>
 
 </project>
