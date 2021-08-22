@@ -35,6 +35,8 @@
    <modules>
       <module>codegen</module>
       <module>command-line-interface</module>
+      <module>maven-plugin</module>
+      <module>maven-plugin-test</module>
    </modules>
 
    <build>
