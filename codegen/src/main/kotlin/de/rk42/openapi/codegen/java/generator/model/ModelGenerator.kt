@@ -1,11 +1,6 @@
 package de.rk42.openapi.codegen.java.generator.model
 
-import com.squareup.javapoet.FieldSpec
-import com.squareup.javapoet.JavaFile
-import com.squareup.javapoet.MethodSpec
-import com.squareup.javapoet.NameAllocator
-import com.squareup.javapoet.TypeName
-import com.squareup.javapoet.TypeSpec
+import com.squareup.javapoet.*
 import de.rk42.openapi.codegen.Configuration
 import de.rk42.openapi.codegen.java.Identifiers.capitalize
 import de.rk42.openapi.codegen.java.generator.GeneratorCommon
@@ -14,11 +9,7 @@ import de.rk42.openapi.codegen.java.generator.GeneratorCommon.toAnnotation
 import de.rk42.openapi.codegen.java.generator.GeneratorCommon.toTypeName
 import de.rk42.openapi.codegen.java.generator.JavapoetExtensions.doIf
 import de.rk42.openapi.codegen.java.generator.JavapoetExtensions.doIfNotNull
-import de.rk42.openapi.codegen.java.model.JavaClassFile
-import de.rk42.openapi.codegen.java.model.JavaEnumFile
-import de.rk42.openapi.codegen.java.model.JavaProperty
-import de.rk42.openapi.codegen.java.model.JavaSourceFile
-import de.rk42.openapi.codegen.java.model.JavaSpecification
+import de.rk42.openapi.codegen.java.model.*
 import java.io.File
 import java.util.*
 import javax.lang.model.element.Modifier.PRIVATE

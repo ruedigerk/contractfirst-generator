@@ -1,0 +1,57 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<project xmlns="http://maven.apache.org/POM/4.0.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/maven-v4_0_0.xsd">
+   <modelVersion>4.0.0</modelVersion>
+
+   <artifactId>openapi-codegen-cli</artifactId>
+
+   <parent>
+      <groupId>de.rk42.openapi-codegen</groupId>
+      <artifactId>openapi-codegen-parent</artifactId>
+      <version>1.0-SNAPSHOT</version>
+   </parent>
+
+   <build>
+      <plugins>
+         <plugin>
+            <!-- Kotlin compiler plugin needs to run before Java compiler plugin -->
+            <groupId>org.jetbrains.kotlin</groupId>
+            <artifactId>kotlin-maven-plugin</artifactId>
+         </plugin>
+
+         <plugin>
+            <!-- Java compiler needs to run after Kotlin compiler, see https://kotlinlang.org/docs/maven.html#compile-kotlin-and-java-sources -->
+            <artifactId>maven-compiler-plugin</artifactId>
+         </plugin>
+      </plugins>
+   </build>
+
+   <dependencies>
+      <!-- #################### -->
+      <!-- Compile dependencies -->
+      <!-- #################### -->
+      <dependency>
+         <groupId>de.rk42.openapi-codegen</groupId>
+         <artifactId>openapi-codegen</artifactId>
+         <version>${project.version}</version>
+      </dependency>
+      <dependency>
+         <!-- Kotlin standard library for JDK 8+ -->
+         <groupId>org.jetbrains.kotlin</groupId>
+         <artifactId>kotlin-stdlib-jdk8</artifactId>
+         <version>${kotlin.version}</version>
+      </dependency>
+      <dependency>
+         <!-- For reading command line arguments -->
+         <groupId>com.xenomachina</groupId>
+         <artifactId>kotlin-argparser</artifactId>
+         <version>2.0.7</version>
+      </dependency>
+      <dependency>
+         <!-- For Logging -->
+         <groupId>ch.qos.logback</groupId>
+         <artifactId>logback-classic</artifactId>
+         <version>1.2.3</version>
+      </dependency>
+   </dependencies>
+
+</project>

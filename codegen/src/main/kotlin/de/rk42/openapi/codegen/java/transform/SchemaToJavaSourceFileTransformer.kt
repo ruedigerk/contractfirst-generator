@@ -2,21 +2,8 @@ package de.rk42.openapi.codegen.java.transform
 
 import de.rk42.openapi.codegen.java.Identifiers.toJavaConstant
 import de.rk42.openapi.codegen.java.Identifiers.toJavaIdentifier
-import de.rk42.openapi.codegen.java.model.EnumConstant
-import de.rk42.openapi.codegen.java.model.JavaClassFile
-import de.rk42.openapi.codegen.java.model.JavaCollectionType
-import de.rk42.openapi.codegen.java.model.JavaEnumFile
-import de.rk42.openapi.codegen.java.model.JavaMapType
-import de.rk42.openapi.codegen.java.model.JavaProperty
-import de.rk42.openapi.codegen.java.model.JavaSourceFile
-import de.rk42.openapi.codegen.java.model.JavaType
-import de.rk42.openapi.codegen.model.CtrSchemaArray
-import de.rk42.openapi.codegen.model.CtrSchemaEnum
-import de.rk42.openapi.codegen.model.CtrSchemaMap
-import de.rk42.openapi.codegen.model.CtrSchemaNonRef
-import de.rk42.openapi.codegen.model.CtrSchemaObject
-import de.rk42.openapi.codegen.model.CtrSchemaPrimitive
-import de.rk42.openapi.codegen.model.CtrSchemaProperty
+import de.rk42.openapi.codegen.java.model.*
+import de.rk42.openapi.codegen.model.*
 
 /**
  * Transforms the parsed schemas into Java source file representations, appropriate for code generation.

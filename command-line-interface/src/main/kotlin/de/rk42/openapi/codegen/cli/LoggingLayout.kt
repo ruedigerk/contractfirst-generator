@@ -1,4 +1,4 @@
-package de.rk42.openapi.codegen.crosscutting
+package de.rk42.openapi.codegen.cli
 
 import ch.qos.logback.classic.Level
 import ch.qos.logback.classic.pattern.ThrowableProxyConverter

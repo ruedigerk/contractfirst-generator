@@ -1,26 +1,14 @@
 package de.rk42.openapi.codegen.parser
 
+import de.rk42.openapi.codegen.logging.Log
 import de.rk42.openapi.codegen.NotSupportedException
-import de.rk42.openapi.codegen.crosscutting.Log.Companion.getLogger
-import de.rk42.openapi.codegen.model.CtrPrimitiveType
-import de.rk42.openapi.codegen.model.CtrSchema
-import de.rk42.openapi.codegen.model.CtrSchemaArray
-import de.rk42.openapi.codegen.model.CtrSchemaEnum
-import de.rk42.openapi.codegen.model.CtrSchemaMap
-import de.rk42.openapi.codegen.model.CtrSchemaNonRef
-import de.rk42.openapi.codegen.model.CtrSchemaObject
-import de.rk42.openapi.codegen.model.CtrSchemaPrimitive
-import de.rk42.openapi.codegen.model.CtrSchemaProperty
-import de.rk42.openapi.codegen.model.CtrSchemaRef
-import de.rk42.openapi.codegen.model.NameHint
+import de.rk42.openapi.codegen.model.*
 import de.rk42.openapi.codegen.parser.ParserHelper.normalize
 import de.rk42.openapi.codegen.parser.ParserHelper.nullToEmpty
 import io.swagger.v3.oas.models.media.ArraySchema
 import io.swagger.v3.oas.models.media.Schema
 
-object SchemaParser {
-
-  private val log = getLogger()
+class SchemaParser(private val log: Log) {
 
   fun parseTopLevelSchemas(schemas: Map<String, Schema<*>>): Map<CtrSchemaRef, CtrSchemaNonRef> = schemas
       .mapValues { toTopLevelSchema(it.value, NameHint(it.key)) }

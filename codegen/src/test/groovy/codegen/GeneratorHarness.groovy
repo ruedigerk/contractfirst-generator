@@ -1,7 +1,10 @@
 package codegen
 
-import de.rk42.openapi.codegen.CommandLineInterface
+import de.rk42.openapi.codegen.Configuration
+import de.rk42.openapi.codegen.OpenApiCodegen
+import de.rk42.openapi.codegen.logging.Slf4jLogAdapter
 import groovy.io.FileType
+import org.slf4j.LoggerFactory
 
 /**
  * Tests are being run with the project dir as the working directory, e.g. C:/Development/Workspace/OpenApiCodegen
@@ -60,15 +63,16 @@ class GeneratorHarness {
   }
 
   private executeGenerator() {
-    CommandLineInterface.main(
-        [
-            "--contract", contract,
-            "--output-dir", OUTPUT_DIR,
-            "--package", packageName,
-            "--model-prefix", modelPrefix,
-            "--contract-output-file", "$packageName/openapi.yaml",
-            "-v"
-        ] as String[]
+    def logAdapter = new Slf4jLogAdapter(LoggerFactory.getLogger("OpenApi-Generator.$packageName"))
+    new OpenApiCodegen(logAdapter).generate(
+        new Configuration(
+            contract,
+            "$packageName/openapi.yaml",
+            OUTPUT_DIR,
+            true,
+            packageName,
+            modelPrefix
+        )
     )
   }
 

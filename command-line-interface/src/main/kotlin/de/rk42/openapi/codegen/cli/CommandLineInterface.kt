@@ -1,9 +1,12 @@
-package de.rk42.openapi.codegen
+package de.rk42.openapi.codegen.cli
 
 import com.xenomachina.argparser.ArgParser
 import com.xenomachina.argparser.default
-import de.rk42.openapi.codegen.crosscutting.Log.Companion.getLogger
+import de.rk42.openapi.codegen.*
+import de.rk42.openapi.codegen.logging.Log
+import de.rk42.openapi.codegen.logging.Slf4jLogAdapter
 import de.rk42.openapi.codegen.parser.ParserException
+import org.slf4j.LoggerFactory
 import kotlin.system.exitProcess
 
 /**
@@ -11,22 +14,25 @@ import kotlin.system.exitProcess
  */
 object CommandLineInterface {
 
-  private val log = getLogger()
+  private val logAdapter = Slf4jLogAdapter(LoggerFactory.getLogger("OpenAPI-Codegen"))
+  private val log = Log(logAdapter)
 
   @JvmStatic
   fun main(args: Array<String>) {
-    val config = readConfiguration(args)
-    OpenApiCodegen.applyLoggingVerbosity(config.verbosity)
+    val cliConfig = readConfiguration(args)
 
-    log.info { "Generating code for contract '${config.contractFile}' in output directory '${config.outputDir}', package '${config.sourcePackage}'" }
+    val verbosity = toLoggingVerbosity(cliConfig)
+    LogbackConfigurator.applyLoggingVerbosity(verbosity)
 
-    generate(config)
+    log.info { "Generating code for contract '${cliConfig.contractFile}' in output directory '${cliConfig.outputDir}', package '${cliConfig.sourcePackage}'" }
+
+    val generatorConfig = mapToConfiguration(cliConfig)
+    generate(generatorConfig)
   }
 
-  private fun readConfiguration(args: Array<String>): Configuration {
+  private fun readConfiguration(args: Array<String>): CliConfiguration {
     return try {
-      val cliConfiguration = ArgParser(args).parseInto(::CliConfiguration)
-      mapToConfiguration(cliConfiguration)
+      ArgParser(args).parseInto(::CliConfiguration)
     } catch (e: InvalidConfigurationException) {
       exit(1) { "Parameters invalid: ${e.message}" }
     }
@@ -34,7 +40,7 @@ object CommandLineInterface {
 
   private fun generate(config: Configuration) {
     try {
-      OpenApiCodegen.generate(config)
+      OpenApiCodegen(logAdapter).generate(config)
     } catch (e: ParserException) {
       exit(2) { "Could not parse contract: ${e.messages.joinToString("\n")}" }
     } catch (e: NotSupportedException) {
@@ -54,13 +60,12 @@ object CommandLineInterface {
       cliConfiguration.outputContract,
       cliConfiguration.sourcePackage,
       cliConfiguration.modelPrefix,
-      toLoggingVerbosity(cliConfiguration)
   )
 
-  private fun toLoggingVerbosity(config: CliConfiguration): Configuration.Verbosity = when {
-    config.verbose -> Configuration.Verbosity.VERBOSE
-    config.quiet -> Configuration.Verbosity.QUIET
-    else -> Configuration.Verbosity.NORMAL
+  private fun toLoggingVerbosity(config: CliConfiguration): LoggingVerbosity = when {
+    config.verbose -> LoggingVerbosity.VERBOSE
+    config.quiet -> LoggingVerbosity.QUIET
+    else -> LoggingVerbosity.NORMAL
   }
 }
 

@@ -1,27 +1,25 @@
 package de.rk42.openapi.codegen.parser
 
-import de.rk42.openapi.codegen.model.CtrSchemaArray
-import de.rk42.openapi.codegen.model.CtrSchemaMap
-import de.rk42.openapi.codegen.model.CtrSchemaNonRef
-import de.rk42.openapi.codegen.model.CtrSchemaObject
-import de.rk42.openapi.codegen.model.CtrSchemaRef
-import de.rk42.openapi.codegen.model.NameHint
+import de.rk42.openapi.codegen.logging.Log
+import de.rk42.openapi.codegen.model.*
 import io.swagger.v3.oas.models.media.Schema
 
 /**
  * Used for resolving schema references and determining the set of all schemas of the contract that are actually used. Not all schemas in the
  * "/components/schemas" section of a contract are necessarily used/referenced in the contract. Also, there can be inline schemas in the contract.
  */
-class SchemaResolver(topLevelSchemas: Map<String, Schema<Any>>) {
+class SchemaResolver(log: Log, topLevelSchemas: Map<String, Schema<Any>>) {
+
+  private val schemaParser = SchemaParser(log)
 
   // All schemas actually being used/referenced in the contract.
   private val referencedSchemas: MutableSet<CtrSchemaNonRef> = mutableSetOf()
 
   // Top level schemas are the schemas of the components section of the contract. Only they can be referenced by a $ref.
-  private val topLevelSchemas: Map<CtrSchemaRef, CtrSchemaNonRef> = SchemaParser.parseTopLevelSchemas(topLevelSchemas)
+  private val topLevelSchemas: Map<CtrSchemaRef, CtrSchemaNonRef> = schemaParser.parseTopLevelSchemas(topLevelSchemas)
 
   fun resolveSchema(schema: Schema<Any>, location: NameHint): CtrSchemaNonRef =
-      when (val parsed = SchemaParser.parseSchema(schema, location)) {
+      when (val parsed = schemaParser.parseSchema(schema, location)) {
         is CtrSchemaRef    -> lookupSchemaRef(parsed)
         is CtrSchemaNonRef -> {
           referencedSchemas.add(parsed)

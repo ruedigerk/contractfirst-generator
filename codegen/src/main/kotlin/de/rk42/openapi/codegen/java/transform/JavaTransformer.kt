@@ -1,34 +1,22 @@
 package de.rk42.openapi.codegen.java.transform
 
 import de.rk42.openapi.codegen.Configuration
+import de.rk42.openapi.codegen.logging.Log
 import de.rk42.openapi.codegen.NotSupportedException
 import de.rk42.openapi.codegen.java.Identifiers.toJavaIdentifier
 import de.rk42.openapi.codegen.java.Identifiers.toJavaTypeIdentifier
-import de.rk42.openapi.codegen.java.model.JavaBodyParameter
-import de.rk42.openapi.codegen.java.model.JavaContent
-import de.rk42.openapi.codegen.java.model.JavaOperation
-import de.rk42.openapi.codegen.java.model.JavaOperationGroup
-import de.rk42.openapi.codegen.java.model.JavaParameter
-import de.rk42.openapi.codegen.java.model.JavaRegularParameterLocation
-import de.rk42.openapi.codegen.java.model.JavaResponse
-import de.rk42.openapi.codegen.java.model.JavaSpecification
-import de.rk42.openapi.codegen.model.CtrContent
-import de.rk42.openapi.codegen.model.CtrOperation
-import de.rk42.openapi.codegen.model.CtrParameter
-import de.rk42.openapi.codegen.model.CtrRequestBody
-import de.rk42.openapi.codegen.model.CtrResponse
-import de.rk42.openapi.codegen.model.CtrSchemaNonRef
-import de.rk42.openapi.codegen.model.CtrSpecification
+import de.rk42.openapi.codegen.java.model.*
+import de.rk42.openapi.codegen.model.*
 
 /**
  * Transforms the parsed specification into a Java-specific specification, appropriate for code generation.
  */
-class JavaTransformer(private val configuration: Configuration) {
+class JavaTransformer(private val log: Log, private val configuration: Configuration) {
 
   private lateinit var typeLookup: JavaTypeLookup
 
   fun transform(specification: CtrSpecification): JavaSpecification {
-    typeLookup = JavaTypeLookup(configuration, specification.schemas)
+    typeLookup = JavaTypeLookup(log, configuration, specification.schemas)
     val schemaTransformer = SchemaToJavaSourceFileTransformer(typeLookup)
 
     return JavaSpecification(

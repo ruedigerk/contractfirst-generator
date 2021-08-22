@@ -10,7 +10,6 @@ data class Configuration(
     val outputContract: Boolean,
     val sourcePackage: String,
     val modelPrefix: String,
-    val verbosity: Verbosity,
 ) {
 
   fun prettyPrint(indent: String = "\t"): String =
@@ -19,10 +18,5 @@ data class Configuration(
          |outputDir='$outputDir'
          |outputContract=$outputContract
          |sourcePackage='$sourcePackage'
-         |modelPrefix='$modelPrefix'
-         |verbosity=$verbosity""".trimMargin().prependIndent(indent)
-
-  enum class Verbosity {
-    VERBOSE, NORMAL, QUIET
-  }
+         |modelPrefix='$modelPrefix'""".trimMargin().prependIndent(indent)
 }

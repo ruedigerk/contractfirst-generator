@@ -4,18 +4,9 @@ import com.squareup.javapoet.AnnotationSpec
 import com.squareup.javapoet.ClassName
 import com.squareup.javapoet.ParameterizedTypeName
 import com.squareup.javapoet.TypeName
-import de.rk42.openapi.codegen.java.model.DecimalValidation
-import de.rk42.openapi.codegen.java.model.IntegralValidation
-import de.rk42.openapi.codegen.java.model.JavaAnyType
-import de.rk42.openapi.codegen.java.model.JavaCollectionType
-import de.rk42.openapi.codegen.java.model.JavaMapType
-import de.rk42.openapi.codegen.java.model.JavaType
+import de.rk42.openapi.codegen.java.model.*
 import de.rk42.openapi.codegen.java.model.NumericValidationType.MAX
 import de.rk42.openapi.codegen.java.model.NumericValidationType.MIN
-import de.rk42.openapi.codegen.java.model.PatternValidation
-import de.rk42.openapi.codegen.java.model.SizeValidation
-import de.rk42.openapi.codegen.java.model.TypeValidation
-import de.rk42.openapi.codegen.java.model.ValidatedValidation
 
 object GeneratorCommon {
 

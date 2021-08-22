@@ -1,4 +1,4 @@
-package de.rk42.openapi.codegen.crosscutting
+package de.rk42.openapi.codegen.cli
 
 import ch.qos.logback.classic.Level
 import ch.qos.logback.classic.Logger
@@ -8,7 +8,6 @@ import ch.qos.logback.classic.spi.ILoggingEvent
 import ch.qos.logback.core.ConsoleAppender
 import ch.qos.logback.core.encoder.LayoutWrappingEncoder
 import ch.qos.logback.core.spi.ContextAwareBase
-import de.rk42.openapi.codegen.Configuration
 
 /**
  * Configures Logback logging.
@@ -22,7 +21,7 @@ class LogbackConfigurator : ContextAwareBase(), Configurator {
       addAppender(createConsoleAppender(loggerContext))
     }
 
-    applyLoggingVerbosity(Configuration.Verbosity.NORMAL)
+    applyLoggingVerbosity(LoggingVerbosity.NORMAL)
   }
 
   private fun createConsoleAppender(loggerContext: LoggerContext): ConsoleAppender<ILoggingEvent> {
@@ -51,11 +50,11 @@ class LogbackConfigurator : ContextAwareBase(), Configurator {
     /**
      * Applies a logging configuration according to the supplied verbosity.
      */
-    fun applyLoggingVerbosity(verbosity: Configuration.Verbosity) {
+    fun applyLoggingVerbosity(verbosity: LoggingVerbosity) {
       val rootLoggerLevel = when (verbosity) {
-        Configuration.Verbosity.VERBOSE -> Level.DEBUG
-        Configuration.Verbosity.NORMAL -> Level.INFO
-        Configuration.Verbosity.QUIET -> Level.WARN
+        LoggingVerbosity.VERBOSE -> Level.DEBUG
+        LoggingVerbosity.NORMAL -> Level.INFO
+        LoggingVerbosity.QUIET -> Level.WARN
       }
 
       rootLogger().level = rootLoggerLevel

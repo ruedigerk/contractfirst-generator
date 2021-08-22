@@ -1,11 +1,6 @@
 package de.rk42.openapi.codegen.java.generator.server
 
-import com.squareup.javapoet.AnnotationSpec
-import com.squareup.javapoet.ClassName
-import com.squareup.javapoet.JavaFile
-import com.squareup.javapoet.MethodSpec
-import com.squareup.javapoet.ParameterSpec
-import com.squareup.javapoet.TypeSpec
+import com.squareup.javapoet.*
 import de.rk42.openapi.codegen.Configuration
 import de.rk42.openapi.codegen.java.Identifiers.capitalize
 import de.rk42.openapi.codegen.java.Identifiers.mediaTypeToJavaIdentifier
@@ -15,24 +10,12 @@ import de.rk42.openapi.codegen.java.generator.GeneratorCommon.toAnnotation
 import de.rk42.openapi.codegen.java.generator.GeneratorCommon.toTypeName
 import de.rk42.openapi.codegen.java.generator.JavapoetExtensions.doIf
 import de.rk42.openapi.codegen.java.generator.JavapoetExtensions.doIfNotNull
-import de.rk42.openapi.codegen.java.model.JavaContent
-import de.rk42.openapi.codegen.java.model.JavaOperation
-import de.rk42.openapi.codegen.java.model.JavaOperationGroup
-import de.rk42.openapi.codegen.java.model.JavaParameter
-import de.rk42.openapi.codegen.java.model.JavaRegularParameterLocation
-import de.rk42.openapi.codegen.java.model.JavaResponse
-import de.rk42.openapi.codegen.java.model.JavaSpecification
+import de.rk42.openapi.codegen.java.model.*
 import de.rk42.openapi.codegen.model.DefaultStatusCode
-import de.rk42.openapi.codegen.model.ParameterLocation.COOKIE
-import de.rk42.openapi.codegen.model.ParameterLocation.HEADER
-import de.rk42.openapi.codegen.model.ParameterLocation.PATH
-import de.rk42.openapi.codegen.model.ParameterLocation.QUERY
+import de.rk42.openapi.codegen.model.ParameterLocation.*
 import de.rk42.openapi.codegen.model.StatusCode
 import java.io.File
-import javax.lang.model.element.Modifier.ABSTRACT
-import javax.lang.model.element.Modifier.PRIVATE
-import javax.lang.model.element.Modifier.PUBLIC
-import javax.lang.model.element.Modifier.STATIC
+import javax.lang.model.element.Modifier.*
 
 /**
  * Generates the code for the server stubs.

@@ -34,18 +34,73 @@
 
    <modules>
       <module>codegen</module>
+      <module>command-line-interface</module>
    </modules>
 
    <build>
       <pluginManagement>
          <plugins>
             <plugin>
-               <!-- Configure release option (available since Java 9) -->
+               <!-- Kotlin compiler plugin needs to run before Java compiler plugin -->
+               <groupId>org.jetbrains.kotlin</groupId>
+               <artifactId>kotlin-maven-plugin</artifactId>
+               <version>${kotlin.version}</version>
+               <executions>
+                  <execution>
+                     <id>compile</id>
+                     <goals>
+                        <goal>compile</goal>
+                     </goals>
+                     <configuration>
+                        <sourceDirs>
+                           <sourceDir>${project.basedir}/src/main/kotlin</sourceDir>
+                        </sourceDirs>
+                     </configuration>
+                  </execution>
+               </executions>
+               <configuration>
+                  <args>
+                     <!-- Progressive mode for the Kotlin compiler: https://kotlinlang.org/docs/compiler-reference.html#progressive -->
+                     <arg>-progressive</arg>
+                  </args>
+               </configuration>
+            </plugin>
+
+            <plugin>
+               <!-- Java compiler needs to run after Kotlin compiler, see https://kotlinlang.org/docs/maven.html#compile-kotlin-and-java-sources -->
+               <groupId>org.apache.maven.plugins</groupId>
                <artifactId>maven-compiler-plugin</artifactId>
                <version>${maven-compiler-plugin.version}</version>
                <configuration>
+                  <!-- Configure release option (available since Java 9) -->
                   <release>${target-jdk.version}</release>
                </configuration>
+               <executions>
+                  <execution>
+                     <!-- Replacing default-compile as it is treated specially by maven -->
+                     <id>default-compile</id>
+                     <phase>none</phase>
+                  </execution>
+                  <execution>
+                     <!-- Replacing default-testCompile as it is treated specially by maven -->
+                     <id>default-testCompile</id>
+                     <phase>none</phase>
+                  </execution>
+                  <execution>
+                     <id>java-compile</id>
+                     <phase>compile</phase>
+                     <goals>
+                        <goal>compile</goal>
+                     </goals>
+                  </execution>
+                  <execution>
+                     <id>java-test-compile</id>
+                     <phase>test-compile</phase>
+                     <goals>
+                        <goal>testCompile</goal>
+                     </goals>
+                  </execution>
+               </executions>
             </plugin>
 
             <plugin>

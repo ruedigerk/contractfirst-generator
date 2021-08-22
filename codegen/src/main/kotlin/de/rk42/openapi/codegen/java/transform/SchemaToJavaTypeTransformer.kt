@@ -1,39 +1,19 @@
 package de.rk42.openapi.codegen.java.transform
 
 import de.rk42.openapi.codegen.Configuration
-import de.rk42.openapi.codegen.crosscutting.Log.Companion.getLogger
+import de.rk42.openapi.codegen.logging.Log
 import de.rk42.openapi.codegen.java.Identifiers.toJavaTypeIdentifier
-import de.rk42.openapi.codegen.java.model.DecimalValidation
-import de.rk42.openapi.codegen.java.model.IntegralValidation
-import de.rk42.openapi.codegen.java.model.JavaAnyType
-import de.rk42.openapi.codegen.java.model.JavaCollectionType
-import de.rk42.openapi.codegen.java.model.JavaMapType
-import de.rk42.openapi.codegen.java.model.JavaType
+import de.rk42.openapi.codegen.java.model.*
 import de.rk42.openapi.codegen.java.model.NumericValidationType.MAX
 import de.rk42.openapi.codegen.java.model.NumericValidationType.MIN
-import de.rk42.openapi.codegen.java.model.PatternValidation
-import de.rk42.openapi.codegen.java.model.SizeValidation
-import de.rk42.openapi.codegen.java.model.TypeValidation
-import de.rk42.openapi.codegen.java.model.ValidatedValidation
-import de.rk42.openapi.codegen.model.CtrPrimitiveType.BOOLEAN
-import de.rk42.openapi.codegen.model.CtrPrimitiveType.INTEGER
-import de.rk42.openapi.codegen.model.CtrPrimitiveType.NUMBER
-import de.rk42.openapi.codegen.model.CtrPrimitiveType.STRING
-import de.rk42.openapi.codegen.model.CtrSchemaArray
-import de.rk42.openapi.codegen.model.CtrSchemaEnum
-import de.rk42.openapi.codegen.model.CtrSchemaMap
-import de.rk42.openapi.codegen.model.CtrSchemaNonRef
-import de.rk42.openapi.codegen.model.CtrSchemaObject
-import de.rk42.openapi.codegen.model.CtrSchemaPrimitive
-import de.rk42.openapi.codegen.model.NameHint
+import de.rk42.openapi.codegen.model.*
+import de.rk42.openapi.codegen.model.CtrPrimitiveType.*
 
 /**
  * Transforms the parsed Schemas into Java types, assigning unique and valid type names. This needs to be done before creating Java source file models for these
  * types.
  */
-class SchemaToJavaTypeTransformer(private val configuration: Configuration) {
-
-  private val log = getLogger()
+class SchemaToJavaTypeTransformer(private val log: Log, private val configuration: Configuration) {
 
   private val modelPackage = "${configuration.sourcePackage}.model"
   private val schemaToTypeLookup: MutableMap<CtrSchemaNonRef, JavaAnyType> = mutableMapOf()

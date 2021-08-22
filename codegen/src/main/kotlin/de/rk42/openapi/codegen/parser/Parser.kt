@@ -1,17 +1,8 @@
 package de.rk42.openapi.codegen.parser
 
+import de.rk42.openapi.codegen.logging.Log
 import de.rk42.openapi.codegen.NotSupportedException
-import de.rk42.openapi.codegen.model.CtrContent
-import de.rk42.openapi.codegen.model.CtrOperation
-import de.rk42.openapi.codegen.model.CtrParameter
-import de.rk42.openapi.codegen.model.CtrRequestBody
-import de.rk42.openapi.codegen.model.CtrResponse
-import de.rk42.openapi.codegen.model.CtrSpecification
-import de.rk42.openapi.codegen.model.DefaultStatusCode
-import de.rk42.openapi.codegen.model.NameHint
-import de.rk42.openapi.codegen.model.ParameterLocation
-import de.rk42.openapi.codegen.model.ResponseStatusCode
-import de.rk42.openapi.codegen.model.StatusCode
+import de.rk42.openapi.codegen.model.*
 import de.rk42.openapi.codegen.parser.ParserHelper.normalize
 import de.rk42.openapi.codegen.parser.ParserHelper.nullToEmpty
 import io.swagger.parser.OpenAPIParser
@@ -27,7 +18,7 @@ import io.swagger.v3.parser.core.models.ParseOptions
 /**
  * Parser implementation based on swagger-parser.
  */
-class Parser {
+class Parser(private val log: Log) {
 
   private lateinit var schemaResolver: SchemaResolver
 
@@ -52,7 +43,7 @@ class Parser {
   }
 
   private fun toContract(openApi: OpenAPI): CtrSpecification {
-    schemaResolver = SchemaResolver(openApi.components.schemas)
+    schemaResolver = SchemaResolver(log, openApi.components.schemas)
 
     val operations = toOperations(openApi.paths)
     val referencedSchemas = schemaResolver.determineAndResolveReferencedSchemas()
