@@ -1,0 +1,244 @@
+openapi: "3.0.0"
+info:
+  version: 1.0.0
+  title: Contract for Testing Client and Server Generators
+servers:
+  - url: https://example.com/v1
+paths:
+  /pets:
+    post:
+      summary: Test operation for generating generic types, e.g. List of Pet.
+      operationId: filterPets
+      tags:
+        - pets
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: array
+              items:
+                $ref: "#/components/schemas/Pet"
+      responses:
+        200:
+          description: Returned filtered pets.
+          content:
+            application/json:
+              schema:
+                type: array
+                items: 
+                  $ref: "#/components/schemas/Pet"
+        default:
+          description: unexpected error
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Error"
+                
+    put:
+      summary: Test for 204 response.
+      operationId: changePet
+      tags:
+        - pets
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/Pet"
+      responses:
+        204:
+          description: Ok
+        default:
+          description: unexpected error
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Error"
+
+  /{petStoreId}/pets:
+    post:
+      summary: Test for the various parameter locations and for serializing request and response body entities.  
+      operationId: createPet
+      tags:
+        - pets
+      parameters:
+        - name: petStoreId
+          in: path
+          description: ID of pet store
+          required: true
+          schema:
+            type: string
+        - name: dryRun
+          in: query
+          description: Do a dry run?
+          required: false
+          schema:
+            type: boolean
+        - name: customerId
+          in: header
+          description: Optional customer ID
+          required: false
+          schema:
+            type: integer
+            format: int64
+        - name: testCaseSelector
+          in: query
+          description: Used to select the desired behaviour of the server in the test.
+          required: false
+          schema:
+            type: string
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/Pet"
+      responses:
+        200:
+          description: Return created pet
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Pet"
+        400:
+          description: Error, customer ID unknown
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Error"
+        default:
+          description: unexpected error
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Error"
+
+  /manuals:
+    get:
+      summary: Test case for multiple response content types with different schemas.
+      operationId: getManual
+      tags:
+        - pets
+      responses:
+        200:
+          description: Returned requested Manual.
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Manual"
+            application/pdf:
+              schema:
+                type: string
+                format: binary
+        202:
+          description: Returned a pet instead, also test wildcard content type.
+          content: 
+            application/json:
+              schema: 
+                $ref: "#/components/schemas/Pet"
+        204:
+          description: Return nothing.
+        default:
+          description: unexpected error
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Error"
+
+    put:
+      summary: Test binary input and output.
+      operationId: uploadAndReturnBinary
+      tags:
+        - pets
+      requestBody:
+        required: true
+        content:
+          application/octet-stream:
+            schema:
+              type: string
+              format: binary
+      responses:
+        200:
+          description: Returned binary data.
+          content:
+            application/octet-stream:
+              schema:
+                type: string
+                format: binary
+        default:
+          description: unexpected error
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Error"
+
+    post:
+      summary: Test wildcard response content types.
+      operationId: postManual
+      tags:
+        - pets
+      parameters:
+        - name: testCaseSelector
+          in: query
+          description: Used to select the desired behaviour of the server in the test.
+          required: false
+          schema:
+            type: string
+      responses:
+        200:
+          description: Returned some content.
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Manual"
+            application/*:
+              schema:
+                type: string
+                format: binary
+            image/*:
+              schema:
+                type: string
+                format: binary
+        default:
+          description: unexpected error
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Error"
+
+components:
+  schemas:
+    Pet:
+      required:
+        - id
+        - name
+      properties:
+        id:
+          type: integer
+          format: int64
+        name:
+          type: string
+        tag:
+          type: string
+    Manual:
+      type: object
+      required: 
+        - title
+        - content
+      properties: 
+        title:
+          type: string
+        content:
+          type: string
+    Error:
+      required:
+        - code
+        - message
+      properties:
+        code:
+          type: integer
+          format: int32
+        message:
+          type: string
+    

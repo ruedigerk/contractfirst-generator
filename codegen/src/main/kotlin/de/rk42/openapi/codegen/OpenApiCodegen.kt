@@ -1,5 +1,6 @@
 package de.rk42.openapi.codegen
 
+import de.rk42.openapi.codegen.java.generator.client.ClientGenerator
 import de.rk42.openapi.codegen.java.generator.model.ModelGenerator
 import de.rk42.openapi.codegen.java.generator.server.ServerStubGenerator
 import de.rk42.openapi.codegen.java.transform.JavaTransformer
@@ -10,7 +11,6 @@ import de.rk42.openapi.codegen.parser.ParserException
 import de.rk42.openapi.codegen.serializer.YamlSerializer
 import io.swagger.v3.oas.models.OpenAPI
 import java.io.File
-import kotlin.jvm.Throws
 
 /**
  * The OpenAPI Code Generator.
@@ -43,7 +43,11 @@ class OpenApiCodegen(logAdapter: LogAdapter) {
 
     val javaSpecification = JavaTransformer(log, configuration).transform(ctrSpecification)
 
-    ServerStubGenerator(configuration).generateCode(javaSpecification)
+    when (configuration.generator) {
+      GeneratorType.CLIENT -> ClientGenerator(configuration).generateCode(javaSpecification)
+      GeneratorType.SERVER -> ServerStubGenerator(configuration).generateCode(javaSpecification)
+    }
+
     ModelGenerator(configuration).generateCode(javaSpecification)
   }
 

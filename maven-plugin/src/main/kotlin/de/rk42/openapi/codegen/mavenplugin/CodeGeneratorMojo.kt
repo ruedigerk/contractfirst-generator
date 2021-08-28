@@ -1,6 +1,7 @@
 package de.rk42.openapi.codegen.mavenplugin
 
 import de.rk42.openapi.codegen.Configuration
+import de.rk42.openapi.codegen.GeneratorType
 import de.rk42.openapi.codegen.NotSupportedException
 import de.rk42.openapi.codegen.OpenApiCodegen
 import de.rk42.openapi.codegen.parser.ParserException
@@ -56,6 +57,12 @@ class CodeGeneratorMojo : AbstractMojo() {
   private var contractOutputFile: String? = null
 
   /**
+   * the type of generator to use for code generation; allowed values are: "server", "client"
+   */
+  @Parameter(name = "generator", property = "openapi.codegen.maven.plugin.contractOutputFile", required = true)
+  private var generator: String? = null
+
+  /**
    * The prefix for model file names
    */
   @Parameter(name = "modelPrefix", property = "openapi.codegen.maven.plugin.modelPrefix", defaultValue = "")
@@ -93,11 +100,18 @@ class CodeGeneratorMojo : AbstractMojo() {
     return Configuration(
         contractFile.require(),
         contractOutputFile.require(),
+        determineGenerator(),
         outputDir.require(),
         outputContract,
         sourcePackage.require(),
         modelPrefix.require()
     )
+  }
+
+  private fun determineGenerator(): GeneratorType = when(generator) {
+    "client" -> GeneratorType.CLIENT
+    "server" -> GeneratorType.SERVER
+    else -> throw MojoExecutionException("Configuration 'generator' has invalid value: '$generator', allowed values are 'client', 'server'.")
   }
 
   private fun addGeneratedSourcesRoot(config: Configuration) {

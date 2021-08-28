@@ -1,7 +1,7 @@
 package de.rk42.openapi.codegen.parser
 
-import de.rk42.openapi.codegen.logging.Log
 import de.rk42.openapi.codegen.NotSupportedException
+import de.rk42.openapi.codegen.logging.Log
 import de.rk42.openapi.codegen.model.*
 import de.rk42.openapi.codegen.parser.ParserHelper.normalize
 import de.rk42.openapi.codegen.parser.ParserHelper.nullToEmpty
@@ -99,7 +99,7 @@ class Parser(private val log: Log) {
   private fun toRequestBody(requestBody: RequestBody, nameHint: NameHint): CtrRequestBody = CtrRequestBody(
       requestBody.description.normalize(),
       requestBody.required ?: false,
-      toContents(requestBody.content, nameHint)
+      toContents(requestBody.content, nameHint).map { it as? CtrContent ?: throw ParserException("Request body without content, at $nameHint") }
   )
 
   private fun joinParameters(operationParameters: List<Parameter>, pathParameters: List<CtrParameter>, nameHint: NameHint): List<CtrParameter> {
@@ -128,24 +128,24 @@ class Parser(private val log: Log) {
 
   private fun toParameterLocation(location: String?): ParameterLocation {
     return when (location) {
-      "query"  -> ParameterLocation.QUERY
+      "query" -> ParameterLocation.QUERY
       "header" -> ParameterLocation.HEADER
-      "path"   -> ParameterLocation.PATH
+      "path" -> ParameterLocation.PATH
       "cookie" -> ParameterLocation.COOKIE
-      else     -> throw ParserException("parameter.in must be one of 'query', 'header', 'path' or 'cookie', but was '$location'")
+      else -> throw ParserException("parameter.in must be one of 'query', 'header', 'path' or 'cookie', but was '$location'")
     }
   }
 
   private fun toResponses(responses: ApiResponses, nameHint: NameHint): List<CtrResponse> = responses.map { (statusCode, response) ->
-    CtrResponse(toStatusCode(statusCode), toContents(response.content ?: Content(), nameHint / statusCode))
+    CtrResponse(toStatusCode(statusCode), toContents(response.content, nameHint / statusCode))
   }
 
   private fun toStatusCode(statusCode: String): ResponseStatusCode = when (statusCode) {
     "default" -> DefaultStatusCode
-    else      -> StatusCode(statusCode.toInt())
+    else -> StatusCode(statusCode.toInt())
   }
 
-  private fun toContents(content: Content, nameHint: NameHint): List<CtrContent> = content.map { (mediaType, content) ->
+  private fun toContents(content: Content?, nameHint: NameHint): List<CtrContent> = content?.map { (mediaType, content) ->
     CtrContent(mediaType, schemaResolver.resolveSchema(content.schema, nameHint))
-  }
+  } ?: listOf()
 }

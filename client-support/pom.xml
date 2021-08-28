@@ -1,0 +1,96 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<project xmlns="http://maven.apache.org/POM/4.0.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/maven-v4_0_0.xsd">
+   <modelVersion>4.0.0</modelVersion>
+
+   <artifactId>openapi-codegen-client-support</artifactId>
+
+   <parent>
+      <groupId>de.rk42.openapi-codegen</groupId>
+      <artifactId>openapi-codegen-parent</artifactId>
+      <version>1.0-SNAPSHOT</version>
+   </parent>
+
+   <properties>
+      <jersey.version>2.34</jersey.version>
+      <okhttp.version>4.9.1</okhttp.version>
+   </properties>
+
+   <build>
+      <plugins>
+         <plugin>
+            <!-- Java compiler needs to run after Kotlin compiler, see https://kotlinlang.org/docs/maven.html#compile-kotlin-and-java-sources -->
+            <artifactId>maven-compiler-plugin</artifactId>
+         </plugin>
+
+         <plugin>
+            <!-- Groovy-Plugin for testing with Spock -->
+            <groupId>org.codehaus.gmavenplus</groupId>
+            <artifactId>gmavenplus-plugin</artifactId>
+         </plugin>
+      </plugins>
+   </build>
+
+   <dependencies>
+      <!-- #################### -->
+      <!-- Compile dependencies -->
+      <!-- #################### -->
+      <dependency>
+         <!-- HTTP client -->
+         <groupId>com.squareup.okhttp3</groupId>
+         <artifactId>okhttp</artifactId>
+         <version>${okhttp.version}</version>
+      </dependency>
+      <dependency>
+         <!-- Logging Requests -->
+         <groupId>com.squareup.okhttp3</groupId>
+         <artifactId>logging-interceptor</artifactId>
+         <version>${okhttp.version}</version>
+      </dependency>
+      <dependency>
+         <!-- JSON serializer -->
+         <groupId>com.google.code.gson</groupId>
+         <artifactId>gson</artifactId>
+         <version>${gson.version}</version>
+      </dependency>
+
+      <!-- ################# -->
+      <!-- Test dependencies -->
+      <!-- ################# -->
+      <dependency>
+         <!-- For testing with Spock -->
+         <groupId>junit</groupId>
+         <artifactId>junit</artifactId>
+         <version>${junit.version}</version>
+         <scope>test</scope>
+      </dependency>
+      <dependency>
+         <!-- For testing with Spock -->
+         <groupId>org.codehaus.groovy</groupId>
+         <artifactId>groovy</artifactId>
+         <version>${groovy.version}</version>
+         <scope>test</scope>
+      </dependency>
+      <dependency>
+         <!-- For testing with Spock -->
+         <groupId>org.spockframework</groupId>
+         <artifactId>spock-core</artifactId>
+         <version>${spock.version}</version>
+         <scope>test</scope>
+      </dependency>
+      <dependency>
+         <!-- Allows mocking of classes in Spock (in addition to interfaces). -->
+         <groupId>net.bytebuddy</groupId>
+         <artifactId>byte-buddy</artifactId>
+         <version>${byte-buddy.version}</version>
+         <scope>test</scope>
+      </dependency>
+      <dependency>
+         <!-- Allows mocking of classes without default constructor in Spock (together with ByteBuddy). -->
+         <groupId>org.objenesis</groupId>
+         <artifactId>objenesis</artifactId>
+         <version>${objenesis.version}</version>
+         <scope>test</scope>
+      </dependency>
+   </dependencies>
+
+</project>

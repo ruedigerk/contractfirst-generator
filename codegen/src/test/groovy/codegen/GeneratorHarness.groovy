@@ -1,6 +1,7 @@
 package codegen
 
 import de.rk42.openapi.codegen.Configuration
+import de.rk42.openapi.codegen.GeneratorType
 import de.rk42.openapi.codegen.OpenApiCodegen
 import de.rk42.openapi.codegen.logging.Slf4jLogAdapter
 import groovy.io.FileType
@@ -24,10 +25,12 @@ class GeneratorHarness {
   private final String modelPrefix
 
   private generatorRan = false
+  private final boolean generateServer
 
-  GeneratorHarness(String contract, String packageName, String modelPrefix = "") {
+  GeneratorHarness(String contract, String packageName, boolean generateServer, String modelPrefix = "") {
     this.contract = contract
     this.packageName = packageName
+    this.generateServer = generateServer
     this.modelPrefix = modelPrefix
 
     referenceDir = "src/test/java/$packageName"
@@ -68,6 +71,7 @@ class GeneratorHarness {
         new Configuration(
             contract,
             "$packageName/openapi.yaml",
+            generateServer ? GeneratorType.SERVER : GeneratorType.CLIENT,
             OUTPUT_DIR,
             true,
             packageName,

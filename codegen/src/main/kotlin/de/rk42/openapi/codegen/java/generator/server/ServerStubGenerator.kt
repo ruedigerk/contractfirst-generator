@@ -61,20 +61,21 @@ class ServerStubGenerator(private val configuration: Configuration) {
         .addAnnotation(producesAnnotation(operation.responses))
         .addModifiers(PUBLIC, ABSTRACT)
         .returns(typesafeResponseClass.name.toTypeName())
-        .addParameters(parameters).build()
+        .addParameters(parameters)
+        .build()
   }
 
   private fun toParameterSpec(parameter: JavaParameter): ParameterSpec {
     val typeValidationAnnotations = parameter.javaType.validations.map(GeneratorCommon::toAnnotation)
 
     return ParameterSpec.builder(parameter.javaType.toTypeName(), parameter.javaIdentifier)
-        .doIfNotNull(parameter.location as? JavaRegularParameterLocation) { addAnnotation(paramAnnotation(it)) }
+        .doIfNotNull(parameter as? JavaRegularParameter) { addAnnotation(paramAnnotation(it)) }
         .doIf(parameter.required) { addAnnotation(NOT_NULL_ANNOTATION) }
         .addAnnotations(typeValidationAnnotations)
         .build()
   }
 
-  private fun paramAnnotation(parameter: JavaRegularParameterLocation): AnnotationSpec {
+  private fun paramAnnotation(parameter: JavaRegularParameter): AnnotationSpec {
     val annotationName = when (parameter.location) {
       QUERY -> "QueryParam"
       HEADER -> "HeaderParam"

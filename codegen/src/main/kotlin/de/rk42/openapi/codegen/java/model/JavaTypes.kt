@@ -7,6 +7,9 @@ sealed interface JavaAnyType {
 
   /** Returns whether this is a type that needs to be validated. */
   val validations: List<TypeValidation>
+  
+  val isGenericType: Boolean
+    get() = this !is JavaType
 }
 
 data class JavaType(

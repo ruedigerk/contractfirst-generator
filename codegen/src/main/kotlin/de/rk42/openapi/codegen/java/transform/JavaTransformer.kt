@@ -1,11 +1,11 @@
 package de.rk42.openapi.codegen.java.transform
 
 import de.rk42.openapi.codegen.Configuration
-import de.rk42.openapi.codegen.logging.Log
 import de.rk42.openapi.codegen.NotSupportedException
 import de.rk42.openapi.codegen.java.Identifiers.toJavaIdentifier
 import de.rk42.openapi.codegen.java.Identifiers.toJavaTypeIdentifier
 import de.rk42.openapi.codegen.java.model.*
+import de.rk42.openapi.codegen.logging.Log
 import de.rk42.openapi.codegen.model.*
 
 /**
@@ -31,6 +31,7 @@ class JavaTransformer(private val log: Log, private val configuration: Configura
       .mapValues { it.value.map(::toJavaOperation) }
       .map { (groupJavaIdentifier, operations) -> JavaOperationGroup(groupJavaIdentifier, operations) }
 
+  // TODO add location suffix to parameter name, if parameter name is not unique within operation (name + location must be unique according to spec)
   private fun toJavaOperation(operation: CtrOperation): JavaOperation {
     val requestBodySchemas = operation.requestBody?.contents?.map { it.schema }?.toSet() ?: emptySet()
     if (requestBodySchemas.size > 1) {
@@ -64,29 +65,30 @@ class JavaTransformer(private val log: Log, private val configuration: Configura
     }
   }
 
-  private fun toBodyParameter(requestBody: CtrRequestBody): JavaParameter {
+  private fun toBodyParameter(requestBody: CtrRequestBody): JavaBodyParameter {
     if (requestBody.contents.isEmpty()) {
       throw NotSupportedException("Empty request body content is not supported: $requestBody")
     }
 
     // Currently, all body contents must have the same schema. This is enforced by toJavaOperation.
-    val schema = requestBody.contents.first().schema
+    val bodyContent = requestBody.contents.first()
 
-    return JavaParameter(
+    return JavaBodyParameter(
         "requestBody",
-        requestBody.description ?: TransformerHelper.toJavadoc(schema as CtrSchemaNonRef),
-        JavaBodyParameter,
+        requestBody.description ?: TransformerHelper.toJavadoc(bodyContent.schema as CtrSchemaNonRef),
         requestBody.required,
-        typeLookup.lookupJavaTypeFor(schema)
+        typeLookup.lookupJavaTypeFor(bodyContent.schema),
+        bodyContent.mediaType
     )
   }
 
-  private fun toJavaParameter(parameter: CtrParameter): JavaParameter = JavaParameter(
+  private fun toJavaParameter(parameter: CtrParameter): JavaRegularParameter = JavaRegularParameter(
       parameter.name.toJavaIdentifier(),
       parameter.description ?: TransformerHelper.toJavadoc(parameter.schema as CtrSchemaNonRef),
-      JavaRegularParameterLocation(parameter.name, parameter.location),
       parameter.required,
-      typeLookup.lookupJavaTypeFor(parameter.schema)
+      typeLookup.lookupJavaTypeFor(parameter.schema),
+      parameter.location,
+      parameter.name,
   )
 
   private fun toJavaResponse(response: CtrResponse): JavaResponse = JavaResponse(

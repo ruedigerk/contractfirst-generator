@@ -6,6 +6,7 @@ package de.rk42.openapi.codegen
 data class Configuration(
     val contractFile: String,
     val contractOutputFile: String,
+    val generator: GeneratorType,
     val outputDir: String,
     val outputContract: Boolean,
     val sourcePackage: String,

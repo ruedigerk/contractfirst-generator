@@ -2,7 +2,10 @@ package de.rk42.openapi.codegen.cli
 
 import com.xenomachina.argparser.ArgParser
 import com.xenomachina.argparser.default
-import de.rk42.openapi.codegen.*
+import de.rk42.openapi.codegen.Configuration
+import de.rk42.openapi.codegen.GeneratorType
+import de.rk42.openapi.codegen.NotSupportedException
+import de.rk42.openapi.codegen.OpenApiCodegen
 import de.rk42.openapi.codegen.logging.Log
 import de.rk42.openapi.codegen.logging.Slf4jLogAdapter
 import de.rk42.openapi.codegen.parser.ParserException
@@ -56,11 +59,18 @@ object CommandLineInterface {
   private fun mapToConfiguration(cliConfiguration: CliConfiguration) = Configuration(
       cliConfiguration.contractFile,
       cliConfiguration.contractOutputFile,
+      determineGenerator(cliConfiguration.generator),
       cliConfiguration.outputDir,
       cliConfiguration.outputContract,
       cliConfiguration.sourcePackage,
       cliConfiguration.modelPrefix,
   )
+
+  private fun determineGenerator(generator: String): GeneratorType = when (generator) {
+    "client" -> GeneratorType.CLIENT
+    "server" -> GeneratorType.SERVER
+    else -> throw InvalidConfigurationException("Option --generator has invalid value: '$generator', allowed values are 'client', 'server'")
+  }
 
   private fun toLoggingVerbosity(config: CliConfiguration): LoggingVerbosity = when {
     config.verbose -> LoggingVerbosity.VERBOSE
@@ -72,6 +82,13 @@ object CommandLineInterface {
 private class CliConfiguration(parser: ArgParser) {
 
   val contractFile: String by parser.storing("--contract", help = "the path to the file containing the OpenAPI contract to use as input")
+
+  val contractOutputFile: String by parser.storing(
+      "--contract-output-file",
+      help = "the location to output the 'all in one' contract file to"
+  ).default("openapi.yaml")
+
+  val generator: String by parser.storing("--generator", help = "the type of generator to use for code generation; allowed values are: \"server\", \"client\"")
 
   val outputDir: String by parser.storing("--output-dir", help = "the path to the directory where the generated code is written to")
 
@@ -87,11 +104,6 @@ private class CliConfiguration(parser: ArgParser) {
       "--output-contract",
       help = "whether to output the parsed contract as an all-in-one contract"
   ) { toBoolean() }.default(true)
-
-  val contractOutputFile: String by parser.storing(
-      "--contract-output-file",
-      help = "the location to output the 'all in one' contract file to"
-  ).default("openapi.yaml")
 
   init {
     if (verbose && quiet) {
