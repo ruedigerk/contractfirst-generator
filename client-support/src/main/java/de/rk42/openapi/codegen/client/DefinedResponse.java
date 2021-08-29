@@ -29,7 +29,7 @@ public class DefinedResponse implements GenericResponse {
   }
 
   @Override
-  public DefinedResponse asExpectedResponse() {
+  public DefinedResponse asDefinedResponse() {
     return this;
   }
 

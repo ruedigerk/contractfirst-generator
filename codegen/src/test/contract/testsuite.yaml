@@ -10,7 +10,7 @@ paths:
       summary: Test for the various parameter locations and for serializing request and response body entities.
       operationId: createPet
       tags:
-        - createPet
+        - ResponseVariants
       parameters:
         - name: petStoreId
           in: path
@@ -72,7 +72,7 @@ paths:
       summary: Test operation for generating generic types, e.g. List of Pet.
       operationId: filterPets
       tags:
-        - pets
+        - PayloadVariants
       requestBody:
         required: true
         content:
@@ -96,12 +96,13 @@ paths:
             application/json:
               schema:
                 $ref: "#/components/schemas/Error"
-                
-    put:
+
+  /petBinaries:
+    post:
       summary: Test for 204 response.
       operationId: changePet
       tags:
-        - pets
+        - PayloadVariants
       requestBody:
         required: true
         content:
@@ -118,43 +119,11 @@ paths:
               schema:
                 $ref: "#/components/schemas/Error"
 
-  /manuals:
-    get:
-      summary: Test case for multiple response content types with different schemas.
-      operationId: getManual
-      tags:
-        - pets
-      responses:
-        200:
-          description: Returned requested Manual.
-          content:
-            application/json:
-              schema:
-                $ref: "#/components/schemas/Manual"
-            application/pdf:
-              schema:
-                type: string
-                format: binary
-        202:
-          description: Returned a pet instead, also test wildcard content type.
-          content: 
-            application/json:
-              schema: 
-                $ref: "#/components/schemas/Pet"
-        204:
-          description: Return nothing.
-        default:
-          description: unexpected error
-          content:
-            application/json:
-              schema:
-                $ref: "#/components/schemas/Error"
-
     put:
       summary: Test binary input and output.
       operationId: uploadAndReturnBinary
       tags:
-        - pets
+        - PayloadVariants
       requestBody:
         required: true
         content:
@@ -177,14 +146,54 @@ paths:
               schema:
                 $ref: "#/components/schemas/Error"
 
-    post:
-      summary: Test wildcard response content types.
-      operationId: postManual
+  /manuals:
+    get:
+      summary: Test case for multiple response content types with different schemas.
+      operationId: getManual
       tags:
-        - pets
+        - MultipleContentTypes
       parameters:
         - name: testCaseSelector
-          in: query
+          in: header
+          description: Used to select the desired behaviour of the server in the test.
+          required: false
+          schema:
+            type: string
+      responses:
+        200:
+          description: Returned requested Manual.
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Manual"
+            application/pdf:
+              schema:
+                type: string
+                format: binary
+        202:
+          description: Returned a pet instead, also test wildcard content type.
+          content: 
+            text/plain:
+              schema: 
+                type: string
+        204:
+          description: Return nothing.
+        default:
+          description: unexpected error
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Error"
+
+  /wildcardContentTypes:
+    get:
+      summary: Test wildcard response content types.
+      operationId: getWildcardContentTypes
+      tags:
+        - WildcardContentTypes
+      parameters:
+        - name: testCaseSelector
+          in: header
           description: Used to select the desired behaviour of the server in the test.
           required: false
           schema:
@@ -193,14 +202,10 @@ paths:
         200:
           description: Returned some content.
           content:
-            application/json:
-              schema:
-                $ref: "#/components/schemas/Manual"
-            application/*:
+            text/*:
               schema:
                 type: string
-                format: binary
-            image/*:
+            application/*:
               schema:
                 type: string
                 format: binary

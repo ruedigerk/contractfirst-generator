@@ -73,7 +73,7 @@ paths:
           description: unexpected error
       summary: Test for the various parameter locations and for serializing request and response body entities.
       tags:
-      - createPet
+      - ResponseVariants
   /pets:
     post:
       operationId: filterPets
@@ -102,8 +102,9 @@ paths:
           description: unexpected error
       summary: "Test operation for generating generic types, e.g. List of Pet."
       tags:
-      - pets
-    put:
+      - PayloadVariants
+  /petBinaries:
+    post:
       operationId: changePet
       requestBody:
         content:
@@ -122,73 +123,7 @@ paths:
           description: unexpected error
       summary: Test for 204 response.
       tags:
-      - pets
-  /manuals:
-    get:
-      operationId: getManual
-      responses:
-        "200":
-          content:
-            application/json:
-              schema:
-                $ref: '#/components/schemas/Manual'
-            application/pdf:
-              schema:
-                format: binary
-                type: string
-          description: Returned requested Manual.
-        "202":
-          content:
-            application/json:
-              schema:
-                $ref: '#/components/schemas/Pet'
-          description: "Returned a pet instead, also test wildcard content type."
-        "204":
-          description: Return nothing.
-        default:
-          content:
-            application/json:
-              schema:
-                $ref: '#/components/schemas/Error'
-          description: unexpected error
-      summary: Test case for multiple response content types with different schemas.
-      tags:
-      - pets
-    post:
-      operationId: postManual
-      parameters:
-      - description: Used to select the desired behaviour of the server in the test.
-        explode: true
-        in: query
-        name: testCaseSelector
-        required: false
-        schema:
-          type: string
-        style: form
-      responses:
-        "200":
-          content:
-            application/json:
-              schema:
-                $ref: '#/components/schemas/Manual'
-            application/*:
-              schema:
-                format: binary
-                type: string
-            image/*:
-              schema:
-                format: binary
-                type: string
-          description: Returned some content.
-        default:
-          content:
-            application/json:
-              schema:
-                $ref: '#/components/schemas/Error'
-          description: unexpected error
-      summary: Test wildcard response content types.
-      tags:
-      - pets
+      - PayloadVariants
     put:
       operationId: uploadAndReturnBinary
       requestBody:
@@ -214,7 +149,79 @@ paths:
           description: unexpected error
       summary: Test binary input and output.
       tags:
-      - pets
+      - PayloadVariants
+  /manuals:
+    get:
+      operationId: getManual
+      parameters:
+      - description: Used to select the desired behaviour of the server in the test.
+        explode: false
+        in: header
+        name: testCaseSelector
+        required: false
+        schema:
+          type: string
+        style: simple
+      responses:
+        "200":
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Manual'
+            application/pdf:
+              schema:
+                format: binary
+                type: string
+          description: Returned requested Manual.
+        "202":
+          content:
+            text/plain:
+              schema:
+                type: string
+          description: "Returned a pet instead, also test wildcard content type."
+        "204":
+          description: Return nothing.
+        default:
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+          description: unexpected error
+      summary: Test case for multiple response content types with different schemas.
+      tags:
+      - MultipleContentTypes
+  /wildcardContentTypes:
+    get:
+      operationId: getWildcardContentTypes
+      parameters:
+      - description: Used to select the desired behaviour of the server in the test.
+        explode: false
+        in: header
+        name: testCaseSelector
+        required: false
+        schema:
+          type: string
+        style: simple
+      responses:
+        "200":
+          content:
+            text/*:
+              schema:
+                type: string
+            application/*:
+              schema:
+                format: binary
+                type: string
+          description: Returned some content.
+        default:
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+          description: unexpected error
+      summary: Test wildcard response content types.
+      tags:
+      - WildcardContentTypes
   /time/{timeId}:
     post:
       operationId: updateTime

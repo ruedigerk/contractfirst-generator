@@ -11,12 +11,13 @@ public interface GenericResponse {
   boolean isExpectedResponse();
 
   /**
-   * Returns this response as an DefinedResponse or throws a RestClientUndefinedResponseException when this Response is not an DefinedResponse.
+   * Returns this response as an DefinedResponse, i.e., a response that is defined in the contract for this operation.
+   * Throws a RestClientUndefinedResponseException when this Response is not an DefinedResponse.
    *
    * @return this cast to DefinedResponse
    * @throws RestClientUndefinedResponseException when this does not represent an DefinedResponse.
    */
-  DefinedResponse asExpectedResponse() throws RestClientUndefinedResponseException;
+  DefinedResponse asDefinedResponse() throws RestClientUndefinedResponseException;
 
   CorrespondingRequest getRequest();
 

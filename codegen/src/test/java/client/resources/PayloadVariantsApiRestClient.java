@@ -1,7 +1,6 @@
 package client.resources;
 
 import client.model.Error;
-import client.model.Manual;
 import client.model.Pet;
 import com.google.gson.reflect.TypeToken;
 import de.rk42.openapi.codegen.client.DefinedResponse;
@@ -10,47 +9,16 @@ import de.rk42.openapi.codegen.client.RestClientIoException;
 import de.rk42.openapi.codegen.client.RestClientSupport;
 import de.rk42.openapi.codegen.client.RestClientUndefinedResponseException;
 import de.rk42.openapi.codegen.client.RestClientValidationException;
-import de.rk42.openapi.codegen.client.model.Operation;
-import de.rk42.openapi.codegen.client.model.ParameterLocation;
-import de.rk42.openapi.codegen.client.model.StatusCode;
+import de.rk42.openapi.codegen.client.internal.Operation;
+import de.rk42.openapi.codegen.client.internal.StatusCode;
 import java.io.InputStream;
 import java.util.List;
 
-public class PetsApiRestClient {
+public class PayloadVariantsApiRestClient {
   private final RestClientSupport support;
 
-  public PetsApiRestClient(RestClientSupport support) {
+  public PayloadVariantsApiRestClient(RestClientSupport support) {
     this.support = support;
-  }
-
-  /**
-   * Test for 204 response.
-   */
-  public void changePet(Pet requestBody) throws RestClientIoException,
-      RestClientValidationException, RestClientUndefinedResponseException {
-
-    GenericResponse genericResponse = changePetWithResponse(requestBody);
-    DefinedResponse response = genericResponse.asExpectedResponse();
-
-    if (!response.isSuccessful()) {
-      throw new RestClientErrorEntityException(response.getStatusCode(), (Error) response.getEntity());
-    }
-  }
-
-  /**
-   * Test for 204 response.
-   */
-  public GenericResponse changePetWithResponse(Pet requestBody) throws RestClientIoException,
-      RestClientValidationException {
-
-    Operation.Builder builder = new Operation.Builder("/pets", "PUT");
-
-    builder.requestBody("application/json", true, requestBody);
-
-    builder.response(StatusCode.of(204));
-    builder.response(StatusCode.DEFAULT, "application/json", Error.class);
-
-    return support.executeRequest(builder.build());
   }
 
   /**
@@ -60,7 +28,7 @@ public class PetsApiRestClient {
       RestClientValidationException, RestClientUndefinedResponseException {
 
     GenericResponse genericResponse = filterPetsWithResponse(requestBody);
-    DefinedResponse response = genericResponse.asExpectedResponse();
+    DefinedResponse response = genericResponse.asDefinedResponse();
 
     if (!response.isSuccessful()) {
       throw new RestClientErrorEntityException(response.getStatusCode(), (Error) response.getEntity());
@@ -86,30 +54,13 @@ public class PetsApiRestClient {
   }
 
   /**
-   * Test case for multiple response content types with different schemas.
-   */
-  public GenericResponse getManualWithResponse() throws RestClientIoException,
-      RestClientValidationException {
-
-    Operation.Builder builder = new Operation.Builder("/manuals", "GET");
-
-    builder.response(StatusCode.of(200), "application/json", Manual.class);
-    builder.response(StatusCode.of(200), "application/pdf", InputStream.class);
-    builder.response(StatusCode.of(202), "application/json", Pet.class);
-    builder.response(StatusCode.of(204));
-    builder.response(StatusCode.DEFAULT, "application/json", Error.class);
-
-    return support.executeRequest(builder.build());
-  }
-
-  /**
    * Test binary input and output.
    */
   public InputStream uploadAndReturnBinary(InputStream requestBody) throws RestClientIoException,
       RestClientValidationException, RestClientUndefinedResponseException {
 
     GenericResponse genericResponse = uploadAndReturnBinaryWithResponse(requestBody);
-    DefinedResponse response = genericResponse.asExpectedResponse();
+    DefinedResponse response = genericResponse.asDefinedResponse();
 
     if (!response.isSuccessful()) {
       throw new RestClientErrorEntityException(response.getStatusCode(), (Error) response.getEntity());
@@ -124,7 +75,7 @@ public class PetsApiRestClient {
   public GenericResponse uploadAndReturnBinaryWithResponse(InputStream requestBody) throws
       RestClientIoException, RestClientValidationException {
 
-    Operation.Builder builder = new Operation.Builder("/manuals", "PUT");
+    Operation.Builder builder = new Operation.Builder("/petBinaries", "PUT");
 
     builder.requestBody("application/octet-stream", true, requestBody);
 
@@ -135,20 +86,30 @@ public class PetsApiRestClient {
   }
 
   /**
-   * Test wildcard response content types.
-   *
-   * @param testCaseSelector Used to select the desired behaviour of the server in the test.
+   * Test for 204 response.
    */
-  public GenericResponse postManualWithResponse(String testCaseSelector) throws
-      RestClientIoException, RestClientValidationException {
+  public void changePet(Pet requestBody) throws RestClientIoException,
+      RestClientValidationException, RestClientUndefinedResponseException {
 
-    Operation.Builder builder = new Operation.Builder("/manuals", "POST");
+    GenericResponse genericResponse = changePetWithResponse(requestBody);
+    DefinedResponse response = genericResponse.asDefinedResponse();
 
-    builder.parameter("testCaseSelector", ParameterLocation.QUERY, false, testCaseSelector);
+    if (!response.isSuccessful()) {
+      throw new RestClientErrorEntityException(response.getStatusCode(), (Error) response.getEntity());
+    }
+  }
 
-    builder.response(StatusCode.of(200), "application/json", Manual.class);
-    builder.response(StatusCode.of(200), "application/*", InputStream.class);
-    builder.response(StatusCode.of(200), "image/*", InputStream.class);
+  /**
+   * Test for 204 response.
+   */
+  public GenericResponse changePetWithResponse(Pet requestBody) throws RestClientIoException,
+      RestClientValidationException {
+
+    Operation.Builder builder = new Operation.Builder("/petBinaries", "POST");
+
+    builder.requestBody("application/json", true, requestBody);
+
+    builder.response(StatusCode.of(204));
     builder.response(StatusCode.DEFAULT, "application/json", Error.class);
 
     return support.executeRequest(builder.build());

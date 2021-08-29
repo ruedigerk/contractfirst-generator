@@ -6,6 +6,7 @@ import de.rk42.openapi.codegen.integrationtest.generated.client.resources.TimeAp
 import de.rk42.openapi.codegen.integrationtest.generated.server.model.SClock
 import de.rk42.openapi.codegen.integrationtest.generated.server.model.SClockResponse
 import de.rk42.openapi.codegen.integrationtest.generated.server.resources.TimeApi
+import de.rk42.openapi.codegen.integrationtest.spec.EmbeddedJaxRsServerSpecification
 import spock.lang.Subject
 
 import java.time.LocalDate

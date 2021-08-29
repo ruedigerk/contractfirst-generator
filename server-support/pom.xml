@@ -1,0 +1,45 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<project xmlns="http://maven.apache.org/POM/4.0.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/maven-v4_0_0.xsd">
+   <modelVersion>4.0.0</modelVersion>
+
+   <artifactId>openapi-codegen-server-support</artifactId>
+
+   <parent>
+      <groupId>de.rk42.openapi-codegen</groupId>
+      <artifactId>openapi-codegen-parent</artifactId>
+      <version>1.0-SNAPSHOT</version>
+   </parent>
+
+   <build>
+      <plugins>
+         <plugin>
+            <!-- Java compiler needs to run after Kotlin compiler, see https://kotlinlang.org/docs/maven.html#compile-kotlin-and-java-sources -->
+            <artifactId>maven-compiler-plugin</artifactId>
+         </plugin>
+      </plugins>
+   </build>
+
+   <dependencies>
+      <!-- #################### -->
+      <!-- Compile dependencies -->
+      <!-- #################### -->
+      <dependency>
+         <groupId>de.rk42.openapi-codegen</groupId>
+         <artifactId>openapi-codegen-gson-date-time-support</artifactId>
+         <version>${project.version}</version>
+      </dependency>
+      <dependency>
+         <!-- JAX-RS API -->
+         <groupId>javax.ws.rs</groupId>
+         <artifactId>javax.ws.rs-api</artifactId>
+         <version>${jax-rs.version}</version>
+      </dependency>
+      <dependency>
+         <!-- JSON serializer -->
+         <groupId>com.google.code.gson</groupId>
+         <artifactId>gson</artifactId>
+         <version>${gson.version}</version>
+      </dependency>
+   </dependencies>
+
+</project>

@@ -50,8 +50,10 @@
       <module>client-support</module>
       <module>codegen</module>
       <module>command-line-interface</module>
+      <module>gson-date-time-support</module>
       <module>integration-test</module>
       <module>maven-plugin</module>
+      <module>server-support</module>
    </modules>
 
    <build>

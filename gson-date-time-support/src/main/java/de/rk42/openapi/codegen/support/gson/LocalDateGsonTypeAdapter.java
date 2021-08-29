@@ -1,4 +1,4 @@
-package de.rk42.openapi.codegen.integrationtest;
+package de.rk42.openapi.codegen.support.gson;
 
 import com.google.gson.JsonParseException;
 import com.google.gson.TypeAdapter;
@@ -11,9 +11,9 @@ import java.time.LocalDate;
 import java.time.format.DateTimeParseException;
 
 /**
- * Gson TypeAdapter for LocalDate, formatted in ISO-8601 format as required by the OpenAPI format "date".
+ * Gson TypeAdapter for LocalDate, formatted in ISO-8601 format as required for the OpenAPI format "date".
  */
-class LocalDateGsonTypeAdapter extends TypeAdapter<LocalDate> {
+public class LocalDateGsonTypeAdapter extends TypeAdapter<LocalDate> {
 
   @Override
   public void write(JsonWriter writer, LocalDate value) throws IOException {

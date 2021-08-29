@@ -1,4 +1,4 @@
-package de.rk42.openapi.codegen.client.model;
+package de.rk42.openapi.codegen.client.internal;
 
 import java.util.Objects;
 

@@ -1,4 +1,4 @@
-package de.rk42.openapi.codegen.integrationtest;
+package de.rk42.openapi.codegen.support.gson;
 
 import com.google.gson.JsonParseException;
 import com.google.gson.TypeAdapter;
@@ -11,9 +11,9 @@ import java.time.OffsetDateTime;
 import java.time.format.DateTimeParseException;
 
 /**
- * Gson TypeAdapter for OffsetDateTime, formatted in ISO-8601 format as required by the OpenAPI format "date-time".
+ * Gson TypeAdapter for OffsetDateTime, formatted in ISO-8601 format as required for the OpenAPI format "date-time".
  */
-class OffsetDateTimeGsonTypeAdapter extends TypeAdapter<OffsetDateTime> {
+public class OffsetDateTimeGsonTypeAdapter extends TypeAdapter<OffsetDateTime> {
 
   @Override
   public void write(JsonWriter writer, OffsetDateTime value) throws IOException {

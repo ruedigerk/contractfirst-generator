@@ -1,6 +1,7 @@
-package de.rk42.openapi.codegen.integrationtest
+package de.rk42.openapi.codegen.integrationtest.spec
 
 import de.rk42.openapi.codegen.client.RestClientSupport
+import de.rk42.openapi.codegen.integrationtest.EmbeddedJaxRsServer
 import okhttp3.OkHttpClient
 import okhttp3.logging.HttpLoggingInterceptor
 import spock.lang.Shared

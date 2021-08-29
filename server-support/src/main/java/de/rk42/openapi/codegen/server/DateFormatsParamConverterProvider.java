@@ -1,5 +1,5 @@
 
-package de.rk42.openapi.codegen.integrationtest;
+package de.rk42.openapi.codegen.server;
 
 import java.lang.annotation.Annotation;
 import java.lang.reflect.Type;
@@ -14,12 +14,12 @@ import javax.ws.rs.ext.Provider;
  * JAX-RS ParamConverterProvider to enable parameters in the date and date-time formats to be serialized to LocalDate and OffsetDateTime instances.
  */
 @Provider
-public class DateFormatsJaxRsParamConverterProvider implements ParamConverterProvider {
+public class DateFormatsParamConverterProvider implements ParamConverterProvider {
 
   private final ParamConverter<LocalDate> localDateConverter;
   private final ParamConverter<OffsetDateTime> offsetDateTimeConverter;
 
-  public DateFormatsJaxRsParamConverterProvider() {
+  public DateFormatsParamConverterProvider() {
     localDateConverter = new LocalDateConverter();
     offsetDateTimeConverter = new OffsetDateTimeConverter();
   }

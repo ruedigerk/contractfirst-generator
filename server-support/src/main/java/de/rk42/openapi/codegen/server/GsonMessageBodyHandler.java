@@ -1,9 +1,12 @@
-package de.rk42.openapi.codegen.integrationtest;
+package de.rk42.openapi.codegen.server;
 
 import com.google.gson.Gson;
 import com.google.gson.GsonBuilder;
 import com.google.gson.JsonIOException;
 import com.google.gson.JsonSyntaxException;
+
+import de.rk42.openapi.codegen.support.gson.LocalDateGsonTypeAdapter;
+import de.rk42.openapi.codegen.support.gson.OffsetDateTimeGsonTypeAdapter;
 
 import java.io.IOException;
 import java.io.InputStream;

@@ -4,20 +4,20 @@ import com.google.gson.reflect.TypeToken
 import de.rk42.openapi.codegen.client.DefinedResponse
 import de.rk42.openapi.codegen.client.GenericResponse
 import de.rk42.openapi.codegen.integrationtest.generated.client.model.CPet
-import de.rk42.openapi.codegen.integrationtest.generated.client.resources.PetsApiRestClient
+import de.rk42.openapi.codegen.integrationtest.generated.client.resources.PayloadVariantsApiRestClient
 import de.rk42.openapi.codegen.integrationtest.generated.server.model.SPet
-import de.rk42.openapi.codegen.integrationtest.generated.server.resources.PetsApi
+import de.rk42.openapi.codegen.integrationtest.generated.server.resources.PayloadVariantsApi
+import de.rk42.openapi.codegen.integrationtest.spec.EmbeddedJaxRsServerSpecification
 import okhttp3.logging.HttpLoggingInterceptor
 import spock.lang.Subject
 
-// TODO: Test-Case for parameters and entities containing LocalDate and OffsetDateTime
-// TODO: Test-Case for operations that can respond with multiple content types, e.g. application/json and application/pdf in multiple status codes and/or media-types
-// TODO: Test-Case for operation responses with wildcard content type, e.g. application/*
-// TODO: Test-Case for Accept header with non-JSON types
+/**
+ * Tests for various request and response payloads.
+ */
 class PayloadVariantsTest extends EmbeddedJaxRsServerSpecification {
 
   @Subject
-  PetsApiRestClient restClient = new PetsApiRestClient(restClientSupport)
+  PayloadVariantsApiRestClient restClient = new PayloadVariantsApiRestClient(restClientSupport)
 
   @Override
   Class<?> getTestResource() {
@@ -35,9 +35,9 @@ class PayloadVariantsTest extends EmbeddedJaxRsServerSpecification {
     GenericResponse genericResponse = restClient.changePetWithResponse(new CPet(id: 1L, name: "Buddy", tag: "new tag"))
 
     then:
-    DefinedResponse response = genericResponse.asExpectedResponse()
-    response.request.url == "$BASE_URL/pets"
-    response.request.method == "PUT"
+    DefinedResponse response = genericResponse.asDefinedResponse()
+    response.request.url == "$BASE_URL/petBinaries"
+    response.request.method == "POST"
     response.statusCode == 204
     response.httpStatusMessage == "No Content"
     response.contentType == null
@@ -60,7 +60,7 @@ class PayloadVariantsTest extends EmbeddedJaxRsServerSpecification {
     GenericResponse genericResponse = restClient.filterPetsWithResponse(input)
 
     then:
-    DefinedResponse response = genericResponse.asExpectedResponse()
+    DefinedResponse response = genericResponse.asDefinedResponse()
     response.request.url == "$BASE_URL/pets"
     response.request.method == "POST"
     response.statusCode == 200
@@ -87,8 +87,8 @@ class PayloadVariantsTest extends EmbeddedJaxRsServerSpecification {
     GenericResponse genericResponse = restClient.uploadAndReturnBinaryWithResponse(new ByteArrayInputStream(pdfBytes))
 
     then:
-    DefinedResponse response = genericResponse.asExpectedResponse()
-    response.request.url == "$BASE_URL/manuals"
+    DefinedResponse response = genericResponse.asDefinedResponse()
+    response.request.url == "$BASE_URL/petBinaries"
     response.request.method == "PUT"
     response.statusCode == 200
     response.httpStatusMessage == "OK"
@@ -104,7 +104,7 @@ class PayloadVariantsTest extends EmbeddedJaxRsServerSpecification {
   /**
    * JAX-RS resource implementation used in this test.
    */
-  static class EmbeddedServerResource implements PetsApi {
+  static class EmbeddedServerResource implements PayloadVariantsApi {
 
     @Override
     ChangePetResponse changePet(SPet requestBody) {
@@ -117,18 +117,8 @@ class PayloadVariantsTest extends EmbeddedJaxRsServerSpecification {
     }
 
     @Override
-    GetManualResponse getManual() {
-      return null
-    }
-
-    @Override
     UploadAndReturnBinaryResponse uploadAndReturnBinary(InputStream requestBody) {
       return UploadAndReturnBinaryResponse.with200ApplicationOctetStream(requestBody)
-    }
-
-    @Override
-    PostManualResponse postManual(String testCaseSelector) {
-      return null
     }
   }
 }

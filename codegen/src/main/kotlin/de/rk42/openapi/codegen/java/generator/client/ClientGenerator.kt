@@ -176,7 +176,7 @@ class ClientGenerator(private val configuration: Configuration) {
         "${operation.javaIdentifier}WithResponse",
         operation.parameters.joinToString(", ") { it.javaIdentifier }
     )
-    codeBuilder.addStatement("\$T response = genericResponse.asExpectedResponse()", SupportTypes.DefinedResponse)
+    codeBuilder.addStatement("\$T response = genericResponse.asDefinedResponse()", SupportTypes.DefinedResponse)
     codeBuilder.add("\n")
 
     if (failureType != null) {
@@ -215,7 +215,7 @@ class ClientGenerator(private val configuration: Configuration) {
     val classSpec = TypeSpec.classBuilder(entityExceptionTypeName(entityType))
         .addJavadoc("Exception for the error entity of type ${entityType.name}.")
         .addModifiers(Modifier.PUBLIC)
-        .superclass(SupportTypes.RestClientDefinedErrorException)
+        .superclass(SupportTypes.RestClientEntityException)
         .addMethod(constructorSpec)
         .addMethod(methodSpecGetEntity)
         .build()
@@ -229,16 +229,16 @@ class ClientGenerator(private val configuration: Configuration) {
 
   object SupportTypes {
 
-    val RestClientSupport = "$SUPPORT_PACKAGE.RestClientSupport".toTypeName()
-    val StatusCode = "$SUPPORT_PACKAGE.model.StatusCode".toTypeName()
-    val OperationBuilder = "$SUPPORT_PACKAGE.model.Operation.Builder".toTypeName()
-    val ParameterLocation = "$SUPPORT_PACKAGE.model.ParameterLocation".toTypeName()
     val DefinedResponse = "$SUPPORT_PACKAGE.DefinedResponse".toTypeName()
     val GenericResponse = "$SUPPORT_PACKAGE.GenericResponse".toTypeName()
+    val OperationBuilder = "$SUPPORT_PACKAGE.internal.Operation.Builder".toTypeName()
+    val ParameterLocation = "$SUPPORT_PACKAGE.internal.ParameterLocation".toTypeName()
+    val RestClientEntityException = "$SUPPORT_PACKAGE.RestClientEntityException".toTypeName()
     val RestClientIoException = "$SUPPORT_PACKAGE.RestClientIoException".toTypeName()
-    val RestClientValidationException = "$SUPPORT_PACKAGE.RestClientValidationException".toTypeName()
+    val RestClientSupport = "$SUPPORT_PACKAGE.RestClientSupport".toTypeName()
     val RestClientUndefinedResponseException = "$SUPPORT_PACKAGE.RestClientUndefinedResponseException".toTypeName()
-    val RestClientDefinedErrorException = "$SUPPORT_PACKAGE.RestClientDefinedErrorException".toTypeName()
+    val RestClientValidationException = "$SUPPORT_PACKAGE.RestClientValidationException".toTypeName()
+    val StatusCode = "$SUPPORT_PACKAGE.internal.StatusCode".toTypeName()
   }
 
   companion object {

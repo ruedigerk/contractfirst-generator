@@ -87,6 +87,11 @@
 
       <!-- Dependencies of the generated server code -->
       <dependency>
+         <groupId>de.rk42.openapi-codegen</groupId>
+         <artifactId>openapi-codegen-server-support</artifactId>
+         <version>${project.version}</version>
+      </dependency>
+      <dependency>
          <groupId>javax.ws.rs</groupId>
          <artifactId>javax.ws.rs-api</artifactId>
          <version>${jax-rs.version}</version>

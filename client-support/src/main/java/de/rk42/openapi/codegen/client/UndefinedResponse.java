@@ -38,7 +38,7 @@ public class UndefinedResponse implements GenericResponse {
   }
 
   @Override
-  public DefinedResponse asExpectedResponse() throws RestClientUndefinedResponseException {
+  public DefinedResponse asDefinedResponse() throws RestClientUndefinedResponseException {
     if (cause == null) {
       throw new RestClientUndefinedResponseException(reason, this);
     } else {

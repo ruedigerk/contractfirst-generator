@@ -1,4 +1,4 @@
-package de.rk42.openapi.codegen.client.model;
+package de.rk42.openapi.codegen.client.internal;
 
 /**
  * Represents the definition of a parameter of an API operation and the value that is transferred in it. The combination of name and location must be

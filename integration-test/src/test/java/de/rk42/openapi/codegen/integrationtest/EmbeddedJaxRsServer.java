@@ -1,5 +1,8 @@
 package de.rk42.openapi.codegen.integrationtest;
 
+import de.rk42.openapi.codegen.server.DateFormatsParamConverterProvider;
+import de.rk42.openapi.codegen.server.GsonMessageBodyHandler;
+
 import org.glassfish.grizzly.http.server.HttpServer;
 import org.glassfish.jersey.grizzly2.httpserver.GrizzlyHttpServerFactory;
 import org.glassfish.jersey.server.ResourceConfig;
@@ -49,7 +52,7 @@ public class EmbeddedJaxRsServer {
     // Register GSON for serializing and deserializing JSON
     ResourceConfig resourceConfig = new ResourceConfig();
     resourceConfig.register(GsonMessageBodyHandler.class);
-    resourceConfig.register(DateFormatsJaxRsParamConverterProvider.class);
+    resourceConfig.register(DateFormatsParamConverterProvider.class);
     resourceConfig.register(JaxRsExceptionMapper.class);
 
     // Register resource classes

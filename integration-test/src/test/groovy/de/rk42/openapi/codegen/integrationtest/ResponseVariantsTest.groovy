@@ -5,11 +5,12 @@ import de.rk42.openapi.codegen.client.RestClientUndefinedResponseException
 import de.rk42.openapi.codegen.client.UndefinedResponse
 import de.rk42.openapi.codegen.integrationtest.generated.client.model.CError
 import de.rk42.openapi.codegen.integrationtest.generated.client.model.CPet
-import de.rk42.openapi.codegen.integrationtest.generated.client.resources.CreatePetApiRestClient
+import de.rk42.openapi.codegen.integrationtest.generated.client.resources.ResponseVariantsApiRestClient
 import de.rk42.openapi.codegen.integrationtest.generated.client.resources.RestClientCErrorEntityException
 import de.rk42.openapi.codegen.integrationtest.generated.server.model.SError
 import de.rk42.openapi.codegen.integrationtest.generated.server.model.SPet
-import de.rk42.openapi.codegen.integrationtest.generated.server.resources.CreatePetApi
+import de.rk42.openapi.codegen.integrationtest.generated.server.resources.ResponseVariantsApi
+import de.rk42.openapi.codegen.integrationtest.spec.EmbeddedJaxRsServerSpecification
 import spock.lang.Subject
 
 import javax.ws.rs.core.Response
@@ -22,7 +23,7 @@ class ResponseVariantsTest extends EmbeddedJaxRsServerSpecification {
   CPet pet = new CPet(id: 42L, name: "name", tag: "tag")
 
   @Subject
-  CreatePetApiRestClient restClient = new CreatePetApiRestClient(restClientSupport)
+  ResponseVariantsApiRestClient restClient = new ResponseVariantsApiRestClient(restClientSupport)
 
   @Override
   Class<?> getTestResource() {
@@ -34,7 +35,7 @@ class ResponseVariantsTest extends EmbeddedJaxRsServerSpecification {
     def genericResponse = restClient.createPetWithResponse("petId", true, 4711L, null, pet)
 
     then:
-    def response = genericResponse.asExpectedResponse()
+    def response = genericResponse.asDefinedResponse()
     response.request.url == "$BASE_URL/petId/pets?dryRun=true"
     response.request.method == "POST"
     response.request.headers == [
@@ -65,7 +66,7 @@ class ResponseVariantsTest extends EmbeddedJaxRsServerSpecification {
     def genericResponse = restClient.createPetWithResponse("petId", true, 4711L, "201", pet)
 
     then:
-    def response = genericResponse.asExpectedResponse()
+    def response = genericResponse.asDefinedResponse()
     response.request.url == "$BASE_URL/petId/pets?dryRun=true"
     response.request.method == "POST"
     response.request.headers == [
@@ -97,7 +98,7 @@ class ResponseVariantsTest extends EmbeddedJaxRsServerSpecification {
     def genericResponse = restClient.createPetWithResponse("petId", true, 4711L, "204", pet)
 
     then:
-    def response = genericResponse.asExpectedResponse()
+    def response = genericResponse.asDefinedResponse()
     response.request.url == "$BASE_URL/petId/pets?dryRun=true"
     response.request.method == "POST"
     response.request.headers == [
@@ -129,7 +130,7 @@ class ResponseVariantsTest extends EmbeddedJaxRsServerSpecification {
     def genericResponse = restClient.createPetWithResponse("petId", false, 23, "400", pet)
 
     then:
-    def response = genericResponse.asExpectedResponse()
+    def response = genericResponse.asDefinedResponse()
     response.request.url == "$BASE_URL/petId/pets?dryRun=false"
     response.request.method == "POST"
     response.request.headers == [
@@ -163,7 +164,7 @@ class ResponseVariantsTest extends EmbeddedJaxRsServerSpecification {
     def genericResponse = restClient.createPetWithResponse("petId", false, 42, "500", pet)
 
     then:
-    def response = genericResponse.asExpectedResponse()
+    def response = genericResponse.asDefinedResponse()
     response.request.url == "$BASE_URL/petId/pets?dryRun=false"
     response.request.method == "POST"
     response.request.headers == [
@@ -245,7 +246,7 @@ class ResponseVariantsTest extends EmbeddedJaxRsServerSpecification {
   /**
    * JAX-RS resource implementation used in this test.
    */
-  static class EmbeddedServerResource implements CreatePetApi {
+  static class EmbeddedServerResource implements ResponseVariantsApi {
 
     @Override
     CreatePetResponse createPet(String petStoreId, Boolean dryRun, Long customerId, String testCaseSelector, SPet requestBody) {

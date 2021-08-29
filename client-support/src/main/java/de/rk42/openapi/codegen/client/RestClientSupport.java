@@ -4,14 +4,17 @@ import com.google.gson.Gson;
 import com.google.gson.GsonBuilder;
 import com.google.gson.JsonParseException;
 
-import de.rk42.openapi.codegen.client.model.Operation;
-import de.rk42.openapi.codegen.client.model.OperationRequestBody;
-import de.rk42.openapi.codegen.client.model.Parameter;
-import de.rk42.openapi.codegen.client.model.ResponseDefinition;
+import de.rk42.openapi.codegen.client.internal.Operation;
+import de.rk42.openapi.codegen.client.internal.OperationRequestBody;
+import de.rk42.openapi.codegen.client.internal.Parameter;
+import de.rk42.openapi.codegen.client.internal.ResponseDefinition;
+import de.rk42.openapi.codegen.support.gson.LocalDateGsonTypeAdapter;
+import de.rk42.openapi.codegen.support.gson.OffsetDateTimeGsonTypeAdapter;
 
 import okhttp3.Headers;
 import okhttp3.HttpUrl;
 import okhttp3.HttpUrl.Builder;
+import okhttp3.Interceptor;
 import okhttp3.MediaType;
 import okhttp3.OkHttpClient;
 import okhttp3.Request;
@@ -387,6 +390,65 @@ public class RestClientSupport {
     RequestAndResponse(Request request, Response response) {
       this.request = Objects.requireNonNull(request, "request");
       this.response = Objects.requireNonNull(response, "response");
+    }
+  }
+
+  /**
+   * Builder for constructing Responses, either defined or undefined.
+   */
+  private static class ResponseBuilder {
+
+    private final CorrespondingRequest request;
+    private final int statusCode;
+    private final String httpStatusMessage;
+    private final String contentType;
+
+    public ResponseBuilder(CorrespondingRequest request, int statusCode, String httpStatusMessage, String contentType) {
+      this.request = request;
+      this.statusCode = statusCode;
+      this.httpStatusMessage = httpStatusMessage;
+      this.contentType = contentType;
+    }
+
+    public UndefinedResponse unexpectedResponse(String responseContent, String reason) {
+      return new UndefinedResponse(request, statusCode, httpStatusMessage, contentType, responseContent, reason, null);
+    }
+
+    public UndefinedResponse unexpectedResponse(String responseContent, String reason, Throwable cause) {
+      return new UndefinedResponse(request, statusCode, httpStatusMessage, contentType, responseContent, reason, cause);
+    }
+
+    public DefinedResponse expectedResponse(Type javaType, Object entity) {
+      return new DefinedResponse(request, statusCode, httpStatusMessage, contentType, javaType, entity);
+    }
+
+    public IncompleteResponse incompleteResponse() {
+      return new IncompleteResponse(request, statusCode, httpStatusMessage, contentType);
+    }
+  }
+
+  /**
+   * OkHttp interceptor for accessing the final request. This is necessary, because the application can use interceptors that add or modify headers, and we
+   * want to report the final set of headers used.
+   */
+  private static class RequestAccessInterceptor implements Interceptor {
+
+    private static final ThreadLocal<Request> THREAD_LOCAL = new ThreadLocal<>();
+
+    public static Request getLastRequest() {
+      return THREAD_LOCAL.get();
+    }
+
+    public static void clearThreadLocal() {
+      THREAD_LOCAL.remove();
+    }
+
+    @Override
+    public Response intercept(Chain chain) throws IOException {
+      Request request = chain.request();
+      THREAD_LOCAL.set(request);
+
+      return chain.proceed(request);
     }
   }
 }
