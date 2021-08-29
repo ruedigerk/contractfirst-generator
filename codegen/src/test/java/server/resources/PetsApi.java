@@ -6,11 +6,9 @@ import javax.validation.Valid;
 import javax.validation.constraints.NotNull;
 import javax.ws.rs.Consumes;
 import javax.ws.rs.GET;
-import javax.ws.rs.HeaderParam;
 import javax.ws.rs.POST;
 import javax.ws.rs.PUT;
 import javax.ws.rs.Path;
-import javax.ws.rs.PathParam;
 import javax.ws.rs.Produces;
 import javax.ws.rs.QueryParam;
 import javax.ws.rs.core.Response;
@@ -38,22 +36,6 @@ public interface PetsApi {
   @Consumes("application/json")
   @Produces("application/json")
   FilterPetsResponse filterPets(@NotNull @Valid List<Pet> requestBody);
-
-  /**
-   * Test for the various parameter locations and for serializing request and response body entities.
-   *
-   * @param petStoreId ID of pet store
-   * @param dryRun Do a dry run?
-   * @param customerId Optional customer ID
-   * @param testCaseSelector Used to select the desired behaviour of the server in the test.
-   */
-  @POST
-  @Path("/{petStoreId}/pets")
-  @Consumes("application/json")
-  @Produces("application/json")
-  CreatePetResponse createPet(@PathParam("petStoreId") @NotNull String petStoreId,
-      @QueryParam("dryRun") Boolean dryRun, @HeaderParam("customerId") Long customerId,
-      @QueryParam("testCaseSelector") String testCaseSelector, @NotNull @Valid Pet requestBody);
 
   /**
    * Test case for multiple response content types with different schemas.
@@ -125,28 +107,6 @@ public interface PetsApi {
 
     public static FilterPetsResponse withCustomResponse(Response response) {
       return new FilterPetsResponse(response);
-    }
-  }
-
-  class CreatePetResponse extends ResponseWrapper {
-    private CreatePetResponse(Response delegate) {
-      super(delegate);
-    }
-
-    public static CreatePetResponse with200ApplicationJson(Pet entity) {
-      return new CreatePetResponse(Response.status(200).header("Content-Type", "application/json").entity(entity).build());
-    }
-
-    public static CreatePetResponse with400ApplicationJson(Error entity) {
-      return new CreatePetResponse(Response.status(400).header("Content-Type", "application/json").entity(entity).build());
-    }
-
-    public static CreatePetResponse withApplicationJson(int status, Error entity) {
-      return new CreatePetResponse(Response.status(status).header("Content-Type", "application/json").entity(entity).build());
-    }
-
-    public static CreatePetResponse withCustomResponse(Response response) {
-      return new CreatePetResponse(response);
     }
   }
 

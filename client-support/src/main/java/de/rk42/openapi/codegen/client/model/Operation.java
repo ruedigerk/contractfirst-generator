@@ -5,6 +5,7 @@ import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
 import java.util.Map;
+import java.util.Objects;
 import java.util.Optional;
 import java.util.function.Function;
 import java.util.stream.Collectors;
@@ -60,6 +61,7 @@ public class Operation {
     return responseDefinitions.values()
         .stream()
         .flatMap(list -> list.stream().map(ResponseDefinition::getContentType))
+        .filter(Objects::nonNull)
         .distinct()
         .collect(Collectors.toList());
   }

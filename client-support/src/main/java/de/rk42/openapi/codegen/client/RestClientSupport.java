@@ -1,6 +1,7 @@
 package de.rk42.openapi.codegen.client;
 
 import com.google.gson.Gson;
+import com.google.gson.GsonBuilder;
 import com.google.gson.JsonParseException;
 
 import de.rk42.openapi.codegen.client.model.Operation;
@@ -22,6 +23,8 @@ import java.io.ByteArrayOutputStream;
 import java.io.IOException;
 import java.io.InputStream;
 import java.lang.reflect.Type;
+import java.time.LocalDate;
+import java.time.OffsetDateTime;
 import java.util.List;
 import java.util.Map;
 import java.util.Objects;
@@ -32,8 +35,8 @@ import java.util.stream.StreamSupport;
 /**
  * Performs HTTP requests as defined by generated client code.
  *
- * TODO: Add LocalDate and OffsetDateTime Gson TypeAdapters.
- * TODO: Let the client select the desired response content type when multiple are defined? How? Via optional Accept-Header-Builder?
+ * TODO: Add LocalDate and OffsetDateTime Gson TypeAdapters. TODO: Let the client select the desired response content type when multiple are defined? How?
+ * Via optional Accept-Header-Builder?
  */
 public class RestClientSupport {
 
@@ -61,7 +64,10 @@ public class RestClientSupport {
   }
 
   private Gson createGson() {
-    return new Gson();
+    return new GsonBuilder()
+        .registerTypeAdapter(LocalDate.class, new LocalDateGsonTypeAdapter())
+        .registerTypeAdapter(OffsetDateTime.class, new OffsetDateTimeGsonTypeAdapter())
+        .create();
   }
 
   public GenericResponse executeRequest(Operation operation) throws RestClientIoException, RestClientValidationException {
@@ -154,8 +160,10 @@ public class RestClientSupport {
     Headers.Builder builder = new Headers.Builder();
 
     operation.getHeaderParameters().forEach((name, parameter) -> {
-      String value = serializeParameter(parameter.getValue());
-      builder.add(name, value);
+      if (parameter.getValue() != null) {
+        String value = serializeParameter(parameter.getValue());
+        builder.add(name, value);
+      }
     });
 
     String acceptHeaderValue = determineAcceptHeaderValue(operation);

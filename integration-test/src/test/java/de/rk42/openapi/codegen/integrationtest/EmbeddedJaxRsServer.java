@@ -49,6 +49,8 @@ public class EmbeddedJaxRsServer {
     // Register GSON for serializing and deserializing JSON
     ResourceConfig resourceConfig = new ResourceConfig();
     resourceConfig.register(GsonMessageBodyHandler.class);
+    resourceConfig.register(DateFormatsJaxRsParamConverterProvider.class);
+    resourceConfig.register(JaxRsExceptionMapper.class);
 
     // Register resource classes
     jaxRsResourceClasses.forEach(resourceConfig::register);

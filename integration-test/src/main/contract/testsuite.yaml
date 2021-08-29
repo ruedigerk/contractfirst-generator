@@ -5,6 +5,68 @@ info:
 servers:
   - url: https://example.com/v1
 paths:
+  /{petStoreId}/pets:
+    post:
+      summary: Test for the various parameter locations and for serializing request and response body entities.
+      operationId: createPet
+      tags:
+        - createPet
+      parameters:
+        - name: petStoreId
+          in: path
+          description: ID of pet store
+          required: true
+          schema:
+            type: string
+        - name: dryRun
+          in: query
+          description: Do a dry run?
+          required: false
+          schema:
+            type: boolean
+        - name: customerId
+          in: header
+          description: Optional customer ID
+          required: false
+          schema:
+            type: integer
+            format: int64
+        - name: testCaseSelector
+          in: header
+          description: Used to select the desired behaviour of the server in the test.
+          required: false
+          schema:
+            type: string
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/Pet"
+      responses:
+        200:
+          description: Return created pet
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Pet"
+        201:
+          description: Accepted, also empty response.
+        204:
+          description: Empty response
+        400:
+          description: Error, customer ID unknown
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Error"
+        default:
+          description: unexpected error
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Error"
+
   /pets:
     post:
       summary: Test operation for generating generic types, e.g. List of Pet.
@@ -49,64 +111,6 @@ paths:
       responses:
         204:
           description: Ok
-        default:
-          description: unexpected error
-          content:
-            application/json:
-              schema:
-                $ref: "#/components/schemas/Error"
-
-  /{petStoreId}/pets:
-    post:
-      summary: Test for the various parameter locations and for serializing request and response body entities.  
-      operationId: createPet
-      tags:
-        - pets
-      parameters:
-        - name: petStoreId
-          in: path
-          description: ID of pet store
-          required: true
-          schema:
-            type: string
-        - name: dryRun
-          in: query
-          description: Do a dry run?
-          required: false
-          schema:
-            type: boolean
-        - name: customerId
-          in: header
-          description: Optional customer ID
-          required: false
-          schema:
-            type: integer
-            format: int64
-        - name: testCaseSelector
-          in: query
-          description: Used to select the desired behaviour of the server in the test.
-          required: false
-          schema:
-            type: string
-      requestBody:
-        required: true
-        content:
-          application/json:
-            schema:
-              $ref: "#/components/schemas/Pet"
-      responses:
-        200:
-          description: Return created pet
-          content:
-            application/json:
-              schema:
-                $ref: "#/components/schemas/Pet"
-        400:
-          description: Error, customer ID unknown
-          content:
-            application/json:
-              schema:
-                $ref: "#/components/schemas/Error"
         default:
           description: unexpected error
           content:
@@ -207,6 +211,63 @@ paths:
               schema:
                 $ref: "#/components/schemas/Error"
 
+  /time/{timeId}:
+    post:
+      summary: For testing handling of date and date-time formats.
+      operationId: updateTime
+      tags:
+        - time
+      parameters:
+        - name: timeId
+          in: path
+          required: true
+          schema:
+            type: string
+            format: date
+        - name: queryTimeA
+          in: query
+          required: true
+          schema:
+            type: string
+            format: date
+        - name: queryTimeB
+          in: query
+          required: true
+          schema:
+            type: string
+            format: date-time
+        - name: headerTimeA
+          in: header
+          required: true
+          schema:
+            type: string
+            format: date
+        - name: headerTimeB
+          in: header
+          required: true
+          schema:
+            type: string
+            format: date-time
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/Clock"
+      responses:
+        200:
+          description: Returned a clock.
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ClockResponse"
+        default:
+          description: unexpected error
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Error"
+
 components:
   schemas:
     Pet:
@@ -231,6 +292,42 @@ components:
           type: string
         content:
           type: string
+    Clock:
+      type: object
+      required:
+        - time1
+        - time2
+      properties:
+        time1:
+          type: string
+          format: date
+        time2:
+          type: string
+          format: date-time
+    ClockResponse:
+      type: object
+      properties:
+        time1:
+          type: string
+          format: date
+        time2:
+          type: string
+          format: date-time
+        pathTime:
+          type: string
+          format: date
+        queryTime1:
+          type: string
+          format: date
+        queryTime2:
+          type: string
+          format: date-time
+        headerTime1:
+          type: string
+          format: date
+        headerTime2:
+          type: string
+          format: date-time
     Error:
       required:
         - code

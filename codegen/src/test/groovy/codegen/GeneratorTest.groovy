@@ -7,8 +7,8 @@ class GeneratorTest extends Specification {
 
   static def simpleHarness = new GeneratorHarness("src/test/contract/petstore-simple.yaml", "petstoresimple", true)
   static def usptoHarness = new GeneratorHarness("src/test/contract/uspto.yaml", "uspto", true)
-  static def serverHarness = new GeneratorHarness("src/test/contract/client-server.yaml", "server", true)
-  static def clientHarness = new GeneratorHarness("src/test/contract/client-server.yaml", "client", false)
+  static def serverHarness = new GeneratorHarness("src/test/contract/testsuite.yaml", "server", true)
+  static def clientHarness = new GeneratorHarness("src/test/contract/testsuite.yaml", "client", false)
 
   @Unroll
   def "Test petstore-simple: #fileName"() {
@@ -45,7 +45,7 @@ class GeneratorTest extends Specification {
   }
 
   @Unroll
-  def "Test server: #fileName"() {
+  def "Test testsuite server: #fileName"() {
     when:
     serverHarness.runGenerator()
 
@@ -62,7 +62,7 @@ class GeneratorTest extends Specification {
   }
 
   @Unroll
-  def "Test client: #fileName"() {
+  def "Test testsuite client: #fileName"() {
     when:
     clientHarness.runGenerator()
 

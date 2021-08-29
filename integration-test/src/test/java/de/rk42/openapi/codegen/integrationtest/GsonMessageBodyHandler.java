@@ -1,16 +1,7 @@
-/*
- * Copyright (C) 2020 Sopra Financial Technology GmbH
- * Frankenstraße 146, 90461 Nürnberg, Germany
- *
- * This software is the confidential and proprietary information of
- * Sopra Financial Technology GmbH ("Confidential Information"). You shall not
- * disclose such Confidential Information and shall use it only in accordance
- * with the terms of the license agreement you entered into with
- * Sopra Financial Technology GmbH.
- */
 package de.rk42.openapi.codegen.integrationtest;
 
 import com.google.gson.Gson;
+import com.google.gson.GsonBuilder;
 import com.google.gson.JsonIOException;
 import com.google.gson.JsonSyntaxException;
 
@@ -22,6 +13,8 @@ import java.io.OutputStreamWriter;
 import java.lang.annotation.Annotation;
 import java.lang.reflect.Type;
 import java.nio.charset.StandardCharsets;
+import java.time.LocalDate;
+import java.time.OffsetDateTime;
 
 import javax.ws.rs.BadRequestException;
 import javax.ws.rs.Consumes;
@@ -41,7 +34,10 @@ import javax.ws.rs.ext.Provider;
 @Produces(MediaType.APPLICATION_JSON)
 public class GsonMessageBodyHandler implements MessageBodyWriter<Object>, MessageBodyReader<Object> {
 
-  private final Gson gson = new Gson();
+  private final Gson gson = new GsonBuilder()
+      .registerTypeAdapter(LocalDate.class, new LocalDateGsonTypeAdapter())
+      .registerTypeAdapter(OffsetDateTime.class, new OffsetDateTimeGsonTypeAdapter())
+      .create();
 
   @Override
   public Object readFrom(
