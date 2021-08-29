@@ -288,6 +288,28 @@ paths:
       summary: For testing handling of date and date-time formats.
       tags:
       - time
+  /bigDecimals:
+    get:
+      operationId: getNumber
+      parameters:
+      - description: Test BigDecimal
+        explode: true
+        in: query
+        name: decimalNumber
+        required: true
+        schema:
+          type: number
+        style: form
+      responses:
+        "200":
+          content:
+            application/json:
+              schema:
+                type: number
+          description: Returned decimalNumber.
+      summary: Test serialization of schema type number as BigDecimal.
+      tags:
+      - BigDecimals
 components:
   schemas:
     Pet:

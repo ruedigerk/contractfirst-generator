@@ -273,6 +273,27 @@ paths:
               schema:
                 $ref: "#/components/schemas/Error"
 
+  /bigDecimals:
+    get:
+      summary: Test serialization of schema type number as BigDecimal.
+      operationId: getNumber
+      tags:
+        - BigDecimals
+      parameters:
+        - name: decimalNumber
+          in: query
+          description: Test BigDecimal
+          required: true
+          schema:
+            type: number
+      responses:
+        200:
+          description: Returned decimalNumber.
+          content:
+            application/json:
+              schema:
+                type: number
+
 components:
   schemas:
     Pet:
