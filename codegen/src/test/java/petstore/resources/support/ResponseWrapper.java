@@ -1,4 +1,4 @@
-package petstoresimple.resources.support;
+package petstore.resources.support;
 
 import java.lang.annotation.Annotation;
 import java.net.URI;

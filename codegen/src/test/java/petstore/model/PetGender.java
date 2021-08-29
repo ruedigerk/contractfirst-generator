@@ -1,4 +1,4 @@
-package petstoresimple.model;
+package petstore.model;
 
 public enum PetGender {
   MALE,

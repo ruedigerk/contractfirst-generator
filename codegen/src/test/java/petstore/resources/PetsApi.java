@@ -1,4 +1,4 @@
-package petstoresimple.resources;
+package petstore.resources;
 
 import java.io.InputStream;
 import java.util.List;
@@ -11,10 +11,10 @@ import javax.ws.rs.PathParam;
 import javax.ws.rs.Produces;
 import javax.ws.rs.QueryParam;
 import javax.ws.rs.core.Response;
-import petstoresimple.model.Error;
-import petstoresimple.model.GetPetTransformer200;
-import petstoresimple.model.Pet;
-import petstoresimple.resources.support.ResponseWrapper;
+import petstore.model.Error;
+import petstore.model.GetPetTransformer200;
+import petstore.model.Pet;
+import petstore.resources.support.ResponseWrapper;
 
 @Path("")
 public interface PetsApi {

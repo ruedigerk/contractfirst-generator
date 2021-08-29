@@ -5,15 +5,15 @@ import spock.lang.Unroll
 
 class GeneratorTest extends Specification {
 
-  static def simpleHarness = new GeneratorHarness("src/test/contract/petstore-simple.yaml", "petstoresimple", true)
+  static def petstoreHarness = new GeneratorHarness("src/test/contract/petstore.yaml", "petstore", true)
   static def usptoHarness = new GeneratorHarness("src/test/contract/uspto.yaml", "uspto", true)
   static def serverHarness = new GeneratorHarness("src/test/contract/testsuite.yaml", "server", true)
   static def clientHarness = new GeneratorHarness("src/test/contract/testsuite.yaml", "client", false)
 
   @Unroll
-  def "Test petstore-simple: #fileName"() {
+  def "Test petstore: #fileName"() {
     when:
-    simpleHarness.runGenerator()
+    petstoreHarness.runGenerator()
 
     then:
     generatedFile.exists()
@@ -22,9 +22,9 @@ class GeneratorTest extends Specification {
     generatedFile.text == referenceFile.text
 
     where:
-    fileName << simpleHarness.relativePathNames
-    referenceFile << simpleHarness.referenceFiles
-    generatedFile << simpleHarness.generatedFiles
+    fileName << petstoreHarness.relativePathNames
+    referenceFile << petstoreHarness.referenceFiles
+    generatedFile << petstoreHarness.generatedFiles
   }
 
   @Unroll
