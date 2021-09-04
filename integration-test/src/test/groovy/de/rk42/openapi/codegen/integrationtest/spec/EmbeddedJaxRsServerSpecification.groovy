@@ -1,6 +1,6 @@
 package de.rk42.openapi.codegen.integrationtest.spec
 
-import de.rk42.openapi.codegen.client.RestClientSupport
+import de.rk42.openapi.codegen.client.ApiClientSupport
 import de.rk42.openapi.codegen.integrationtest.EmbeddedJaxRsServer
 import okhttp3.OkHttpClient
 import okhttp3.logging.HttpLoggingInterceptor
@@ -21,7 +21,7 @@ abstract class EmbeddedJaxRsServerSpecification extends Specification {
   private HttpLoggingInterceptor loggingInterceptor = new HttpLoggingInterceptor({ System.out.println("CLIENT: $it") })
 
   @Shared
-  RestClientSupport restClientSupport = new RestClientSupport(new OkHttpClient.Builder().addNetworkInterceptor(loggingInterceptor).build(), BASE_URL)
+  ApiClientSupport restClientSupport = new ApiClientSupport(new OkHttpClient.Builder().addNetworkInterceptor(loggingInterceptor).build(), BASE_URL)
 
   abstract Class<?> getTestResource()
 

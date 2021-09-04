@@ -4,12 +4,12 @@ package de.rk42.openapi.codegen.client;
  * Abstract superclass of all exceptions that indicate an error defined in the contract. Assumes that the error is completely described by the
  * status code and the returned error entity.
  */
-public abstract class RestClientEntityException extends RestClientException {
+public abstract class ApiClientEntityException extends ApiClientException {
 
   private final int httpStatusCode;
   private final Object entity;
 
-  protected RestClientEntityException(int httpStatusCode, Object entity) {
+  protected ApiClientEntityException(int httpStatusCode, Object entity) {
     super(toMessage(httpStatusCode, entity));
     this.httpStatusCode = httpStatusCode;
     this.entity = entity;

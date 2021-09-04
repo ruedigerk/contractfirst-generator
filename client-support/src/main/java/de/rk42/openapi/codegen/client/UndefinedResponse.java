@@ -6,7 +6,7 @@ package de.rk42.openapi.codegen.client;
  */
 public class UndefinedResponse implements GenericResponse {
 
-  private final CorrespondingRequest request;
+  private final RequestDescription request;
   private final int statusCode;
   private final String httpStatusMessage;
   private final String contentType;
@@ -15,7 +15,7 @@ public class UndefinedResponse implements GenericResponse {
   private final Throwable cause;
 
   public UndefinedResponse(
-      CorrespondingRequest request,
+      RequestDescription request,
       int statusCode,
       String httpStatusMessage,
       String contentType,
@@ -38,16 +38,16 @@ public class UndefinedResponse implements GenericResponse {
   }
 
   @Override
-  public DefinedResponse asDefinedResponse() throws RestClientUndefinedResponseException {
+  public DefinedResponse asDefinedResponse() throws ApiClientUndefinedResponseException {
     if (cause == null) {
-      throw new RestClientUndefinedResponseException(reason, this);
+      throw new ApiClientUndefinedResponseException(reason, this);
     } else {
-      throw new RestClientUndefinedResponseException(reason, this, cause);
+      throw new ApiClientUndefinedResponseException(reason, this, cause);
     }
   }
 
   @Override
-  public CorrespondingRequest getRequest() {
+  public RequestDescription getRequest() {
     return request;
   }
 

@@ -1,24 +1,24 @@
-package client.resources;
+package client.api;
 
 import client.model.Clock;
 import client.model.ClockResponse;
 import client.model.Error;
+import de.rk42.openapi.codegen.client.ApiClientIoException;
+import de.rk42.openapi.codegen.client.ApiClientSupport;
+import de.rk42.openapi.codegen.client.ApiClientUndefinedResponseException;
+import de.rk42.openapi.codegen.client.ApiClientValidationException;
 import de.rk42.openapi.codegen.client.DefinedResponse;
 import de.rk42.openapi.codegen.client.GenericResponse;
-import de.rk42.openapi.codegen.client.RestClientIoException;
-import de.rk42.openapi.codegen.client.RestClientSupport;
-import de.rk42.openapi.codegen.client.RestClientUndefinedResponseException;
-import de.rk42.openapi.codegen.client.RestClientValidationException;
 import de.rk42.openapi.codegen.client.internal.Operation;
 import de.rk42.openapi.codegen.client.internal.ParameterLocation;
 import de.rk42.openapi.codegen.client.internal.StatusCode;
 import java.time.LocalDate;
 import java.time.OffsetDateTime;
 
-public class TimeApiRestClient {
-  private final RestClientSupport support;
+public class TimeApiClient {
+  private final ApiClientSupport support;
 
-  public TimeApiRestClient(RestClientSupport support) {
+  public TimeApiClient(ApiClientSupport support) {
     this.support = support;
   }
 
@@ -27,7 +27,7 @@ public class TimeApiRestClient {
    */
   public ClockResponse updateTime(LocalDate timeId, LocalDate queryTimeA, OffsetDateTime queryTimeB,
       LocalDate headerTimeA, OffsetDateTime headerTimeB, Clock requestBody) throws
-      RestClientIoException, RestClientValidationException, RestClientUndefinedResponseException {
+      ApiClientIoException, ApiClientValidationException, ApiClientUndefinedResponseException {
 
     GenericResponse genericResponse = updateTimeWithResponse(timeId, queryTimeA, queryTimeB, headerTimeA, headerTimeB, requestBody);
     DefinedResponse response = genericResponse.asDefinedResponse();
@@ -44,7 +44,7 @@ public class TimeApiRestClient {
    */
   public GenericResponse updateTimeWithResponse(LocalDate timeId, LocalDate queryTimeA,
       OffsetDateTime queryTimeB, LocalDate headerTimeA, OffsetDateTime headerTimeB,
-      Clock requestBody) throws RestClientIoException, RestClientValidationException {
+      Clock requestBody) throws ApiClientIoException, ApiClientValidationException {
 
     Operation.Builder builder = new Operation.Builder("/time/{timeId}", "POST");
 

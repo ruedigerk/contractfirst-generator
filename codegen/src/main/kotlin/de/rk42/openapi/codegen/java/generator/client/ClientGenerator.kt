@@ -16,19 +16,28 @@ class ClientGenerator(private val configuration: Configuration) {
   private val apiPackage = "${configuration.sourcePackage}.$API_PACKAGE"
 
   fun generateCode(specification: JavaSpecification) {
-    specification.operationGroups.asSequence()
-        .map(::toRestClientClass)
-        .forEach { it.writeTo(outputDir) }
+    generateApiClientClasses(specification)
+    generateEntityExceptionClasses(specification)
+  }
 
+  private fun generateApiClientClasses(specification: JavaSpecification) {
+    specification.operationGroups.asSequence()
+        .map(::toApiClientClass)
+        .forEach { it.writeTo(outputDir) }
+  }
+
+  private fun generateEntityExceptionClasses(specification: JavaSpecification) {
     specification.operationGroups
         .flatMap { it.operations }
-        .flatMap { it.responseTypesBySuccess().failureTypes }
+        .map { it.responseTypesBySuccess() }
+        .filter { isEligibleForSimplifiedMethod(it) }
+        .flatMap { it.failureTypes }
         .distinct()
         .map { toRestClientEntityException(it) }
         .forEach { it.writeTo(outputDir) }
   }
 
-  private fun toRestClientClass(operationGroup: JavaOperationGroup): JavaFile {
+  private fun toApiClientClass(operationGroup: JavaOperationGroup): JavaFile {
     val methodSpecs = operationGroup.operations.flatMap(::toMethodsForOperation)
 
     val supportFieldSpec = FieldSpec.builder(SupportTypes.RestClientSupport, "support", Modifier.PRIVATE, Modifier.FINAL).build()
@@ -54,15 +63,21 @@ class ClientGenerator(private val configuration: Configuration) {
   private fun toMethodsForOperation(operation: JavaOperation): List<MethodSpec> {
     val methodWithResponse = toMethodWithResponse(operation)
 
-    val (successTypes, failureTypes) = operation.responseTypesBySuccess()
+    val responseTypes = operation.responseTypesBySuccess()
 
-    return if (successTypes.size <= 1 && failureTypes.size <= 1) {
-      val simplifiedMethod = toSimplifiedMethod(operation, successTypes.firstOrNull(), failureTypes.firstOrNull())
+    return if (isEligibleForSimplifiedMethod(responseTypes)) {
+      val simplifiedMethod = toSimplifiedMethod(operation, responseTypes.successTypes.firstOrNull(), responseTypes.failureTypes.firstOrNull())
       listOf(simplifiedMethod, methodWithResponse)
     } else {
       listOf(methodWithResponse)
     }
   }
+
+  /**
+   * Returns whether the operations success and failure types allow generating a method with a simplified signature.
+   */
+  private fun isEligibleForSimplifiedMethod(responseTypesBySuccess: JavaOperation.ResponseTypesBySuccess): Boolean =
+      responseTypesBySuccess.successTypes.size <= 1 && responseTypesBySuccess.failureTypes.size <= 1
 
   private fun toMethodWithResponse(operation: JavaOperation): MethodSpec {
     val parameters = operation.parameters.map(::toParameterSpec)
@@ -233,18 +248,18 @@ class ClientGenerator(private val configuration: Configuration) {
     val GenericResponse = "$SUPPORT_PACKAGE.GenericResponse".toTypeName()
     val OperationBuilder = "$SUPPORT_PACKAGE.internal.Operation.Builder".toTypeName()
     val ParameterLocation = "$SUPPORT_PACKAGE.internal.ParameterLocation".toTypeName()
-    val RestClientEntityException = "$SUPPORT_PACKAGE.RestClientEntityException".toTypeName()
-    val RestClientIoException = "$SUPPORT_PACKAGE.RestClientIoException".toTypeName()
-    val RestClientSupport = "$SUPPORT_PACKAGE.RestClientSupport".toTypeName()
-    val RestClientUndefinedResponseException = "$SUPPORT_PACKAGE.RestClientUndefinedResponseException".toTypeName()
-    val RestClientValidationException = "$SUPPORT_PACKAGE.RestClientValidationException".toTypeName()
+    val RestClientEntityException = "$SUPPORT_PACKAGE.ApiClientEntityException".toTypeName()
+    val RestClientIoException = "$SUPPORT_PACKAGE.ApiClientIoException".toTypeName()
+    val RestClientSupport = "$SUPPORT_PACKAGE.ApiClientSupport".toTypeName()
+    val RestClientUndefinedResponseException = "$SUPPORT_PACKAGE.ApiClientUndefinedResponseException".toTypeName()
+    val RestClientValidationException = "$SUPPORT_PACKAGE.ApiClientValidationException".toTypeName()
     val StatusCode = "$SUPPORT_PACKAGE.internal.StatusCode".toTypeName()
   }
 
   companion object {
 
     const val SUPPORT_PACKAGE = "de.rk42.openapi.codegen.client"
-    const val API_PACKAGE = "resources"
-    const val CLIENT_CLASS_NAME_SUFFIX = "RestClient"
+    const val API_PACKAGE = "api"
+    const val CLIENT_CLASS_NAME_SUFFIX = "Client"
   }
 }

@@ -1,12 +1,12 @@
 package de.rk42.openapi.codegen.integrationtest
 
+import de.rk42.openapi.codegen.client.ApiClientUndefinedResponseException
 import de.rk42.openapi.codegen.client.Header
-import de.rk42.openapi.codegen.client.RestClientUndefinedResponseException
 import de.rk42.openapi.codegen.client.UndefinedResponse
+import de.rk42.openapi.codegen.integrationtest.generated.client.api.ResponseVariantsApiClient
+import de.rk42.openapi.codegen.integrationtest.generated.client.api.RestClientCErrorEntityException
 import de.rk42.openapi.codegen.integrationtest.generated.client.model.CError
 import de.rk42.openapi.codegen.integrationtest.generated.client.model.CPet
-import de.rk42.openapi.codegen.integrationtest.generated.client.resources.ResponseVariantsApiRestClient
-import de.rk42.openapi.codegen.integrationtest.generated.client.resources.RestClientCErrorEntityException
 import de.rk42.openapi.codegen.integrationtest.generated.server.model.SError
 import de.rk42.openapi.codegen.integrationtest.generated.server.model.SPet
 import de.rk42.openapi.codegen.integrationtest.generated.server.resources.ResponseVariantsApi
@@ -23,7 +23,7 @@ class ResponseVariantsTest extends EmbeddedJaxRsServerSpecification {
   CPet pet = new CPet(id: 42L, name: "name", tag: "tag")
 
   @Subject
-  ResponseVariantsApiRestClient restClient = new ResponseVariantsApiRestClient(restClientSupport)
+  ResponseVariantsApiClient restClient = new ResponseVariantsApiClient(restClientSupport)
 
   @Override
   Class<?> getTestResource() {
@@ -222,7 +222,7 @@ class ResponseVariantsTest extends EmbeddedJaxRsServerSpecification {
     restClient.createPet("petId", false, 999, "undefined", pet)
 
     then:
-    def e = thrown RestClientUndefinedResponseException
+    def e = thrown ApiClientUndefinedResponseException
     e.response.request.url == "$BASE_URL/petId/pets?dryRun=false"
     e.response.request.method == "POST"
     e.response.request.headers == [

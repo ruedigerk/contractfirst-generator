@@ -12,14 +12,14 @@ public interface GenericResponse {
 
   /**
    * Returns this response as an DefinedResponse, i.e., a response that is defined in the contract for this operation.
-   * Throws a RestClientUndefinedResponseException when this Response is not an DefinedResponse.
+   * Throws a ApiClientUndefinedResponseException when this Response is not an DefinedResponse.
    *
    * @return this cast to DefinedResponse
-   * @throws RestClientUndefinedResponseException when this does not represent an DefinedResponse.
+   * @throws ApiClientUndefinedResponseException when this does not represent an DefinedResponse.
    */
-  DefinedResponse asDefinedResponse() throws RestClientUndefinedResponseException;
+  DefinedResponse asDefinedResponse() throws ApiClientUndefinedResponseException;
 
-  CorrespondingRequest getRequest();
+  RequestDescription getRequest();
 
   int getStatusCode();
 

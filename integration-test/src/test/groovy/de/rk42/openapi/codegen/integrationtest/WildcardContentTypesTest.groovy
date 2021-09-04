@@ -2,7 +2,7 @@ package de.rk42.openapi.codegen.integrationtest
 
 import de.rk42.openapi.codegen.client.DefinedResponse
 import de.rk42.openapi.codegen.client.GenericResponse
-import de.rk42.openapi.codegen.integrationtest.generated.client.resources.WildcardContentTypesApiRestClient
+import de.rk42.openapi.codegen.integrationtest.generated.client.api.WildcardContentTypesApiClient
 import de.rk42.openapi.codegen.integrationtest.generated.server.resources.WildcardContentTypesApi
 import de.rk42.openapi.codegen.integrationtest.spec.EmbeddedJaxRsServerSpecification
 import spock.lang.Subject
@@ -15,7 +15,7 @@ import javax.ws.rs.core.Response
 class WildcardContentTypesTest extends EmbeddedJaxRsServerSpecification {
 
   @Subject
-  WildcardContentTypesApiRestClient restClient = new WildcardContentTypesApiRestClient(restClientSupport)
+  WildcardContentTypesApiClient restClient = new WildcardContentTypesApiClient(restClientSupport)
 
   @Override
   Class<?> getTestResource() {

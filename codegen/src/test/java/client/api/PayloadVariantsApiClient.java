@@ -1,31 +1,31 @@
-package client.resources;
+package client.api;
 
 import client.model.Error;
 import client.model.Pet;
 import com.google.gson.reflect.TypeToken;
+import de.rk42.openapi.codegen.client.ApiClientIoException;
+import de.rk42.openapi.codegen.client.ApiClientSupport;
+import de.rk42.openapi.codegen.client.ApiClientUndefinedResponseException;
+import de.rk42.openapi.codegen.client.ApiClientValidationException;
 import de.rk42.openapi.codegen.client.DefinedResponse;
 import de.rk42.openapi.codegen.client.GenericResponse;
-import de.rk42.openapi.codegen.client.RestClientIoException;
-import de.rk42.openapi.codegen.client.RestClientSupport;
-import de.rk42.openapi.codegen.client.RestClientUndefinedResponseException;
-import de.rk42.openapi.codegen.client.RestClientValidationException;
 import de.rk42.openapi.codegen.client.internal.Operation;
 import de.rk42.openapi.codegen.client.internal.StatusCode;
 import java.io.InputStream;
 import java.util.List;
 
-public class PayloadVariantsApiRestClient {
-  private final RestClientSupport support;
+public class PayloadVariantsApiClient {
+  private final ApiClientSupport support;
 
-  public PayloadVariantsApiRestClient(RestClientSupport support) {
+  public PayloadVariantsApiClient(ApiClientSupport support) {
     this.support = support;
   }
 
   /**
    * Test operation for generating generic types, e.g. List of Pet.
    */
-  public List<Pet> filterPets(List<Pet> requestBody) throws RestClientIoException,
-      RestClientValidationException, RestClientUndefinedResponseException {
+  public List<Pet> filterPets(List<Pet> requestBody) throws ApiClientIoException,
+      ApiClientValidationException, ApiClientUndefinedResponseException {
 
     GenericResponse genericResponse = filterPetsWithResponse(requestBody);
     DefinedResponse response = genericResponse.asDefinedResponse();
@@ -40,8 +40,8 @@ public class PayloadVariantsApiRestClient {
   /**
    * Test operation for generating generic types, e.g. List of Pet.
    */
-  public GenericResponse filterPetsWithResponse(List<Pet> requestBody) throws RestClientIoException,
-      RestClientValidationException {
+  public GenericResponse filterPetsWithResponse(List<Pet> requestBody) throws ApiClientIoException,
+      ApiClientValidationException {
 
     Operation.Builder builder = new Operation.Builder("/pets", "POST");
 
@@ -56,8 +56,8 @@ public class PayloadVariantsApiRestClient {
   /**
    * Test binary input and output.
    */
-  public InputStream uploadAndReturnBinary(InputStream requestBody) throws RestClientIoException,
-      RestClientValidationException, RestClientUndefinedResponseException {
+  public InputStream uploadAndReturnBinary(InputStream requestBody) throws ApiClientIoException,
+      ApiClientValidationException, ApiClientUndefinedResponseException {
 
     GenericResponse genericResponse = uploadAndReturnBinaryWithResponse(requestBody);
     DefinedResponse response = genericResponse.asDefinedResponse();
@@ -73,7 +73,7 @@ public class PayloadVariantsApiRestClient {
    * Test binary input and output.
    */
   public GenericResponse uploadAndReturnBinaryWithResponse(InputStream requestBody) throws
-      RestClientIoException, RestClientValidationException {
+      ApiClientIoException, ApiClientValidationException {
 
     Operation.Builder builder = new Operation.Builder("/petBinaries", "PUT");
 
@@ -88,8 +88,8 @@ public class PayloadVariantsApiRestClient {
   /**
    * Test for 204 response.
    */
-  public void changePet(Pet requestBody) throws RestClientIoException,
-      RestClientValidationException, RestClientUndefinedResponseException {
+  public void changePet(Pet requestBody) throws ApiClientIoException, ApiClientValidationException,
+      ApiClientUndefinedResponseException {
 
     GenericResponse genericResponse = changePetWithResponse(requestBody);
     DefinedResponse response = genericResponse.asDefinedResponse();
@@ -102,8 +102,8 @@ public class PayloadVariantsApiRestClient {
   /**
    * Test for 204 response.
    */
-  public GenericResponse changePetWithResponse(Pet requestBody) throws RestClientIoException,
-      RestClientValidationException {
+  public GenericResponse changePetWithResponse(Pet requestBody) throws ApiClientIoException,
+      ApiClientValidationException {
 
     Operation.Builder builder = new Operation.Builder("/petBinaries", "POST");
 

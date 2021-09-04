@@ -3,8 +3,8 @@ package de.rk42.openapi.codegen.integrationtest
 import com.google.gson.reflect.TypeToken
 import de.rk42.openapi.codegen.client.DefinedResponse
 import de.rk42.openapi.codegen.client.GenericResponse
+import de.rk42.openapi.codegen.integrationtest.generated.client.api.PayloadVariantsApiClient
 import de.rk42.openapi.codegen.integrationtest.generated.client.model.CPet
-import de.rk42.openapi.codegen.integrationtest.generated.client.resources.PayloadVariantsApiRestClient
 import de.rk42.openapi.codegen.integrationtest.generated.server.model.SPet
 import de.rk42.openapi.codegen.integrationtest.generated.server.resources.PayloadVariantsApi
 import de.rk42.openapi.codegen.integrationtest.spec.EmbeddedJaxRsServerSpecification
@@ -17,7 +17,7 @@ import spock.lang.Subject
 class PayloadVariantsTest extends EmbeddedJaxRsServerSpecification {
 
   @Subject
-  PayloadVariantsApiRestClient restClient = new PayloadVariantsApiRestClient(restClientSupport)
+  PayloadVariantsApiClient restClient = new PayloadVariantsApiClient(restClientSupport)
 
   @Override
   Class<?> getTestResource() {

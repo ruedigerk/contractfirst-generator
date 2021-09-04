@@ -1,20 +1,20 @@
-package client.resources;
+package client.api;
 
 import client.model.Error;
 import client.model.Manual;
+import de.rk42.openapi.codegen.client.ApiClientIoException;
+import de.rk42.openapi.codegen.client.ApiClientSupport;
+import de.rk42.openapi.codegen.client.ApiClientValidationException;
 import de.rk42.openapi.codegen.client.GenericResponse;
-import de.rk42.openapi.codegen.client.RestClientIoException;
-import de.rk42.openapi.codegen.client.RestClientSupport;
-import de.rk42.openapi.codegen.client.RestClientValidationException;
 import de.rk42.openapi.codegen.client.internal.Operation;
 import de.rk42.openapi.codegen.client.internal.ParameterLocation;
 import de.rk42.openapi.codegen.client.internal.StatusCode;
 import java.io.InputStream;
 
-public class MultipleContentTypesApiRestClient {
-  private final RestClientSupport support;
+public class MultipleContentTypesApiClient {
+  private final ApiClientSupport support;
 
-  public MultipleContentTypesApiRestClient(RestClientSupport support) {
+  public MultipleContentTypesApiClient(ApiClientSupport support) {
     this.support = support;
   }
 
@@ -23,8 +23,8 @@ public class MultipleContentTypesApiRestClient {
    *
    * @param testCaseSelector Used to select the desired behaviour of the server in the test.
    */
-  public GenericResponse getManualWithResponse(String testCaseSelector) throws
-      RestClientIoException, RestClientValidationException {
+  public GenericResponse getManualWithResponse(String testCaseSelector) throws ApiClientIoException,
+      ApiClientValidationException {
 
     Operation.Builder builder = new Operation.Builder("/manuals", "GET");
 

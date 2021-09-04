@@ -1,6 +1,6 @@
 package de.rk42.openapi.codegen.integrationtest
 
-import de.rk42.openapi.codegen.integrationtest.generated.client.resources.BigDecimalsApiRestClient
+import de.rk42.openapi.codegen.integrationtest.generated.client.api.BigDecimalsApiClient
 import de.rk42.openapi.codegen.integrationtest.generated.server.resources.BigDecimalsApi
 import de.rk42.openapi.codegen.integrationtest.spec.EmbeddedJaxRsServerSpecification
 import spock.lang.Subject
@@ -12,7 +12,7 @@ import spock.lang.Unroll
 class BigDecimalTest extends EmbeddedJaxRsServerSpecification {
 
   @Subject
-  BigDecimalsApiRestClient restClient = new BigDecimalsApiRestClient(restClientSupport)
+  BigDecimalsApiClient restClient = new BigDecimalsApiClient(restClientSupport)
 
   @Override
   Class<?> getTestResource() {

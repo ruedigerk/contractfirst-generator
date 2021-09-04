@@ -1,21 +1,21 @@
-package client.resources;
+package client.api;
 
 import client.model.Error;
 import client.model.Pet;
+import de.rk42.openapi.codegen.client.ApiClientIoException;
+import de.rk42.openapi.codegen.client.ApiClientSupport;
+import de.rk42.openapi.codegen.client.ApiClientUndefinedResponseException;
+import de.rk42.openapi.codegen.client.ApiClientValidationException;
 import de.rk42.openapi.codegen.client.DefinedResponse;
 import de.rk42.openapi.codegen.client.GenericResponse;
-import de.rk42.openapi.codegen.client.RestClientIoException;
-import de.rk42.openapi.codegen.client.RestClientSupport;
-import de.rk42.openapi.codegen.client.RestClientUndefinedResponseException;
-import de.rk42.openapi.codegen.client.RestClientValidationException;
 import de.rk42.openapi.codegen.client.internal.Operation;
 import de.rk42.openapi.codegen.client.internal.ParameterLocation;
 import de.rk42.openapi.codegen.client.internal.StatusCode;
 
-public class ResponseVariantsApiRestClient {
-  private final RestClientSupport support;
+public class ResponseVariantsApiClient {
+  private final ApiClientSupport support;
 
-  public ResponseVariantsApiRestClient(RestClientSupport support) {
+  public ResponseVariantsApiClient(ApiClientSupport support) {
     this.support = support;
   }
 
@@ -28,8 +28,8 @@ public class ResponseVariantsApiRestClient {
    * @param testCaseSelector Used to select the desired behaviour of the server in the test.
    */
   public Pet createPet(String petStoreId, Boolean dryRun, Long customerId, String testCaseSelector,
-      Pet requestBody) throws RestClientIoException, RestClientValidationException,
-      RestClientUndefinedResponseException {
+      Pet requestBody) throws ApiClientIoException, ApiClientValidationException,
+      ApiClientUndefinedResponseException {
 
     GenericResponse genericResponse = createPetWithResponse(petStoreId, dryRun, customerId, testCaseSelector, requestBody);
     DefinedResponse response = genericResponse.asDefinedResponse();
@@ -50,8 +50,8 @@ public class ResponseVariantsApiRestClient {
    * @param testCaseSelector Used to select the desired behaviour of the server in the test.
    */
   public GenericResponse createPetWithResponse(String petStoreId, Boolean dryRun, Long customerId,
-      String testCaseSelector, Pet requestBody) throws RestClientIoException,
-      RestClientValidationException {
+      String testCaseSelector, Pet requestBody) throws ApiClientIoException,
+      ApiClientValidationException {
 
     Operation.Builder builder = new Operation.Builder("/{petStoreId}/pets", "POST");
 

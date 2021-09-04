@@ -14,13 +14,6 @@ import java.io.File
 
 /**
  * The OpenAPI Code Generator.
- *
- * TODO:
- *  - Add JSON-Pointers to exceptions/error messages to pinpoint the error origin.
- *  - Print out the YAML in case of error, to help showing to where the JSON-Pointers point, as swagger-parser inlines external references.
- *  - Support allOf, oneOf (anyOf?).
- *  - Enums of a different primitive type than string.
- *  - Store the "real" value of an enum constant in a "value" field with getter.
  */
 class OpenApiCodegen(logAdapter: LogAdapter) {
 

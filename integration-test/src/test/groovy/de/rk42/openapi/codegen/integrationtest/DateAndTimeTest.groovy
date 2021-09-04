@@ -1,8 +1,8 @@
 package de.rk42.openapi.codegen.integrationtest
 
+import de.rk42.openapi.codegen.integrationtest.generated.client.api.TimeApiClient
 import de.rk42.openapi.codegen.integrationtest.generated.client.model.CClock
 import de.rk42.openapi.codegen.integrationtest.generated.client.model.CClockResponse
-import de.rk42.openapi.codegen.integrationtest.generated.client.resources.TimeApiRestClient
 import de.rk42.openapi.codegen.integrationtest.generated.server.model.SClock
 import de.rk42.openapi.codegen.integrationtest.generated.server.model.SClockResponse
 import de.rk42.openapi.codegen.integrationtest.generated.server.resources.TimeApi
@@ -18,7 +18,7 @@ import java.time.OffsetDateTime
 class DateAndTimeTest extends EmbeddedJaxRsServerSpecification {
 
   @Subject
-  TimeApiRestClient restClient = new TimeApiRestClient(restClientSupport)
+  TimeApiClient restClient = new TimeApiClient(restClientSupport)
 
   @Override
   Class<?> getTestResource() {

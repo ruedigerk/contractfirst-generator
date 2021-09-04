@@ -176,7 +176,7 @@ class ModelGenerator(configuration: Configuration) {
   }
 
   /**
-   * TODO: Generate more fancy indented toString like OpenAPI-Generator, example:
+   * TODO: Generate more fancy indented toString like OpenAPI-Generator? Example:
    *
    *  public String toString() {
    *    StringBuilder sb = new StringBuilder();

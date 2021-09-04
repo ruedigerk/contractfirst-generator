@@ -7,14 +7,14 @@ import java.lang.reflect.Type;
  */
 public class DefinedResponse implements GenericResponse {
 
-  private final CorrespondingRequest request;
+  private final RequestDescription request;
   private final int statusCode;
   private final String httpStatusMessage;
   private final String contentType;
   private final Type javaType;
   private final Object entity;
 
-  public DefinedResponse(CorrespondingRequest request, int statusCode, String httpStatusMessage, String contentType, Type javaType, Object entity) {
+  public DefinedResponse(RequestDescription request, int statusCode, String httpStatusMessage, String contentType, Type javaType, Object entity) {
     this.request = request;
     this.statusCode = statusCode;
     this.httpStatusMessage = httpStatusMessage;
@@ -34,7 +34,7 @@ public class DefinedResponse implements GenericResponse {
   }
 
   @Override
-  public CorrespondingRequest getRequest() {
+  public RequestDescription getRequest() {
     return request;
   }
 

@@ -1,20 +1,20 @@
-package client.resources;
+package client.api;
 
+import de.rk42.openapi.codegen.client.ApiClientIoException;
+import de.rk42.openapi.codegen.client.ApiClientSupport;
+import de.rk42.openapi.codegen.client.ApiClientUndefinedResponseException;
+import de.rk42.openapi.codegen.client.ApiClientValidationException;
 import de.rk42.openapi.codegen.client.DefinedResponse;
 import de.rk42.openapi.codegen.client.GenericResponse;
-import de.rk42.openapi.codegen.client.RestClientIoException;
-import de.rk42.openapi.codegen.client.RestClientSupport;
-import de.rk42.openapi.codegen.client.RestClientUndefinedResponseException;
-import de.rk42.openapi.codegen.client.RestClientValidationException;
 import de.rk42.openapi.codegen.client.internal.Operation;
 import de.rk42.openapi.codegen.client.internal.ParameterLocation;
 import de.rk42.openapi.codegen.client.internal.StatusCode;
 import java.math.BigDecimal;
 
-public class BigDecimalsApiRestClient {
-  private final RestClientSupport support;
+public class BigDecimalsApiClient {
+  private final ApiClientSupport support;
 
-  public BigDecimalsApiRestClient(RestClientSupport support) {
+  public BigDecimalsApiClient(ApiClientSupport support) {
     this.support = support;
   }
 
@@ -23,8 +23,8 @@ public class BigDecimalsApiRestClient {
    *
    * @param decimalNumber Test BigDecimal
    */
-  public BigDecimal getNumber(BigDecimal decimalNumber) throws RestClientIoException,
-      RestClientValidationException, RestClientUndefinedResponseException {
+  public BigDecimal getNumber(BigDecimal decimalNumber) throws ApiClientIoException,
+      ApiClientValidationException, ApiClientUndefinedResponseException {
 
     GenericResponse genericResponse = getNumberWithResponse(decimalNumber);
     DefinedResponse response = genericResponse.asDefinedResponse();
@@ -39,7 +39,7 @@ public class BigDecimalsApiRestClient {
    * @param decimalNumber Test BigDecimal
    */
   public GenericResponse getNumberWithResponse(BigDecimal decimalNumber) throws
-      RestClientIoException, RestClientValidationException {
+      ApiClientIoException, ApiClientValidationException {
 
     Operation.Builder builder = new Operation.Builder("/bigDecimals", "GET");
 

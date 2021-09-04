@@ -3,8 +3,8 @@ package de.rk42.openapi.codegen.integrationtest
 import de.rk42.openapi.codegen.client.DefinedResponse
 import de.rk42.openapi.codegen.client.GenericResponse
 import de.rk42.openapi.codegen.client.Header
+import de.rk42.openapi.codegen.integrationtest.generated.client.api.MultipleContentTypesApiClient
 import de.rk42.openapi.codegen.integrationtest.generated.client.model.CManual
-import de.rk42.openapi.codegen.integrationtest.generated.client.resources.MultipleContentTypesApiRestClient
 import de.rk42.openapi.codegen.integrationtest.generated.server.model.SManual
 import de.rk42.openapi.codegen.integrationtest.generated.server.resources.MultipleContentTypesApi
 import de.rk42.openapi.codegen.integrationtest.spec.EmbeddedJaxRsServerSpecification
@@ -14,7 +14,7 @@ import spock.lang.Subject
 class MultipleContentTypesTest extends EmbeddedJaxRsServerSpecification {
 
   @Subject
-  MultipleContentTypesApiRestClient restClient = new MultipleContentTypesApiRestClient(restClientSupport)
+  MultipleContentTypesApiClient restClient = new MultipleContentTypesApiClient(restClientSupport)
 
   @Override
   Class<?> getTestResource() {

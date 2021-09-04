@@ -1,12 +1,12 @@
-package client.resources;
+package client.api;
 
 import client.model.Error;
-import de.rk42.openapi.codegen.client.RestClientEntityException;
+import de.rk42.openapi.codegen.client.ApiClientEntityException;
 
 /**
  * Exception for the error entity of type Error.
  */
-public class RestClientErrorEntityException extends RestClientEntityException {
+public class RestClientErrorEntityException extends ApiClientEntityException {
   public RestClientErrorEntityException(int httpStatusCode, Error entity) {
     super(httpStatusCode, entity);
   }

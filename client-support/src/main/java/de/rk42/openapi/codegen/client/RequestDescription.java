@@ -3,15 +3,15 @@ package de.rk42.openapi.codegen.client;
 import java.util.List;
 
 /**
- * Represents the request corresponding to a response returned by the client or an exception thrown by it.
+ * Describes a request sent by the API client.
  */
-public class CorrespondingRequest {
+public class RequestDescription {
 
   private final String url;
   private final String method;
   private final List<Header> headers;
 
-  public CorrespondingRequest(String url, String method, List<Header> headers) {
+  public RequestDescription(String url, String method, List<Header> headers) {
     this.url = url;
     this.method = method;
     this.headers = headers;

@@ -37,11 +37,8 @@ import java.util.stream.StreamSupport;
 
 /**
  * Performs HTTP requests as defined by generated client code.
- *
- * TODO: Add LocalDate and OffsetDateTime Gson TypeAdapters. TODO: Let the client select the desired response content type when multiple are defined? How?
- * Via optional Accept-Header-Builder?
  */
-public class RestClientSupport {
+public class ApiClientSupport {
 
   private static final String CONTENT_TYPE_HEADER = "Content-Type";
 
@@ -49,7 +46,7 @@ public class RestClientSupport {
   private final OkHttpClient httpClient;
   private final String baseUrl;
 
-  public RestClientSupport(OkHttpClient httpClient, String baseUrl) {
+  public ApiClientSupport(OkHttpClient httpClient, String baseUrl) {
     this.httpClient = addInternalInterceptors(httpClient);
     this.baseUrl = adjustBaseUrl(baseUrl);
 
@@ -73,7 +70,7 @@ public class RestClientSupport {
         .create();
   }
 
-  public GenericResponse executeRequest(Operation operation) throws RestClientIoException, RestClientValidationException {
+  public GenericResponse executeRequest(Operation operation) throws ApiClientIoException, ApiClientValidationException {
     validateOperation(operation);
 
     Request request = createRequest(operation);
@@ -82,14 +79,14 @@ public class RestClientSupport {
     return interpretResponse(requestAndResponse, operation);
   }
 
-  private void validateOperation(Operation operation) throws RestClientValidationException {
+  private void validateOperation(Operation operation) throws ApiClientValidationException {
     if (operation.getRequestBody().isRequired() && operation.getRequestBody().getEntity() == null) {
-      throw new RestClientValidationException("Request body is required but missing");
+      throw new ApiClientValidationException("Request body is required but missing");
     }
 
     for (Parameter parameter : operation.getParameters()) {
       if (parameter.isRequired() && parameter.getValue() == null) {
-        throw new RestClientValidationException("Parameter " + parameter + " is required but missing");
+        throw new ApiClientValidationException("Parameter " + parameter + " is required but missing");
       }
     }
   }
@@ -101,16 +98,16 @@ public class RestClientSupport {
       // late in the request processing, like Content-Type, Content-Size, etc.
       return new RequestAndResponse(RequestAccessInterceptor.getLastRequest(), response);
     } catch (IOException e) {
-      CorrespondingRequest correspondingRequest = asCorrespondingRequest(RequestAccessInterceptor.getLastRequest());
-      throw new RestClientIoException("Error executing request: " + e, correspondingRequest, e);
+      RequestDescription requestDescription = asCorrespondingRequest(RequestAccessInterceptor.getLastRequest());
+      throw new ApiClientIoException("Error executing request: " + e, requestDescription, e);
     } finally {
       RequestAccessInterceptor.clearThreadLocal();
     }
   }
 
-  private CorrespondingRequest asCorrespondingRequest(Request request) {
+  private RequestDescription asCorrespondingRequest(Request request) {
     List<Header> headers = extractHeaders(request.headers());
-    return new CorrespondingRequest(request.url().toString(), request.method(), headers);
+    return new RequestDescription(request.url().toString(), request.method(), headers);
   }
 
   private List<Header> extractHeaders(Headers headers) {
@@ -119,7 +116,7 @@ public class RestClientSupport {
         .collect(Collectors.toList());
   }
 
-  public Request createRequest(Operation operation) throws RestClientIoException {
+  public Request createRequest(Operation operation) throws ApiClientIoException {
     HttpUrl url = determineRequestUrl(operation);
     RequestBody requestBody = serializeRequestBody(operation.getRequestBody());
     Headers headers = determineRequestHeaders(operation);
@@ -174,8 +171,6 @@ public class RestClientSupport {
       builder.add("Accept", acceptHeaderValue);
     }
 
-    // TODO: support gzip compression using the Accept-Encoding header (and do the actual deflate)?
-
     return builder.build();
   }
 
@@ -201,17 +196,15 @@ public class RestClientSupport {
   }
 
   private String serializeParameter(Object value) {
-    // TODO: support array and object type schemas for parameters
-
     if (value == null) {
       return "";
     } else {
-      // LocalDate and OffsetDateTime already return the desired format in their toString methods, it seems.
+      // LocalDate and OffsetDateTime already return the desired format in their toString methods.
       return value.toString();
     }
   }
 
-  private RequestBody serializeRequestBody(OperationRequestBody requestBody) throws RestClientIoException {
+  private RequestBody serializeRequestBody(OperationRequestBody requestBody) throws ApiClientIoException {
     if (requestBody.getEntity() == null) {
       return null;
     }
@@ -234,7 +227,7 @@ public class RestClientSupport {
     }
   }
 
-  private byte[] readBytes(InputStream inputStream) throws RestClientIoException {
+  private byte[] readBytes(InputStream inputStream) throws ApiClientIoException {
     ByteArrayOutputStream outputStream = new ByteArrayOutputStream();
     byte[] buffer = new byte[4096];
 
@@ -244,7 +237,7 @@ public class RestClientSupport {
         outputStream.write(buffer, 0, bytesRead);
       }
     } catch (IOException e) {
-      throw new RestClientIoException("Error serializing request body: " + e, e);
+      throw new ApiClientIoException("Error serializing request body: " + e, e);
     }
 
     // Closing a ByteArrayOutputStream has no effect, so we don't do it.
@@ -252,11 +245,11 @@ public class RestClientSupport {
   }
 
   /**
-   * Interprets the response from the server and returns the appropriate Response or throws an RestClientIoException in case of an IOException.
+   * Interprets the response from the server and returns the appropriate Response or throws an ApiClientIoException in case of an IOException.
    *
    * Note: this method closes the response body unless it returns an InputStream of the body!
    *
-   * @throws RestClientIoException when an IOException occurs reading the response.
+   * @throws ApiClientIoException when an IOException occurs reading the response.
    */
   private GenericResponse interpretResponse(RequestAndResponse requestAndResponse, Operation operation) {
     Request request = requestAndResponse.request;
@@ -266,8 +259,8 @@ public class RestClientSupport {
     int statusCode = response.code();
     String mediaType = response.header(CONTENT_TYPE_HEADER);
 
-    CorrespondingRequest correspondingRequest = asCorrespondingRequest(request);
-    ResponseBuilder responseBuilder = new ResponseBuilder(correspondingRequest, statusCode, response.message(), mediaType);
+    RequestDescription requestDescription = asCorrespondingRequest(request);
+    ResponseBuilder responseBuilder = new ResponseBuilder(requestDescription, statusCode, response.message(), mediaType);
 
     try {
       boolean isEmptyBody = responseBody.source().exhausted();
@@ -302,7 +295,7 @@ public class RestClientSupport {
       // The body could not be read
       response.close();
       IncompleteResponse incompleteResponse = responseBuilder.incompleteResponse();
-      throw new RestClientIoException("Error reading response body", incompleteResponse, e);
+      throw new ApiClientIoException("Error reading response body", incompleteResponse, e);
     }
   }
 
@@ -398,12 +391,12 @@ public class RestClientSupport {
    */
   private static class ResponseBuilder {
 
-    private final CorrespondingRequest request;
+    private final RequestDescription request;
     private final int statusCode;
     private final String httpStatusMessage;
     private final String contentType;
 
-    public ResponseBuilder(CorrespondingRequest request, int statusCode, String httpStatusMessage, String contentType) {
+    public ResponseBuilder(RequestDescription request, int statusCode, String httpStatusMessage, String contentType) {
       this.request = request;
       this.statusCode = statusCode;
       this.httpStatusMessage = httpStatusMessage;

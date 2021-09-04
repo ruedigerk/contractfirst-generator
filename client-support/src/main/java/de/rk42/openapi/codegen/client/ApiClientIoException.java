@@ -6,28 +6,28 @@ import java.util.Optional;
 /**
  * Thrown when an IOException occurs during a request of the REST-API client.
  */
-public class RestClientIoException extends RestClientException {
+public class ApiClientIoException extends ApiClientException {
 
-  private final CorrespondingRequest request;
+  private final RequestDescription request;
   private final IncompleteResponse incompleteResponse;
 
-  public RestClientIoException(String message, CorrespondingRequest request, IOException cause) {
+  public ApiClientIoException(String message, RequestDescription request, IOException cause) {
     super(toMessage(message, request, cause), cause);
     this.request = request;
     this.incompleteResponse = null;
   }
 
-  public RestClientIoException(String message, IOException cause) {
+  public ApiClientIoException(String message, IOException cause) {
     super(message, cause);
     this.request = null;
     this.incompleteResponse = null;
   }
 
-  private static String toMessage(String message, CorrespondingRequest correspondingRequest, IOException cause) {
-    return message + ", request: " + correspondingRequest + ": " + cause;
+  private static String toMessage(String message, RequestDescription requestDescription, IOException cause) {
+    return message + ", request: " + requestDescription + ": " + cause;
   }
 
-  public RestClientIoException(String message, IncompleteResponse incompleteResponse, IOException cause) {
+  public ApiClientIoException(String message, IncompleteResponse incompleteResponse, IOException cause) {
     super(toMessage(message, incompleteResponse, cause), cause);
     this.request = incompleteResponse.getRequest();
     this.incompleteResponse = incompleteResponse;
@@ -37,7 +37,7 @@ public class RestClientIoException extends RestClientException {
     return message + ", request: " + incompleteResponse.getRequest() + ", response: " + incompleteResponse + ": " + cause;
   }
 
-  public Optional<CorrespondingRequest> getRequestData() {
+  public Optional<RequestDescription> getRequestData() {
     return Optional.ofNullable(request);
   }
 
