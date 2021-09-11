@@ -1,9 +1,11 @@
-OpenAPI Codegen
-===============
+Contractfirst-Generator
+=======================
 
-This project is a code generator for OpenAPI 3 contracts.
+Contractfirst-Generator is a code generator for OpenAPI 3 contracts, enabling a contract-first approach to developing REST APIs.
 
-There are two different generators: a generator for server stubs and a generator for clients.
+Currently, it consists of two different code generators:
+- a server generator for generating Java-based JAX-RS server stubs and 
+- a client generator for Java clients, using Gson and OkHttp.
 
 
 Server Generator
@@ -15,14 +17,14 @@ The server generator is intended to run during the generate-sources phase of Mav
 filling in the application logic.
 
 For the generated data model to be serialized to JSON properly, it is necessary to register Gson as a JAX-RS MessageBodyReader and MessageBodyWriter. This
-can be done by using the class `GsonMessageBodyHandler` from the openapi-codegen-server-support artifact.
+can be done by using the class `GsonMessageBodyHandler` from the contractfirst-generator-server-support artifact.
 
 The generated server code needs the following dependencies:
 
     <dependency>
         <!-- Contains a JAX-RS ParamConverterProvider and a Gson MessageBodyHandler to support LocalDate and OffsetDateTime -->
-        <groupId>de.rk42.openapi-codegen</groupId>
-        <artifactId>openapi-codegen-server-support</artifactId>
+        <groupId>org.contractfirst.generator</groupId>
+        <artifactId>contractfirst-generator-server-support</artifactId>
         <version>${project.version}</version>
     </dependency>
     <dependency>
@@ -48,8 +50,8 @@ The generated client code needs the following dependencies:
 
     <dependency>
         <!-- Support module for the generated client code -->
-        <groupId>de.rk42.openapi-codegen</groupId>
-        <artifactId>openapi-codegen-client-support</artifactId>
+        <groupId>org.contractfirst.generator</groupId>
+        <artifactId>contractfirst-generator-client-support</artifactId>
         <version>${project.version}</version>
     </dependency>
     <dependency>
@@ -87,4 +89,4 @@ Unsupported features and ideas for improvement
 
 ### In the server
 
-- Wildcards content types in operation responses (the server does not generate response methods that allow setting the content type)
+- Wildcard content types in operation responses (the server does not generate response methods that allow setting the content type)

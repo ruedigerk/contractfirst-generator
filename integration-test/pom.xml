@@ -2,7 +2,7 @@
 <project xmlns="http://maven.apache.org/POM/4.0.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/maven-v4_0_0.xsd">
    <modelVersion>4.0.0</modelVersion>
 
-   <artifactId>openapi-codegen-integration-test</artifactId>
+   <artifactId>contractfirst-generator-integration-test</artifactId>
 
    <description>
       This module is used as an integration test of the generator. The Maven plugin is
@@ -11,8 +11,8 @@
    </description>
 
    <parent>
-      <groupId>de.rk42.openapi-codegen</groupId>
-      <artifactId>openapi-codegen-parent</artifactId>
+      <groupId>org.contractfirst.generator</groupId>
+      <artifactId>contractfirst-generator-parent</artifactId>
       <version>1.0-SNAPSHOT</version>
    </parent>
 
@@ -46,8 +46,8 @@
          </plugin>
 
          <plugin>
-            <artifactId>openapi-codegen-maven-plugin</artifactId>
-            <groupId>de.rk42.openapi-codegen</groupId>
+            <artifactId>contractfirst-generator-maven-plugin</artifactId>
+            <groupId>org.contractfirst.generator</groupId>
             <version>${project.version}</version>
             <executions>
                <execution>
@@ -57,7 +57,7 @@
                   </goals>
                   <configuration>
                      <generator>server</generator>
-                     <sourcePackage>de.rk42.openapi.codegen.integrationtest.generated.server</sourcePackage>
+                     <sourcePackage>org.contractfirst.generator.integrationtest.generated.server</sourcePackage>
                      <modelPrefix>S</modelPrefix>
                   </configuration>
                </execution>
@@ -68,7 +68,7 @@
                   </goals>
                   <configuration>
                      <generator>client</generator>
-                     <sourcePackage>de.rk42.openapi.codegen.integrationtest.generated.client</sourcePackage>
+                     <sourcePackage>org.contractfirst.generator.integrationtest.generated.client</sourcePackage>
                      <modelPrefix>C</modelPrefix>
                   </configuration>
                </execution>
@@ -87,8 +87,8 @@
 
       <!-- Dependencies of the generated server code -->
       <dependency>
-         <groupId>de.rk42.openapi-codegen</groupId>
-         <artifactId>openapi-codegen-server-support</artifactId>
+         <groupId>org.contractfirst.generator</groupId>
+         <artifactId>contractfirst-generator-server-support</artifactId>
          <version>${project.version}</version>
       </dependency>
       <dependency>
@@ -109,8 +109,8 @@
 
       <!-- Dependencies of the generated client code -->
       <dependency>
-         <groupId>de.rk42.openapi-codegen</groupId>
-         <artifactId>openapi-codegen-client-support</artifactId>
+         <groupId>org.contractfirst.generator</groupId>
+         <artifactId>contractfirst-generator-client-support</artifactId>
          <version>${project.version}</version>
       </dependency>
 

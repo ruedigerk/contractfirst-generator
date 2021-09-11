@@ -1,1 +1,1 @@
-de.rk42.openapi.codegen.cli.LogbackConfigurator
+org.contractfirst.generator.cli.LogbackConfigurator
