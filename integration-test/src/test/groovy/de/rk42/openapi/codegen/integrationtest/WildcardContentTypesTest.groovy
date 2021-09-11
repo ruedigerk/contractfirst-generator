@@ -5,6 +5,7 @@ import de.rk42.openapi.codegen.client.GenericResponse
 import de.rk42.openapi.codegen.integrationtest.generated.client.api.WildcardContentTypesApiClient
 import de.rk42.openapi.codegen.integrationtest.generated.server.resources.WildcardContentTypesApi
 import de.rk42.openapi.codegen.integrationtest.spec.EmbeddedJaxRsServerSpecification
+import okhttp3.logging.HttpLoggingInterceptor
 import spock.lang.Subject
 
 import javax.ws.rs.core.Response
@@ -37,6 +38,9 @@ class WildcardContentTypesTest extends EmbeddedJaxRsServerSpecification {
     response.entity == "Some Text"
 
     when:
+    // First, disable logging of request body
+    setLoggingInterceptorLevel(HttpLoggingInterceptor.Level.HEADERS)
+    
     genericResponse = restClient.getWildcardContentTypesWithResponse("pdf")
     response = genericResponse.asDefinedResponse()
 
