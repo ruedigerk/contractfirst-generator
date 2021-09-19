@@ -31,9 +31,7 @@
 
       <plugins>
          <plugin>
-            <!-- Kotlin compiler plugin needs to run before Java compiler plugin -->
-            <groupId>org.jetbrains.kotlin</groupId>
-            <artifactId>kotlin-maven-plugin</artifactId>
+            <artifactId>maven-compiler-plugin</artifactId>
          </plugin>
       </plugins>
    </build>
