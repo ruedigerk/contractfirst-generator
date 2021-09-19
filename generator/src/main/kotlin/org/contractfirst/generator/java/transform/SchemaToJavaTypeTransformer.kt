@@ -7,7 +7,7 @@ import org.contractfirst.generator.java.model.NumericValidationType.MAX
 import org.contractfirst.generator.java.model.NumericValidationType.MIN
 import org.contractfirst.generator.logging.Log
 import org.contractfirst.generator.model.*
-import org.contractfirst.generator.model.CtrPrimitiveType.*
+import org.contractfirst.generator.model.MPrimitiveType.*
 
 /**
  * Transforms the parsed Schemas into Java types, assigning unique and valid type names. This needs to be done before creating Java source file models for these
@@ -16,30 +16,30 @@ import org.contractfirst.generator.model.CtrPrimitiveType.*
 class SchemaToJavaTypeTransformer(private val log: Log, private val configuration: Configuration) {
 
   private val modelPackage = "${configuration.outputJavaBasePackage}.model"
-  private val schemaToTypeLookup: MutableMap<CtrSchemaNonRef, JavaAnyType> = mutableMapOf()
+  private val schemaToTypeLookup: MutableMap<MSchemaNonRef, JavaAnyType> = mutableMapOf()
   private val uniqueNameFinder = UniqueNameFinder()
 
   /*
    * Using the schemaToTypeLookup is necessary for correctness, as calling toJavaType multiple times for the same schema would otherwise generate a new type 
    * name for generated types each time. 
    */
-  fun toJavaType(schema: CtrSchemaNonRef): JavaAnyType {
+  fun toJavaType(schema: MSchemaNonRef): JavaAnyType {
     log.debug { "toJavaType ${schema.nameHint}" }
 
     return schemaToTypeLookup.getOrPut(schema) {
       when (schema) {
-        is CtrSchemaObject -> toGeneratedJavaType(schema, false)
-        is CtrSchemaEnum -> toGeneratedJavaType(schema, true)
-        is CtrSchemaArray -> toJavaCollectionType(schema)
-        is CtrSchemaMap -> toJavaMapType(schema)
-        is CtrSchemaPrimitive -> toJavaBuiltInType(schema)
+        is MSchemaObject -> toGeneratedJavaType(schema, false)
+        is MSchemaEnum -> toGeneratedJavaType(schema, true)
+        is MSchemaArray -> toJavaCollectionType(schema)
+        is MSchemaMap -> toJavaMapType(schema)
+        is MSchemaPrimitive -> toJavaBuiltInType(schema)
       }
     }
   }
 
-  private fun toGeneratedJavaType(schema: CtrSchemaNonRef, isEnum: Boolean): JavaType {
+  private fun toGeneratedJavaType(schema: MSchemaNonRef, isEnum: Boolean): JavaType {
     // Objects without properties seem to be used in the wild. Special-case to java.lang.Object.
-    if (schema is CtrSchemaObject && schema.properties.isEmpty()) {
+    if (schema is MSchemaObject && schema.properties.isEmpty()) {
       return JavaType("Object", "java.lang")
     }
 
@@ -49,20 +49,20 @@ class SchemaToJavaTypeTransformer(private val log: Log, private val configuratio
     return JavaType(typeName, modelPackage, validations)
   }
 
-  private fun determineName(schema: CtrSchemaNonRef): String {
+  private fun determineName(schema: MSchemaNonRef): String {
     val name = when (val parent = schema.embeddedIn) {
-      is CtrSchemaObject -> toJavaType(parent).name + suggestName(schema, schema.nameHint.removePrefix(parent.nameHint))
+      is MSchemaObject -> toJavaType(parent).name + suggestName(schema, schema.nameHint.removePrefix(parent.nameHint))
       else -> configuration.outputJavaNamePrefix + suggestName(schema)
     }
 
     return uniqueNameFinder.toUniqueName(name)
   }
 
-  private fun suggestName(schema: CtrSchemaNonRef, nameHint: NameHint = schema.nameHint) =
+  private fun suggestName(schema: MSchemaNonRef, nameHint: NameHint = schema.nameHint) =
       nameHint.path.joinToString("/").toJavaTypeIdentifier()
 
-  private fun toJavaCollectionType(schema: CtrSchemaArray): JavaCollectionType {
-    val elementSchema = schema.itemSchema as? CtrSchemaNonRef ?: throw IllegalArgumentException("Unexpected SchemaRef in $schema")
+  private fun toJavaCollectionType(schema: MSchemaArray): JavaCollectionType {
+    val elementSchema = schema.itemSchema as? MSchemaNonRef ?: throw IllegalArgumentException("Unexpected SchemaRef in $schema")
     val elementType = toJavaType(elementSchema)
     val typeName = if (schema.uniqueItems) "Set" else "List"
     val elementValidations = if (ValidatedValidation in elementType.validations) listOf(ValidatedValidation) else emptyList()
@@ -70,15 +70,15 @@ class SchemaToJavaTypeTransformer(private val log: Log, private val configuratio
     return JavaCollectionType(typeName, "java.util", elementType, elementValidations + sizeValidations(schema.minItems, schema.maxItems))
   }
 
-  private fun toJavaMapType(schema: CtrSchemaMap): JavaMapType {
-    val valuesSchema = schema.valuesSchema as? CtrSchemaNonRef ?: throw IllegalArgumentException("Unexpected SchemaRef in $schema")
+  private fun toJavaMapType(schema: MSchemaMap): JavaMapType {
+    val valuesSchema = schema.valuesSchema as? MSchemaNonRef ?: throw IllegalArgumentException("Unexpected SchemaRef in $schema")
     val valuesType = toJavaType(valuesSchema)
     val elementValidations = if (ValidatedValidation in valuesType.validations) listOf(ValidatedValidation) else emptyList()
 
     return JavaMapType("Map", "java.util", valuesType, elementValidations + sizeValidations(schema.minItems, schema.maxItems))
   }
 
-  private fun toJavaBuiltInType(schema: CtrSchemaPrimitive): JavaType = when (schema.type) {
+  private fun toJavaBuiltInType(schema: MSchemaPrimitive): JavaType = when (schema.type) {
 
     BOOLEAN -> JavaType("Boolean", "java.lang")
 
@@ -108,7 +108,7 @@ class SchemaToJavaTypeTransformer(private val log: Log, private val configuratio
     }
   }
 
-  private fun integralValidations(schema: CtrSchemaPrimitive): List<TypeValidation> {
+  private fun integralValidations(schema: MSchemaPrimitive): List<TypeValidation> {
     val validations = mutableListOf<TypeValidation>()
 
     if (schema.minimum != null) {
@@ -121,7 +121,7 @@ class SchemaToJavaTypeTransformer(private val log: Log, private val configuratio
     return validations.toList()
   }
 
-  private fun decimalValidations(schema: CtrSchemaPrimitive): List<TypeValidation> {
+  private fun decimalValidations(schema: MSchemaPrimitive): List<TypeValidation> {
     val validations = mutableListOf<TypeValidation>()
 
     if (schema.minimum != null) {
@@ -140,7 +140,7 @@ class SchemaToJavaTypeTransformer(private val log: Log, private val configuratio
     emptyList()
   }
 
-  private fun patternValidations(schema: CtrSchemaPrimitive): List<TypeValidation> = if (schema.pattern != null) {
+  private fun patternValidations(schema: MSchemaPrimitive): List<TypeValidation> = if (schema.pattern != null) {
     listOf(PatternValidation(schema.pattern))
   } else {
     emptyList()

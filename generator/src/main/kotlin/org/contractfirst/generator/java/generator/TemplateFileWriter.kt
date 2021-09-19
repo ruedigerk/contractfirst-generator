@@ -1,4 +1,4 @@
-package org.contractfirst.generator.java.generator.server
+package org.contractfirst.generator.java.generator
 
 import org.contractfirst.generator.Configuration
 import java.io.BufferedOutputStream

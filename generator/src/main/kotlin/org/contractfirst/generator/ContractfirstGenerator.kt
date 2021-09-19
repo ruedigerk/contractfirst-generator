@@ -1,9 +1,9 @@
 package org.contractfirst.generator
 
 import io.swagger.v3.oas.models.OpenAPI
-import org.contractfirst.generator.java.generator.client.ClientGenerator
-import org.contractfirst.generator.java.generator.model.ModelGenerator
-import org.contractfirst.generator.java.generator.server.ServerStubGenerator
+import org.contractfirst.generator.java.generator.ClientGenerator
+import org.contractfirst.generator.java.generator.ModelGenerator
+import org.contractfirst.generator.java.generator.ServerStubGenerator
 import org.contractfirst.generator.java.transform.JavaTransformer
 import org.contractfirst.generator.logging.Log
 import org.contractfirst.generator.logging.LogAdapter
@@ -28,13 +28,13 @@ class ContractfirstGenerator(logAdapter: LogAdapter) {
   fun generate(configuration: Configuration) {
     log.debug { "Configuration:\n${configuration.prettyPrint()}" }
 
-    val ctrSpecification = Parser(log).parse(configuration.inputContractFile)
+    val specification = Parser(log).parse(configuration.inputContractFile)
 
     if (configuration.outputContract) {
-      writeParsedContract(configuration, ctrSpecification.source)
+      writeParsedContract(configuration, specification.source)
     }
 
-    val javaSpecification = JavaTransformer(log, configuration).transform(ctrSpecification)
+    val javaSpecification = JavaTransformer(log, configuration).transform(specification)
 
     when (configuration.generator) {
       GeneratorType.CLIENT -> ClientGenerator(configuration).generateCode(javaSpecification)

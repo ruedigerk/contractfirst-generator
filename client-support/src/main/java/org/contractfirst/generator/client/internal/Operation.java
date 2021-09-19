@@ -11,7 +11,7 @@ import java.util.function.Function;
 import java.util.stream.Collectors;
 
 /**
- * Represents the definition of an API operation and the data that is transferred within it.
+ * Represents the definition of an API operation, and the data that is transferred within it.
  */
 public class Operation {
 
@@ -22,11 +22,11 @@ public class Operation {
   private final Map<StatusCode, List<ResponseDefinition>> responseDefinitions;
 
   private Operation(Builder builder) {
-    this.path = builder.path;
-    this.method = builder.method;
-    this.parameters = new ArrayList<>(builder.parameters);
-    this.requestBody = builder.requestBody;
-    this.responseDefinitions = builder.responseDefinitions.stream().collect(Collectors.groupingBy(ResponseDefinition::getStatusCode));
+    path = builder.path;
+    method = builder.method;
+    parameters = new ArrayList<>(builder.parameters);
+    requestBody = builder.requestBody;
+    responseDefinitions = builder.responseDefinitions.stream().collect(Collectors.groupingBy(ResponseDefinition::getStatusCode));
   }
 
   public List<ResponseDefinition> selectResponseDefinitionsByStatusCode(int statusCode) {

@@ -8,6 +8,9 @@ import org.contractfirst.generator.java.model.*
 import org.contractfirst.generator.java.model.NumericValidationType.MAX
 import org.contractfirst.generator.java.model.NumericValidationType.MIN
 
+/**
+ * Common functionality used in more than one generator.
+ */
 object GeneratorCommon {
 
   private val VALID_ANNOTATION: AnnotationSpec = toAnnotation("javax.validation.Valid")

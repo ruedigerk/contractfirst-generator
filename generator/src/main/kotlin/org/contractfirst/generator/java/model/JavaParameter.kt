@@ -2,6 +2,9 @@ package org.contractfirst.generator.java.model
 
 import org.contractfirst.generator.model.ParameterLocation
 
+/**
+ * Represents a parameter of an operation of the contract.
+ */
 sealed interface JavaParameter {
 
   val javaIdentifier: String
@@ -10,6 +13,9 @@ sealed interface JavaParameter {
   val javaType: JavaAnyType
 }
 
+/**
+ * Represents a path, query, header or cookie parameter of an operation of the contract.
+ */
 data class JavaRegularParameter(
     override val javaIdentifier: String,
     override val javadoc: String?,
@@ -19,6 +25,9 @@ data class JavaRegularParameter(
     val name: String
 ) : JavaParameter
 
+/**
+ * Represents the single body parameter of an operation of the contract.
+ */
 data class JavaBodyParameter(
     override val javaIdentifier: String,
     override val javadoc: String?,

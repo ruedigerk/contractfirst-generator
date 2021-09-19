@@ -3,6 +3,9 @@ package org.contractfirst.generator.java.model
 import org.contractfirst.generator.model.DefaultStatusCode
 import org.contractfirst.generator.model.StatusCode
 
+/**
+ * Represents an operation of the contract.
+ */
 data class JavaOperation(
     val javaIdentifier: String,
     val javadoc: String?,

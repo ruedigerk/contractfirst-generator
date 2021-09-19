@@ -22,7 +22,7 @@ class Parser(private val log: Log) {
 
   private lateinit var schemaResolver: SchemaResolver
 
-  fun parse(specFilePath: String): CtrSpecification {
+  fun parse(specFilePath: String): MSpecification {
     val openApiSpecification = runSwaggerParser(specFilePath)
     return toContract(openApiSpecification)
   }
@@ -42,20 +42,20 @@ class Parser(private val log: Log) {
     return result.openAPI!!
   }
 
-  private fun toContract(openApi: OpenAPI): CtrSpecification {
+  private fun toContract(openApi: OpenAPI): MSpecification {
     schemaResolver = SchemaResolver(log, openApi.components.schemas)
 
     val operations = toOperations(openApi.paths)
     val referencedSchemas = schemaResolver.determineAndResolveReferencedSchemas()
 
-    return CtrSpecification(operations, referencedSchemas, openApi)
+    return MSpecification(operations, referencedSchemas, openApi)
   }
 
-  private fun toOperations(pathItemMap: Map<String, PathItem>): List<CtrOperation> {
+  private fun toOperations(pathItemMap: Map<String, PathItem>): List<MOperation> {
     return pathItemMap.entries.flatMap { (path, pathItem) -> toOperations(path, pathItem) }
   }
 
-  private fun toOperations(path: String, pathItem: PathItem): List<CtrOperation> {
+  private fun toOperations(path: String, pathItem: PathItem): List<MOperation> {
     val nameHint = NameHint(path)
 
     val commonParameters = pathItem.parameters.nullToEmpty().map { toParameter(it, nameHint) }
@@ -80,10 +80,10 @@ class Parser(private val log: Log) {
       path: String,
       method: String,
       operation: Operation,
-      commonParameters: List<CtrParameter>
-  ): CtrOperation {
+      commonParameters: List<MParameter>
+  ): MOperation {
     val nameHint = NameHint(operation.operationId)
-    return CtrOperation(
+    return MOperation(
         path,
         method,
         operation.tags.nullToEmpty(),
@@ -96,20 +96,20 @@ class Parser(private val log: Log) {
     )
   }
 
-  private fun toRequestBody(requestBody: RequestBody, nameHint: NameHint): CtrRequestBody = CtrRequestBody(
+  private fun toRequestBody(requestBody: RequestBody, nameHint: NameHint): MRequestBody = MRequestBody(
       requestBody.description.normalize(),
       requestBody.required ?: false,
-      toContents(requestBody.content, nameHint).map { it as? CtrContent ?: throw ParserException("Request body without content, at $nameHint") }
+      toContents(requestBody.content, nameHint).map { it as? MContent ?: throw ParserException("Request body without content, at $nameHint") }
   )
 
-  private fun joinParameters(operationParameters: List<Parameter>, pathParameters: List<CtrParameter>, nameHint: NameHint): List<CtrParameter> {
+  private fun joinParameters(operationParameters: List<Parameter>, pathParameters: List<MParameter>, nameHint: NameHint): List<MParameter> {
     val operationParametersAsMap = operationParameters.map { toParameter(it, nameHint) }.associateBy { it.name }
     val pathParametersAsMap = pathParameters.associateBy { it.name }
 
     return (pathParametersAsMap + operationParametersAsMap).values.toList()
   }
 
-  private fun toParameter(parameter: Parameter, nameHint: NameHint): CtrParameter {
+  private fun toParameter(parameter: Parameter, nameHint: NameHint): MParameter {
     if (parameter.schema == null) {
       throw NotSupportedException("Parameters without schema are not supported: $parameter")
     }
@@ -117,7 +117,7 @@ class Parser(private val log: Log) {
       throw NotSupportedException("Parameters with content property are not supported: $parameter")
     }
 
-    return CtrParameter(
+    return MParameter(
         parameter.name,
         toParameterLocation(parameter.`in`),
         parameter.description.normalize(),
@@ -136,8 +136,8 @@ class Parser(private val log: Log) {
     }
   }
 
-  private fun toResponses(responses: ApiResponses, nameHint: NameHint): List<CtrResponse> = responses.map { (statusCode, response) ->
-    CtrResponse(toStatusCode(statusCode), toContents(response.content, nameHint / statusCode))
+  private fun toResponses(responses: ApiResponses, nameHint: NameHint): List<MResponse> = responses.map { (statusCode, response) ->
+    MResponse(toStatusCode(statusCode), toContents(response.content, nameHint / statusCode))
   }
 
   private fun toStatusCode(statusCode: String): ResponseStatusCode = when (statusCode) {
@@ -145,7 +145,7 @@ class Parser(private val log: Log) {
     else -> StatusCode(statusCode.toInt())
   }
 
-  private fun toContents(content: Content?, nameHint: NameHint): List<CtrContent> = content?.map { (mediaType, content) ->
-    CtrContent(mediaType, schemaResolver.resolveSchema(content.schema, nameHint))
+  private fun toContents(content: Content?, nameHint: NameHint): List<MContent> = content?.map { (mediaType, content) ->
+    MContent(mediaType, schemaResolver.resolveSchema(content.schema, nameHint))
   } ?: listOf()
 }

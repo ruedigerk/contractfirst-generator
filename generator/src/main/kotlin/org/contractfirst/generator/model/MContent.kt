@@ -3,7 +3,7 @@ package org.contractfirst.generator.model
 /**
  * Represents the content of a request or response body, i.e. its media type and schema.
  */
-data class CtrContent(
+data class MContent(
     val mediaType: String,
-    var schema: CtrSchema
+    var schema: MSchema
 )

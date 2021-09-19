@@ -1,5 +1,8 @@
 package org.contractfirst.generator.java
 
+/**
+ * Functions for working with identifiers.
+ */
 object Identifiers {
 
   @JvmStatic

@@ -1,10 +1,9 @@
-package org.contractfirst.generator.java.generator.server
+package org.contractfirst.generator.java.generator
 
 import com.squareup.javapoet.*
 import org.contractfirst.generator.Configuration
 import org.contractfirst.generator.java.Identifiers.capitalize
 import org.contractfirst.generator.java.Identifiers.mediaTypeToJavaIdentifier
-import org.contractfirst.generator.java.generator.GeneratorCommon
 import org.contractfirst.generator.java.generator.GeneratorCommon.NOT_NULL_ANNOTATION
 import org.contractfirst.generator.java.generator.GeneratorCommon.toAnnotation
 import org.contractfirst.generator.java.generator.GeneratorCommon.toTypeName

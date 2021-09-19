@@ -1,4 +1,4 @@
-package org.contractfirst.generator.java.generator.client
+package org.contractfirst.generator.java.generator
 
 import com.squareup.javapoet.*
 import org.contractfirst.generator.Configuration

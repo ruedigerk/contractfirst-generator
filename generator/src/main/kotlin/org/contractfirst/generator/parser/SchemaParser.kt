@@ -10,18 +10,18 @@ import org.contractfirst.generator.parser.ParserHelper.nullToEmpty
 
 class SchemaParser(private val log: Log) {
 
-  fun parseTopLevelSchemas(schemas: Map<String, Schema<*>>): Map<CtrSchemaRef, CtrSchemaNonRef> = schemas
+  fun parseTopLevelSchemas(schemas: Map<String, Schema<*>>): Map<MSchemaRef, MSchemaNonRef> = schemas
       .mapValues { toTopLevelSchema(it.value, NameHint(it.key)) }
-      .mapKeys { CtrSchemaRef("#/components/schemas/${it.key}") }
+      .mapKeys { MSchemaRef("#/components/schemas/${it.key}") }
 
-  private fun toTopLevelSchema(schema: Schema<*>, location: NameHint): CtrSchemaNonRef =
-      (parseSchema(schema, location) as? CtrSchemaNonRef) ?: throw NotSupportedException("Unsupported schema reference in #/components/schemas: $schema")
+  private fun toTopLevelSchema(schema: Schema<*>, location: NameHint): MSchemaNonRef =
+      (parseSchema(schema, location) as? MSchemaNonRef) ?: throw NotSupportedException("Unsupported schema reference in #/components/schemas: $schema")
 
-  fun parseSchema(schema: Schema<*>, location: NameHint): CtrSchema {
+  fun parseSchema(schema: Schema<*>, location: NameHint): MSchema {
     log.debug { "Parsing schema $location of ${schema.javaClass.simpleName}" }
 
     if (schema.`$ref` != null) {
-      return CtrSchemaRef(schema.`$ref`)
+      return MSchemaRef(schema.`$ref`)
     }
     if (schema.enum != null && schema.enum.isNotEmpty()) {
       return toEnumSchema(schema, location)
@@ -29,25 +29,25 @@ class SchemaParser(private val log: Log) {
 
     return when (schema.type) {
       "array" -> toArraySchema(schema as ArraySchema, location)
-      "boolean", "integer", "number", "string" -> toPrimitiveSchema(CtrPrimitiveType.valueOf(schema.type.uppercase()), schema, location)
+      "boolean", "integer", "number", "string" -> toPrimitiveSchema(MPrimitiveType.valueOf(schema.type.uppercase()), schema, location)
       "object", null -> toObjectOrMapSchema(schema, location)
       else -> throw NotSupportedException("Schema type '${schema.type}' is not supported: $schema")
     }
   }
 
-  private fun toEnumSchema(schema: Schema<*>, location: NameHint): CtrSchemaEnum {
+  private fun toEnumSchema(schema: Schema<*>, location: NameHint): MSchemaEnum {
     if (schema.type != "string") {
       throw NotSupportedException("Currently only enum schemas of type 'string' are supported, type is '${schema.type}'")
     }
 
-    return CtrSchemaEnum(schema.title.normalize(), schema.description.normalize(), schema.enum.map { it.toString() }, location)
+    return MSchemaEnum(schema.title.normalize(), schema.description.normalize(), schema.enum.map { it.toString() }, location)
   }
 
   @Suppress("UNCHECKED_CAST")
-  private fun toArraySchema(schema: ArraySchema, location: NameHint): CtrSchemaArray {
+  private fun toArraySchema(schema: ArraySchema, location: NameHint): MSchemaArray {
     val itemsSchema = parseSchema(schema.items as Schema<*>, location)
 
-    return CtrSchemaArray(
+    return MSchemaArray(
         schema.title.normalize(),
         schema.description.normalize(),
         itemsSchema,
@@ -58,8 +58,8 @@ class SchemaParser(private val log: Log) {
     ).also { itemsSchema.embedIn(it) }
   }
 
-  private fun toPrimitiveSchema(primitiveType: CtrPrimitiveType, schema: Schema<*>, location: NameHint): CtrSchemaPrimitive {
-    return CtrSchemaPrimitive(
+  private fun toPrimitiveSchema(primitiveType: MPrimitiveType, schema: Schema<*>, location: NameHint): MSchemaPrimitive {
+    return MSchemaPrimitive(
         schema.title.normalize(),
         schema.description.normalize(),
         primitiveType,
@@ -75,7 +75,7 @@ class SchemaParser(private val log: Log) {
     )
   }
 
-  private fun toObjectOrMapSchema(schema: Schema<*>, location: NameHint): CtrSchemaNonRef {
+  private fun toObjectOrMapSchema(schema: Schema<*>, location: NameHint): MSchemaNonRef {
     val properties = schema.properties.nullToEmpty()
     val additionalProperties = schema.additionalProperties as? Schema<*>
     // TODO: additionalProperties of type Boolean instead of Schema are ignored.
@@ -89,26 +89,26 @@ class SchemaParser(private val log: Log) {
     }
   }
 
-  private fun toMapSchema(schema: Schema<*>, valuesSchema: CtrSchema, location: NameHint): CtrSchemaMap =
-      CtrSchemaMap(schema.title.normalize(), schema.description.normalize(), valuesSchema, schema.minItems, schema.maxItems, location)
+  private fun toMapSchema(schema: Schema<*>, valuesSchema: MSchema, location: NameHint): MSchemaMap =
+      MSchemaMap(schema.title.normalize(), schema.description.normalize(), valuesSchema, schema.minItems, schema.maxItems, location)
           .also { valuesSchema.embedIn(it) }
 
-  private fun toObjectSchema(schema: Schema<*>, location: NameHint): CtrSchemaObject {
+  private fun toObjectSchema(schema: Schema<*>, location: NameHint): MSchemaObject {
     val requiredProperties = schema.required.nullToEmpty().toSet()
     val properties = schema.properties.nullToEmpty().map { (name, schema) ->
-      CtrSchemaProperty(name, requiredProperties.contains(name), parseSchema(schema, location / name))
+      MSchemaProperty(name, requiredProperties.contains(name), parseSchema(schema, location / name))
     }
 
-    val schemaObject = CtrSchemaObject(schema.title.normalize(), schema.description.normalize(), properties, location)
+    val schemaObject = MSchemaObject(schema.title.normalize(), schema.description.normalize(), properties, location)
 
     properties.forEach { it.schema.embedIn(schemaObject) }
 
     return schemaObject
   }
 
-  private fun CtrSchema.embedIn(parent: CtrSchemaNonRef) {
+  private fun MSchema.embedIn(parent: MSchemaNonRef) {
     // Only inline schemas are treated as embedded in another schema, referencing a schema is not treated as embedding. 
-    if (this is CtrSchemaNonRef) {
+    if (this is MSchemaNonRef) {
       this.embeddedIn = parent
     }
   }

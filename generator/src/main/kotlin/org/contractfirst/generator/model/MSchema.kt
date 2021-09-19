@@ -3,102 +3,102 @@ package org.contractfirst.generator.model
 import java.math.BigDecimal
 
 /**
- * Represents any type of schema in a specification.
+ * Represents any type of schema in the contract.
  */
-sealed interface CtrSchema
+sealed interface MSchema
 
 /**
  * Represents a schema reference.
  */
-data class CtrSchemaRef(
+data class MSchemaRef(
     val reference: String
-) : CtrSchema
+) : MSchema
 
 /**
  * Represents a schema that is not a schema reference, i.e. a "real" schema.
  */
-sealed interface CtrSchemaNonRef : CtrSchema {
+sealed interface MSchemaNonRef : MSchema {
 
   val title: String?
   val description: String?
   val nameHint: NameHint
-  var embeddedIn: CtrSchemaNonRef?
+  var embeddedIn: MSchemaNonRef?
 }
 
 /**
  * Represents an object schema.
  */
-data class CtrSchemaObject(
+data class MSchemaObject(
     override val title: String?,
     override val description: String?,
-    val properties: List<CtrSchemaProperty>,
+    val properties: List<MSchemaProperty>,
     override val nameHint: NameHint,
-) : CtrSchemaNonRef {
+) : MSchemaNonRef {
 
-  override var embeddedIn: CtrSchemaNonRef? = null
+  override var embeddedIn: MSchemaNonRef? = null
 }
 
 /**
  * Represents a property of an object schema.
  */
-data class CtrSchemaProperty(
+data class MSchemaProperty(
     val name: String,
     val required: Boolean,
-    var schema: CtrSchema
+    var schema: MSchema
 )
 
 /**
  * Represents an array schema.
  */
-data class CtrSchemaArray(
+data class MSchemaArray(
     override val title: String?,
     override val description: String?,
-    var itemSchema: CtrSchema,
+    var itemSchema: MSchema,
     val uniqueItems: Boolean,
     val minItems: Int?,
     val maxItems: Int?,
     override val nameHint: NameHint,
-) : CtrSchemaNonRef {
+) : MSchemaNonRef {
 
-  override var embeddedIn: CtrSchemaNonRef? = null
+  override var embeddedIn: MSchemaNonRef? = null
 }
 
 /**
  * Represents a special object schema whose property names are not known but only their types, i.e. an additionalProperties schema.
  */
-data class CtrSchemaMap(
+data class MSchemaMap(
     override val title: String?,
     override val description: String?,
-    var valuesSchema: CtrSchema,
+    var valuesSchema: MSchema,
     val minItems: Int?,
     val maxItems: Int?,
     override val nameHint: NameHint,
-) : CtrSchemaNonRef {
+) : MSchemaNonRef {
 
-  override var embeddedIn: CtrSchemaNonRef? = null
+  override var embeddedIn: MSchemaNonRef? = null
 }
 
 /**
  * Represents an enum schema.
  * Currently enums are always assumed to habe type "string".
  */
-data class CtrSchemaEnum(
+data class MSchemaEnum(
     override val title: String?,
     override val description: String?,
     val values: List<String>,
     override val nameHint: NameHint,
-) : CtrSchemaNonRef {
+) : MSchemaNonRef {
 
-  override var embeddedIn: CtrSchemaNonRef? = null
+  override var embeddedIn: MSchemaNonRef? = null
 }
 
 /**
  * Represents a schema of a "primitive" type, i.e. a type that is just a boolean, string or number.
  */
-data class CtrSchemaPrimitive(
+data class MSchemaPrimitive(
     override val title: String?,
     override val description: String?,
-    val type: CtrPrimitiveType,
+    val type: MPrimitiveType,
     val format: String?,
     val minimum: BigDecimal?,
     val maximum: BigDecimal?,
@@ -108,16 +108,17 @@ data class CtrSchemaPrimitive(
     val maxLength: Int?,
     val pattern: String?,
     override val nameHint: NameHint,
-) : CtrSchemaNonRef {
+) : MSchemaNonRef {
 
-  override var embeddedIn: CtrSchemaNonRef? = null
+  override var embeddedIn: MSchemaNonRef? = null
 }
 
 /**
  * Represents the type of a primitive schema.
+ * 
  * Type "null" is currently not supported.
  */
-enum class CtrPrimitiveType {
+enum class MPrimitiveType {
 
   BOOLEAN,
   INTEGER,
