@@ -4,20 +4,21 @@ package org.contractfirst.generator
  * The configuration for a single run of the application.
  */
 data class Configuration(
-    val contractFile: String,
-    val contractOutputFile: String,
+    val inputContractFile: String,
     val generator: GeneratorType,
     val outputDir: String,
     val outputContract: Boolean,
-    val sourcePackage: String,
-    val modelPrefix: String,
+    val outputContractFile: String,
+    val outputJavaBasePackage: String,
+    val outputJavaNamePrefix: String,
 ) {
 
   fun prettyPrint(indent: String = "\t"): String =
-      """|contractFile='$contractFile'
-         |contractOutputFile='$contractOutputFile'
+      """|inputContractFile='$inputContractFile'
+         |generator='$generator'
          |outputDir='$outputDir'
-         |outputContract=$outputContract
-         |sourcePackage='$sourcePackage'
-         |modelPrefix='$modelPrefix'""".trimMargin().prependIndent(indent)
+         |outputContract=outputContract
+         |outputContractFile='$outputContractFile'
+         |outputJavaBasePackage='$outputJavaBasePackage'
+         |outputJavaNamePrefix='$outputJavaNamePrefix'""".trimMargin().prependIndent(indent)
 }

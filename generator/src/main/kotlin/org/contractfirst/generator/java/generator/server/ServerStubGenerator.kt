@@ -23,7 +23,7 @@ import javax.lang.model.element.Modifier.*
 class ServerStubGenerator(private val configuration: Configuration) {
 
   private val outputDir = File(configuration.outputDir)
-  private val apiPackage = "${configuration.sourcePackage}.$API_PACKAGE"
+  private val apiPackage = "${configuration.outputJavaBasePackage}.$API_PACKAGE"
   private val supportPackage = "$apiPackage.support"
 
   fun generateCode(specification: JavaSpecification) {

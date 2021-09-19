@@ -1,14 +1,13 @@
 package org.contractfirst.generator.java.transform
 
-
-import spock.lang.Specification 
+import spock.lang.Specification
 
 class UniqueNameFinderTest extends Specification {
 
   def "toUniqueTypeName"() {
     given:
     UniqueNameFinder uniqueNameFinder = new UniqueNameFinder()
-    
+
     expect:
     uniqueNameFinder.toUniqueName("a") == "a"
     uniqueNameFinder.toUniqueName("b") == "b"

@@ -15,7 +15,7 @@ import org.contractfirst.generator.model.CtrPrimitiveType.*
  */
 class SchemaToJavaTypeTransformer(private val log: Log, private val configuration: Configuration) {
 
-  private val modelPackage = "${configuration.sourcePackage}.model"
+  private val modelPackage = "${configuration.outputJavaBasePackage}.model"
   private val schemaToTypeLookup: MutableMap<CtrSchemaNonRef, JavaAnyType> = mutableMapOf()
   private val uniqueNameFinder = UniqueNameFinder()
 
@@ -52,7 +52,7 @@ class SchemaToJavaTypeTransformer(private val log: Log, private val configuratio
   private fun determineName(schema: CtrSchemaNonRef): String {
     val name = when (val parent = schema.embeddedIn) {
       is CtrSchemaObject -> toJavaType(parent).name + suggestName(schema, schema.nameHint.removePrefix(parent.nameHint))
-      else -> configuration.modelPrefix + suggestName(schema)
+      else -> configuration.outputJavaNamePrefix + suggestName(schema)
     }
 
     return uniqueNameFinder.toUniqueName(name)

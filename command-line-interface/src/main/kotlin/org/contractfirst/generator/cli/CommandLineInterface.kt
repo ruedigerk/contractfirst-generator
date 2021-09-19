@@ -27,7 +27,7 @@ object CommandLineInterface {
     val verbosity = toLoggingVerbosity(cliConfig)
     LogbackConfigurator.applyLoggingVerbosity(verbosity)
 
-    log.info { "Generating code for contract '${cliConfig.contractFile}' in output directory '${cliConfig.outputDir}', package '${cliConfig.sourcePackage}'" }
+    log.info { "Generating code for contract '${cliConfig.inputContractFile}' in output directory '${cliConfig.outputDir}', package '${cliConfig.outputJavaBasePackage}'" }
 
     val generatorConfig = mapToConfiguration(cliConfig)
     generate(generatorConfig)
@@ -57,13 +57,13 @@ object CommandLineInterface {
   }
 
   private fun mapToConfiguration(cliConfiguration: CliConfiguration) = Configuration(
-      cliConfiguration.contractFile,
-      cliConfiguration.contractOutputFile,
+      cliConfiguration.inputContractFile,
       determineGenerator(cliConfiguration.generator),
       cliConfiguration.outputDir,
       cliConfiguration.outputContract,
-      cliConfiguration.sourcePackage,
-      cliConfiguration.modelPrefix,
+      cliConfiguration.outputContractFile,
+      cliConfiguration.outputJavaBasePackage,
+      cliConfiguration.outputJavaNamePrefix,
   )
 
   private fun determineGenerator(generator: String): GeneratorType = when (generator) {
@@ -81,29 +81,29 @@ object CommandLineInterface {
 
 private class CliConfiguration(parser: ArgParser) {
 
-  val contractFile: String by parser.storing("--contract", help = "the path to the file containing the OpenAPI contract to use as input")
-
-  val contractOutputFile: String by parser.storing(
-      "--contract-output-file",
-      help = "the location to output the 'all in one' contract file to"
-  ).default("openapi.yaml")
+  val inputContractFile: String by parser.storing("--input-contract-file", help = "the path to the file containing the OpenAPI contract to use as input")
 
   val generator: String by parser.storing("--generator", help = "the type of generator to use for code generation; allowed values are: \"server\", \"client\"")
 
   val outputDir: String by parser.storing("--output-dir", help = "the path to the directory where the generated code is written to")
 
-  val sourcePackage: String by parser.storing("--package", help = "the Java package to put generated classes into")
-
-  val modelPrefix: String by parser.storing("--model-prefix", help = "the prefix for model file names").default("")
-
-  val verbose: Boolean by parser.flagging("--verbose", "-v", help = "verbose output")
-
-  val quiet: Boolean by parser.flagging("--quiet", "-q", help = "quiet output")
-
   val outputContract: Boolean by parser.storing(
       "--output-contract",
       help = "whether to output the parsed contract as an all-in-one contract"
   ) { toBoolean() }.default(true)
+
+  val outputContractFile: String by parser.storing(
+      "--output-contract-file",
+      help = "the location to output the 'all in one' contract file to"
+  ).default("openapi.yaml")
+
+  val outputJavaBasePackage: String by parser.storing("--output-java-base-package", help = "the Java package to put generated classes into")
+
+  val outputJavaNamePrefix: String by parser.storing("--output-java-name-prefix", help = "the prefix for model file names").default("")
+
+  val verbose: Boolean by parser.flagging("--verbose", "-v", help = "verbose output")
+
+  val quiet: Boolean by parser.flagging("--quiet", "-q", help = "quiet output")
 
   init {
     if (verbose && quiet) {

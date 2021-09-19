@@ -1,42 +1,38 @@
 package org.contractfirst.generator
 
 import groovy.io.FileType
-import org.contractfirst.generator.Configuration
-import org.contractfirst.generator.ContractfirstGenerator
-import org.contractfirst.generator.GeneratorType
 import org.contractfirst.generator.logging.Slf4jLogAdapter
 import org.slf4j.LoggerFactory
 
 /**
  * Harness for running the Contractfirst-Generator in tests to compare the generated code to some reference.
- * 
- * Note: tests are being run with the project directory as the working directory.
  */
 class GeneratorHarness {
 
-  static final String OUTPUT_DIR = "target/generatedTestOutput"
+  // Tests are being run with the maven module directory as the working directory.
+  private static final String OUTPUT_DIR = "target/generatedTestOutput"
 
   final List<String> relativePathNames
   final List<File> referenceFiles
   final List<File> generatedFiles
-
+  
   private final String referenceDir
   private final String generatedDir
-  private final String contract
-  private final String packageName
-  private final String modelPrefix
-
-  private generatorRan = false
+  private final String inputContractFile
+  private final String outputJavaBasePackage
+  private final String outputJavaNamePrefix
   private final boolean generateServer
 
-  GeneratorHarness(String contract, String packageName, boolean generateServer, String modelPrefix = "") {
-    this.contract = contract
-    this.packageName = packageName
-    this.generateServer = generateServer
-    this.modelPrefix = modelPrefix
+  private generatorRan = false
 
-    referenceDir = "src/test/java/$packageName"
-    generatedDir = "$OUTPUT_DIR/$packageName"
+  GeneratorHarness(String inputContractFile, String outputJavaBasePackage, boolean generateServer, String outputJavaNamePrefix = "") {
+    this.inputContractFile = inputContractFile
+    this.outputJavaBasePackage = outputJavaBasePackage
+    this.generateServer = generateServer
+    this.outputJavaNamePrefix = outputJavaNamePrefix
+
+    referenceDir = "src/test/java/$outputJavaBasePackage"
+    generatedDir = "$OUTPUT_DIR/$outputJavaBasePackage"
 
     relativePathNames = discoverFiles(referenceDir)
 
@@ -56,6 +52,7 @@ class GeneratorHarness {
 
       deleteOutputDirectory()
       executeGenerator()
+      checkForAdditionalFiles()
     }
   }
 
@@ -68,16 +65,16 @@ class GeneratorHarness {
   }
 
   private executeGenerator() {
-    def logAdapter = new Slf4jLogAdapter(LoggerFactory.getLogger("Contractfirst-Generator.$packageName"))
+    def logAdapter = new Slf4jLogAdapter(LoggerFactory.getLogger("Contractfirst-Generator.$outputJavaBasePackage"))
     new ContractfirstGenerator(logAdapter).generate(
         new Configuration(
-            contract,
-            "$packageName/openapi.yaml",
+            inputContractFile,
             generateServer ? GeneratorType.SERVER : GeneratorType.CLIENT,
             OUTPUT_DIR,
             true,
-            packageName,
-            modelPrefix
+            "$outputJavaBasePackage/openapi.yaml",
+            outputJavaBasePackage,
+            outputJavaNamePrefix
         )
     )
   }
@@ -92,5 +89,17 @@ class GeneratorHarness {
     }
 
     result
+  }
+
+  private checkForAdditionalFiles() {
+    def actuallyGeneratedFiles = discoverFiles(generatedDir)
+
+    if (actuallyGeneratedFiles.size() > referenceFiles.size()) {
+      def referenceFiles = discoverFiles(referenceDir)
+      def additionalFiles = (actuallyGeneratedFiles as Set) - referenceFiles
+      
+      // This will throw as we already checked that the sizes are different.
+      assert additionalFiles.isEmpty()
+    }
   }
 }

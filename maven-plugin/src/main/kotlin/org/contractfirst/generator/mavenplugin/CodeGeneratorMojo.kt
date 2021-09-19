@@ -25,8 +25,14 @@ class CodeGeneratorMojo : AbstractMojo() {
   /**
    * the path to the file containing the OpenAPI contract to use as input
    */
-  @Parameter(name = "contractFile", property = "openapi.generator.maven.plugin.contractFile", required = true)
-  private var contractFile: String? = null
+  @Parameter(name = "inputContractFile", property = "openapi.generator.maven.plugin.inputContractFile", required = true)
+  private var inputContractFile: String? = null
+
+  /**
+   * the type of generator to use for code generation; allowed values are: "server", "client"
+   */
+  @Parameter(name = "generator", property = "openapi.generator.maven.plugin.generator", required = true)
+  private var generator: String? = null
 
   /**
    * the target directory for writing the generated sources to
@@ -39,12 +45,6 @@ class CodeGeneratorMojo : AbstractMojo() {
   private var outputDir: String? = null
 
   /**
-   * the Java package to put generated classes into
-   */
-  @Parameter(name = "sourcePackage", property = "openapi.generator.maven.plugin.sourcePackage", required = true)
-  private var sourcePackage: String? = null
-
-  /**
    * whether to output the parsed contract as an all-in-one contract
    */
   @Parameter(name = "outputContract", property = "openapi.generator.maven.plugin.outputContract", defaultValue = "false")
@@ -53,20 +53,20 @@ class CodeGeneratorMojo : AbstractMojo() {
   /**
    * the file name of the all-in-one contract file to output; only used when outputContract is true
    */
-  @Parameter(name = "contractOutputFile", property = "openapi.generator.maven.plugin.contractOutputFile", defaultValue = "openapi.yaml")
-  private var contractOutputFile: String? = null
+  @Parameter(name = "outputContractFile", property = "openapi.generator.maven.plugin.outputContractFile", defaultValue = "openapi.yaml")
+  private var outputContractFile: String? = null
 
   /**
-   * the type of generator to use for code generation; allowed values are: "server", "client"
+   * the Java package to put generated classes into
    */
-  @Parameter(name = "generator", property = "openapi.generator.maven.plugin.contractOutputFile", required = true)
-  private var generator: String? = null
+  @Parameter(name = "outputJavaBasePackage", property = "openapi.generator.maven.plugin.outputJavaBasePackage", required = true)
+  private var outputJavaBasePackage: String? = null
 
   /**
-   * The prefix for model file names
+   * the prefix for file names of the Java model
    */
-  @Parameter(name = "modelPrefix", property = "openapi.generator.maven.plugin.modelPrefix", defaultValue = "")
-  private var modelPrefix: String? = null
+  @Parameter(name = "outputJavaNamePrefix", property = "openapi.generator.maven.plugin.outputJavaNamePrefix", defaultValue = "")
+  private var outputJavaNamePrefix: String? = null
 
   /**
    * skip execution of this plugin
@@ -77,7 +77,7 @@ class CodeGeneratorMojo : AbstractMojo() {
   /**
    * For adding the generated sources root.
    */
-  @Parameter(defaultValue = "\${project}")
+  @Parameter(defaultValue = "\${project}", readonly = true)
   private val project: MavenProject? = null
 
   @Throws(MojoExecutionException::class, MojoFailureException::class)
@@ -89,7 +89,7 @@ class CodeGeneratorMojo : AbstractMojo() {
 
     val config = determineConfiguration()
 
-    log.info("Generating code for contract '${config.contractFile}' in output directory '${config.outputDir}', package '${config.sourcePackage}'")
+    log.info("Running code generation for contract '${config.inputContractFile}'...")
 
     addGeneratedSourcesRoot(config)
     runGenerator(config)
@@ -98,17 +98,17 @@ class CodeGeneratorMojo : AbstractMojo() {
   @Throws(MojoExecutionException::class)
   private fun determineConfiguration(): Configuration {
     return Configuration(
-        contractFile.require(),
-        contractOutputFile.require(),
+        inputContractFile.require(),
         determineGenerator(),
         outputDir.require(),
         outputContract,
-        sourcePackage.require(),
-        modelPrefix.require()
+        outputContractFile.require(),
+        outputJavaBasePackage.require(),
+        outputJavaNamePrefix.require()
     )
   }
 
-  private fun determineGenerator(): GeneratorType = when(generator) {
+  private fun determineGenerator(): GeneratorType = when (generator) {
     "client" -> GeneratorType.CLIENT
     "server" -> GeneratorType.SERVER
     else -> throw MojoExecutionException("Configuration 'generator' has invalid value: '$generator', allowed values are 'client', 'server'.")

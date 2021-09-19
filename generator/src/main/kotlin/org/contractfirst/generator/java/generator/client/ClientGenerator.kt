@@ -13,7 +13,7 @@ import javax.lang.model.element.Modifier
 class ClientGenerator(private val configuration: Configuration) {
 
   private val outputDir = File(configuration.outputDir)
-  private val apiPackage = "${configuration.sourcePackage}.$API_PACKAGE"
+  private val apiPackage = "${configuration.outputJavaBasePackage}.$API_PACKAGE"
 
   fun generateCode(specification: JavaSpecification) {
     generateApiClientClasses(specification)

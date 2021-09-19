@@ -15,7 +15,7 @@
 
       <!-- Language versions -->
       <target-jdk.version>8</target-jdk.version>
-      <kotlin.version>1.5.20</kotlin.version>
+      <kotlin.version>1.5.30</kotlin.version>
       <groovy.version>2.5.13</groovy.version>
 
       <!-- Apache plugin versions -->

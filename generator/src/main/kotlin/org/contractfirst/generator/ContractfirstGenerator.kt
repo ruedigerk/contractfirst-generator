@@ -28,7 +28,7 @@ class ContractfirstGenerator(logAdapter: LogAdapter) {
   fun generate(configuration: Configuration) {
     log.debug { "Configuration:\n${configuration.prettyPrint()}" }
 
-    val ctrSpecification = Parser(log).parse(configuration.contractFile)
+    val ctrSpecification = Parser(log).parse(configuration.inputContractFile)
 
     if (configuration.outputContract) {
       writeParsedContract(configuration, ctrSpecification.source)
@@ -46,7 +46,7 @@ class ContractfirstGenerator(logAdapter: LogAdapter) {
 
   private fun writeParsedContract(configuration: Configuration, openApi: OpenAPI) {
     val outputDir = File(configuration.outputDir)
-    val contractOutputFile = File(configuration.contractOutputFile)
+    val contractOutputFile = File(configuration.outputContractFile)
     val outputFile = if (contractOutputFile.isAbsolute) contractOutputFile else outputDir.resolve(contractOutputFile)
 
     log.info { "Writing all-in-one contract to: $outputFile" }

@@ -23,7 +23,7 @@ import javax.lang.model.element.Modifier.PUBLIC
 class ModelGenerator(configuration: Configuration) {
 
   private val outputDir = File(configuration.outputDir)
-  private val modelPackage = "${configuration.sourcePackage}.model"
+  private val modelPackage = "${configuration.outputJavaBasePackage}.model"
 
   fun generateCode(specification: JavaSpecification) {
     specification.modelFiles.asSequence()
