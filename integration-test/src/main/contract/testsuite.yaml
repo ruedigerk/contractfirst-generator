@@ -5,16 +5,16 @@ info:
 servers:
   - url: https://example.com/v1
 paths:
-  /{petStoreId}/pets:
+  /{systemId}/components:
     post:
       summary: Test for the various parameter locations and for serializing request and response body entities.
-      operationId: createPet
+      operationId: createItem
       tags:
         - ResponseVariants
       parameters:
-        - name: petStoreId
+        - name: systemId
           in: path
-          description: ID of pet store
+          description: ID of the system to create the item in.
           required: true
           schema:
             type: string
@@ -24,9 +24,9 @@ paths:
           required: false
           schema:
             type: boolean
-        - name: customerId
+        - name: partNumber
           in: header
-          description: Optional customer ID
+          description: Optional part number
           required: false
           schema:
             type: integer
@@ -42,14 +42,14 @@ paths:
         content:
           application/json:
             schema:
-              $ref: "#/components/schemas/Pet"
+              $ref: "#/components/schemas/Item"
       responses:
         200:
-          description: Return created pet
+          description: Return created item
           content:
             application/json:
               schema:
-                $ref: "#/components/schemas/Pet"
+                $ref: "#/components/schemas/Item"
         201:
           description: Accepted, also empty response.
         204:
@@ -59,18 +59,18 @@ paths:
           content:
             application/json:
               schema:
-                $ref: "#/components/schemas/Error"
+                $ref: "#/components/schemas/Failure"
         default:
-          description: unexpected error
+          description: Some other error, like 500.
           content:
             application/json:
               schema:
-                $ref: "#/components/schemas/Error"
+                $ref: "#/components/schemas/Failure"
 
-  /pets:
+  /items:
     post:
-      summary: Test operation for generating generic types, e.g. List of Pet.
-      operationId: filterPets
+      summary: Test operation for generating generic types, e.g. List of Item.
+      operationId: filterItems
       tags:
         - PayloadVariants
       requestBody:
@@ -80,27 +80,23 @@ paths:
             schema:
               type: array
               items:
-                $ref: "#/components/schemas/Pet"
+                $ref: "#/components/schemas/Item"
       responses:
         200:
-          description: Returned filtered pets.
+          description: Returned filtered items.
           content:
             application/json:
               schema:
                 type: array
                 items: 
-                  $ref: "#/components/schemas/Pet"
+                  $ref: "#/components/schemas/Item"
         default:
-          description: unexpected error
-          content:
-            application/json:
-              schema:
-                $ref: "#/components/schemas/Error"
+          $ref: "#/components/responses/DefaultFailures"
 
-  /petBinaries:
+  /itemBinaries:
     post:
       summary: Test for 204 response.
-      operationId: changePet
+      operationId: changeItem
       tags:
         - PayloadVariants
       requestBody:
@@ -108,16 +104,12 @@ paths:
         content:
           application/json:
             schema:
-              $ref: "#/components/schemas/Pet"
+              $ref: "#/components/schemas/Item"
       responses:
         204:
           description: Ok
         default:
-          description: unexpected error
-          content:
-            application/json:
-              schema:
-                $ref: "#/components/schemas/Error"
+          $ref: "#/components/responses/DefaultFailures"
 
     put:
       summary: Test binary input and output.
@@ -140,11 +132,7 @@ paths:
                 type: string
                 format: binary
         default:
-          description: unexpected error
-          content:
-            application/json:
-              schema:
-                $ref: "#/components/schemas/Error"
+          $ref: "#/components/responses/DefaultFailures"
 
   /manuals:
     get:
@@ -171,7 +159,7 @@ paths:
                 type: string
                 format: binary
         202:
-          description: Returned a pet instead, also test wildcard content type.
+          description: Returned a description of the manual instead.
           content: 
             text/plain:
               schema: 
@@ -179,11 +167,7 @@ paths:
         204:
           description: Return nothing.
         default:
-          description: unexpected error
-          content:
-            application/json:
-              schema:
-                $ref: "#/components/schemas/Error"
+          $ref: "#/components/responses/DefaultFailures"
 
   /wildcardContentTypes:
     get:
@@ -210,11 +194,7 @@ paths:
                 type: string
                 format: binary
         default:
-          description: unexpected error
-          content:
-            application/json:
-              schema:
-                $ref: "#/components/schemas/Error"
+          $ref: "#/components/responses/DefaultFailures"
 
   /time/{timeId}:
     post:
@@ -267,11 +247,7 @@ paths:
               schema:
                 $ref: "#/components/schemas/ClockResponse"
         default:
-          description: unexpected error
-          content:
-            application/json:
-              schema:
-                $ref: "#/components/schemas/Error"
+          $ref: "#/components/responses/DefaultFailures"
 
   /bigDecimals:
     get:
@@ -288,15 +264,38 @@ paths:
             type: number
       responses:
         200:
-          description: Returned decimalNumber.
+          description: Returned decimal number.
           content:
             application/json:
               schema:
                 type: number
+        default:
+          $ref: "#/components/responses/DefaultFailures"
 
+  /testcases:
+    get:
+      description: A test case for the SchemaToJavaTypeTransformer.
+      tags:
+        - testcases
+      operationId: getInlineObjectInArray
+      responses:
+        200:
+          description: Return an object embedded inline in an array.
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  type: object
+                  properties:
+                    someProperty:
+                      type: string
+        default:
+          $ref: "#/components/responses/DefaultFailures"
+                      
 components:
   schemas:
-    Pet:
+    Item:
       required:
         - id
         - name
@@ -308,6 +307,41 @@ components:
           type: string
         tag:
           type: string
+    Component:
+      description: A component.
+      required:
+        - id
+        - name
+      properties:
+        id:
+          type: string
+        name:
+          type: string
+        type:
+          $ref: "#/components/schemas/ComponentType"
+        multiplier:
+          type: string
+          enum:
+            - "1"
+            - "2"
+            - "4"
+        rarity:
+          type: string
+          enum:
+            - COMMON
+            - UNCOMMON
+            - RARE
+    ComponentType:
+      description: Type of a component.
+      type: string
+      enum:
+        - Integrated
+        - Plug-in
+        - After sales
+    Components:
+      type: array
+      items:
+        $ref: "#/components/schemas/Component"
     Manual:
       type: object
       required: 
@@ -354,7 +388,7 @@ components:
         headerTime2:
           type: string
           format: date-time
-    Error:
+    Failure:
       required:
         - code
         - message
@@ -364,4 +398,10 @@ components:
           format: int32
         message:
           type: string
-    
+  responses:
+    DefaultFailures:
+      description: Some other error, like 500.
+      content:
+        application/json:
+          schema:
+            $ref: "#/components/schemas/Failure"

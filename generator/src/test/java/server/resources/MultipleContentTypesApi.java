@@ -6,7 +6,7 @@ import javax.ws.rs.HeaderParam;
 import javax.ws.rs.Path;
 import javax.ws.rs.Produces;
 import javax.ws.rs.core.Response;
-import server.model.Error;
+import server.model.Failure;
 import server.model.Manual;
 import server.resources.support.ResponseWrapper;
 
@@ -47,7 +47,7 @@ public interface MultipleContentTypesApi {
       return new GetManualResponse(Response.status(204).build());
     }
 
-    public static GetManualResponse withApplicationJson(int status, Error entity) {
+    public static GetManualResponse withApplicationJson(int status, Failure entity) {
       return new GetManualResponse(Response.status(status).header("Content-Type", "application/json").entity(entity).build());
     }
 

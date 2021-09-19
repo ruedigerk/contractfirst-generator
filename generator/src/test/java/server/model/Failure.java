@@ -1,20 +1,16 @@
-package petstore.model;
+package server.model;
 
 import java.util.Objects;
 import javax.validation.constraints.NotNull;
-import javax.validation.constraints.Size;
 
-public class Error {
+public class Failure {
   @NotNull
   private Integer code;
 
   @NotNull
-  @Size(
-      min = 1
-  )
   private String message;
 
-  public Error code(Integer code) {
+  public Failure code(Integer code) {
     this.code = code;
     return this;
   }
@@ -27,7 +23,7 @@ public class Error {
     this.code = code;
   }
 
-  public Error message(String message) {
+  public Failure message(String message) {
     this.message = message;
     return this;
   }
@@ -44,7 +40,7 @@ public class Error {
   public boolean equals(Object other) {
     if (other == this) return true;
     if (other == null || getClass() != other.getClass()) return false;
-    Error o = (Error) other;
+    Failure o = (Failure) other;
     return Objects.equals(code, o.code)
         && Objects.equals(message, o.message);
   }
@@ -59,6 +55,6 @@ public class Error {
     StringBuilder builder = new StringBuilder();
     builder.append(", code=").append(code);
     builder.append(", message=").append(message);
-    return builder.replace(0, 2, "Error{").append('}').toString();
+    return builder.replace(0, 2, "Failure{").append('}').toString();
   }
 }

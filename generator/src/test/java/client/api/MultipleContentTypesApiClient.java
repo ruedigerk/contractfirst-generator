@@ -1,6 +1,6 @@
 package client.api;
 
-import client.model.Error;
+import client.model.Failure;
 import client.model.Manual;
 import java.io.InputStream;
 import org.contractfirst.generator.client.ApiClientIoException;
@@ -34,7 +34,7 @@ public class MultipleContentTypesApiClient {
     builder.response(StatusCode.of(200), "application/pdf", InputStream.class);
     builder.response(StatusCode.of(202), "text/plain", String.class);
     builder.response(StatusCode.of(204));
-    builder.response(StatusCode.DEFAULT, "application/json", Error.class);
+    builder.response(StatusCode.DEFAULT, "application/json", Failure.class);
 
     return support.executeRequest(builder.build());
   }

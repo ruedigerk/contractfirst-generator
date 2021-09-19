@@ -14,7 +14,7 @@ import javax.ws.rs.QueryParam;
 import javax.ws.rs.core.Response;
 import server.model.Clock;
 import server.model.ClockResponse;
-import server.model.Error;
+import server.model.Failure;
 import server.resources.support.ResponseWrapper;
 
 @Path("")
@@ -42,7 +42,7 @@ public interface TimeApi {
       return new UpdateTimeResponse(Response.status(200).header("Content-Type", "application/json").entity(entity).build());
     }
 
-    public static UpdateTimeResponse withApplicationJson(int status, Error entity) {
+    public static UpdateTimeResponse withApplicationJson(int status, Failure entity) {
       return new UpdateTimeResponse(Response.status(status).header("Content-Type", "application/json").entity(entity).build());
     }
 

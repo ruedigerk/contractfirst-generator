@@ -5,8 +5,8 @@ import okhttp3.logging.HttpLoggingInterceptor
 import org.contractfirst.generator.client.DefinedResponse
 import org.contractfirst.generator.client.GenericResponse
 import org.contractfirst.generator.integrationtest.generated.client.api.PayloadVariantsApiClient
-import org.contractfirst.generator.integrationtest.generated.client.model.CPet
-import org.contractfirst.generator.integrationtest.generated.server.model.SPet
+import org.contractfirst.generator.integrationtest.generated.client.model.CItem
+import org.contractfirst.generator.integrationtest.generated.server.model.SItem
 import org.contractfirst.generator.integrationtest.generated.server.resources.PayloadVariantsApi
 import org.contractfirst.generator.integrationtest.spec.EmbeddedJaxRsServerSpecification
 import spock.lang.Subject
@@ -26,17 +26,17 @@ class PayloadVariantsTest extends EmbeddedJaxRsServerSpecification {
 
   def "Response without body (status 204)"() {
     when:
-    restClient.changePet(new CPet(id: 1L, name: "Buddy", tag: "new tag"))
+    restClient.changeItem(new CItem(id: 1L, name: "Buddy", tag: "new tag"))
 
     then:
     noExceptionThrown()
 
     when:
-    GenericResponse genericResponse = restClient.changePetWithResponse(new CPet(id: 1L, name: "Buddy", tag: "new tag"))
+    GenericResponse genericResponse = restClient.changeItemWithResponse(new CItem(id: 1L, name: "Buddy", tag: "new tag"))
 
     then:
     DefinedResponse response = genericResponse.asDefinedResponse()
-    response.request.url == "$BASE_URL/petBinaries"
+    response.request.url == "$BASE_URL/itemBinaries"
     response.request.method == "POST"
     response.statusCode == 204
     response.httpStatusMessage == "No Content"
@@ -47,26 +47,26 @@ class PayloadVariantsTest extends EmbeddedJaxRsServerSpecification {
 
   def "Request and response bodies of generic type, like List"() {
     given:
-    def input = [pet(1, "Buddy"), pet(2, "Cleopatra"), pet(3, "Snoopy")]
-    def expectedOutput = [pet(1, "Buddy"), pet(3, "Snoopy")]
+    def input = [item(1, "Buddy"), item(2, "Cleopatra"), item(3, "Snoopy")]
+    def expectedOutput = [item(1, "Buddy"), item(3, "Snoopy")]
 
     when:
-    def responsePets = restClient.filterPets(input)
+    def responseItems = restClient.filterItems(input)
 
     then:
-    responsePets == expectedOutput
+    responseItems == expectedOutput
 
     when:
-    GenericResponse genericResponse = restClient.filterPetsWithResponse(input)
+    GenericResponse genericResponse = restClient.filterItemsWithResponse(input)
 
     then:
     DefinedResponse response = genericResponse.asDefinedResponse()
-    response.request.url == "$BASE_URL/pets"
+    response.request.url == "$BASE_URL/items"
     response.request.method == "POST"
     response.statusCode == 200
     response.httpStatusMessage == "OK"
     response.contentType == "application/json"
-    response.javaType == new TypeToken<List<CPet>>() {
+    response.javaType == new TypeToken<List<CItem>>() {
     }.getType()
     response.entity == expectedOutput
   }
@@ -88,7 +88,7 @@ class PayloadVariantsTest extends EmbeddedJaxRsServerSpecification {
 
     then:
     DefinedResponse response = genericResponse.asDefinedResponse()
-    response.request.url == "$BASE_URL/petBinaries"
+    response.request.url == "$BASE_URL/itemBinaries"
     response.request.method == "PUT"
     response.statusCode == 200
     response.httpStatusMessage == "OK"
@@ -97,8 +97,8 @@ class PayloadVariantsTest extends EmbeddedJaxRsServerSpecification {
     (response.entity as InputStream).bytes == pdfBytes
   }
 
-  private static CPet pet(long id, String name) {
-    new CPet(id: id, name: name)
+  private static CItem item(long id, String name) {
+    new CItem(id: id, name: name)
   }
 
   /**
@@ -107,13 +107,13 @@ class PayloadVariantsTest extends EmbeddedJaxRsServerSpecification {
   static class EmbeddedServerResource implements PayloadVariantsApi {
 
     @Override
-    ChangePetResponse changePet(SPet requestBody) {
-      return ChangePetResponse.with204()
+    ChangeItemResponse changeItem(SItem requestBody) {
+      return ChangeItemResponse.with204()
     }
 
     @Override
-    FilterPetsResponse filterPets(List<SPet> requestBody) {
-      return FilterPetsResponse.with200ApplicationJson(requestBody.findAll { it.id % 2 != 0 })
+    FilterItemsResponse filterItems(List<SItem> requestBody) {
+      return FilterItemsResponse.with200ApplicationJson(requestBody.findAll { it.id % 2 != 0 })
     }
 
     @Override

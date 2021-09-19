@@ -4,11 +4,11 @@ import org.contractfirst.generator.client.ApiClientUndefinedResponseException
 import org.contractfirst.generator.client.Header
 import org.contractfirst.generator.client.UndefinedResponse
 import org.contractfirst.generator.integrationtest.generated.client.api.ResponseVariantsApiClient
-import org.contractfirst.generator.integrationtest.generated.client.api.RestClientCErrorEntityException
-import org.contractfirst.generator.integrationtest.generated.client.model.CError
-import org.contractfirst.generator.integrationtest.generated.client.model.CPet
-import org.contractfirst.generator.integrationtest.generated.server.model.SError
-import org.contractfirst.generator.integrationtest.generated.server.model.SPet
+import org.contractfirst.generator.integrationtest.generated.client.api.RestClientCFailureEntityException
+import org.contractfirst.generator.integrationtest.generated.client.model.CFailure
+import org.contractfirst.generator.integrationtest.generated.client.model.CItem
+import org.contractfirst.generator.integrationtest.generated.server.model.SFailure
+import org.contractfirst.generator.integrationtest.generated.server.model.SItem
 import org.contractfirst.generator.integrationtest.generated.server.resources.ResponseVariantsApi
 import org.contractfirst.generator.integrationtest.spec.EmbeddedJaxRsServerSpecification
 import spock.lang.Subject
@@ -20,7 +20,7 @@ import javax.ws.rs.core.Response
  */
 class ResponseVariantsTest extends EmbeddedJaxRsServerSpecification {
 
-  CPet pet = new CPet(id: 42L, name: "name", tag: "tag")
+  CItem item = new CItem(id: 42L, name: "name", tag: "tag")
 
   @Subject
   ResponseVariantsApiClient restClient = new ResponseVariantsApiClient(restClientSupport)
@@ -32,14 +32,14 @@ class ResponseVariantsTest extends EmbeddedJaxRsServerSpecification {
 
   def "Server response with explicitly defined 200"() {
     when:
-    def genericResponse = restClient.createPetWithResponse("petId", true, 4711L, null, pet)
+    def genericResponse = restClient.createItemWithResponse("systemId", true, 4711L, null, item)
 
     then:
     def response = genericResponse.asDefinedResponse()
-    response.request.url == "$BASE_URL/petId/pets?dryRun=true"
+    response.request.url == "$BASE_URL/systemId/components?dryRun=true"
     response.request.method == "POST"
     response.request.headers == [
-        new Header("customerId", "4711"),
+        new Header("partNumber", "4711"),
         new Header("Accept", "application/json"),
         new Header("Content-Type", "application/json; charset=utf-8"),
         new Header("Content-Length", "35"),
@@ -51,26 +51,26 @@ class ResponseVariantsTest extends EmbeddedJaxRsServerSpecification {
     response.statusCode == 200
     response.httpStatusMessage == "OK"
     response.contentType == "application/json"
-    response.javaType == CPet.class
-    response.entity == pet
+    response.javaType == CItem.class
+    response.entity == item
 
     when:
-    def createdPet = restClient.createPet("petId", true, 4711L, null, pet)
+    def createdItem = restClient.createItem("systemId", true, 4711L, null, item)
 
     then:
-    createdPet == pet
+    createdItem == item
   }
 
   def "Server response with explicitly defined 201"() {
     when:
-    def genericResponse = restClient.createPetWithResponse("petId", true, 4711L, "201", pet)
+    def genericResponse = restClient.createItemWithResponse("systemId", true, 4711L, "201", item)
 
     then:
     def response = genericResponse.asDefinedResponse()
-    response.request.url == "$BASE_URL/petId/pets?dryRun=true"
+    response.request.url == "$BASE_URL/systemId/components?dryRun=true"
     response.request.method == "POST"
     response.request.headers == [
-        new Header("customerId", "4711"),
+        new Header("partNumber", "4711"),
         new Header("testCaseSelector", "201"),
         new Header("Accept", "application/json"),
         new Header("Content-Type", "application/json; charset=utf-8"),
@@ -87,7 +87,7 @@ class ResponseVariantsTest extends EmbeddedJaxRsServerSpecification {
     response.entity == null
 
     when:
-    def responseEntity = restClient.createPet("petId", true, 4711L, "201", pet)
+    def responseEntity = restClient.createItem("systemId", true, 4711L, "201", item)
 
     then:
     responseEntity == null
@@ -95,14 +95,14 @@ class ResponseVariantsTest extends EmbeddedJaxRsServerSpecification {
 
   def "Server response with explicitly defined 204"() {
     when:
-    def genericResponse = restClient.createPetWithResponse("petId", true, 4711L, "204", pet)
+    def genericResponse = restClient.createItemWithResponse("systemId", true, 4711L, "204", item)
 
     then:
     def response = genericResponse.asDefinedResponse()
-    response.request.url == "$BASE_URL/petId/pets?dryRun=true"
+    response.request.url == "$BASE_URL/systemId/components?dryRun=true"
     response.request.method == "POST"
     response.request.headers == [
-        new Header("customerId", "4711"),
+        new Header("partNumber", "4711"),
         new Header("testCaseSelector", "204"),
         new Header("Accept", "application/json"),
         new Header("Content-Type", "application/json; charset=utf-8"),
@@ -119,7 +119,7 @@ class ResponseVariantsTest extends EmbeddedJaxRsServerSpecification {
     response.entity == null
 
     when:
-    def responseEntity = restClient.createPet("petId", true, 4711L, "204", pet)
+    def responseEntity = restClient.createItem("systemId", true, 4711L, "204", item)
 
     then:
     responseEntity == null
@@ -127,14 +127,14 @@ class ResponseVariantsTest extends EmbeddedJaxRsServerSpecification {
 
   def "Server responds with explicitly defined 400"() {
     when:
-    def genericResponse = restClient.createPetWithResponse("petId", false, 23, "400", pet)
+    def genericResponse = restClient.createItemWithResponse("systemId", false, 23, "400", item)
 
     then:
     def response = genericResponse.asDefinedResponse()
-    response.request.url == "$BASE_URL/petId/pets?dryRun=false"
+    response.request.url == "$BASE_URL/systemId/components?dryRun=false"
     response.request.method == "POST"
     response.request.headers == [
-        new Header("customerId", "23"),
+        new Header("partNumber", "23"),
         new Header("testCaseSelector", "400"),
         new Header("Accept", "application/json"),
         new Header("Content-Type", "application/json; charset=utf-8"),
@@ -147,28 +147,28 @@ class ResponseVariantsTest extends EmbeddedJaxRsServerSpecification {
     response.statusCode == 400
     response.httpStatusMessage == "Bad Request"
     response.contentType == "application/json"
-    response.javaType == CError.class
-    response.entity == new CError(code: 400, message: "Unknown customer id: 23")
+    response.javaType == CFailure.class
+    response.entity == new CFailure(code: 400, message: "Unknown customer id: 23")
 
     when:
-    restClient.createPet("petId", false, 23, "400", pet)
+    restClient.createItem("systemId", false, 23, "400", item)
 
     then:
-    def e = thrown RestClientCErrorEntityException
+    def e = thrown RestClientCFailureEntityException
     e.httpStatusCode == 400
-    e.entity == new CError(code: 400, message: "Unknown customer id: 23")
+    e.entity == new CFailure(code: 400, message: "Unknown customer id: 23")
   }
 
   def "Server responds with 500, covered by default"() {
     when:
-    def genericResponse = restClient.createPetWithResponse("petId", false, 42, "500", pet)
+    def genericResponse = restClient.createItemWithResponse("systemId", false, 42, "500", item)
 
     then:
     def response = genericResponse.asDefinedResponse()
-    response.request.url == "$BASE_URL/petId/pets?dryRun=false"
+    response.request.url == "$BASE_URL/systemId/components?dryRun=false"
     response.request.method == "POST"
     response.request.headers == [
-        new Header("customerId", "42"),
+        new Header("partNumber", "42"),
         new Header("testCaseSelector", "500"),
         new Header("Accept", "application/json"),
         new Header("Content-Type", "application/json; charset=utf-8"),
@@ -181,28 +181,28 @@ class ResponseVariantsTest extends EmbeddedJaxRsServerSpecification {
     response.statusCode == 500
     response.httpStatusMessage == "Internal Server Error"
     response.contentType == "application/json"
-    response.javaType == CError.class
-    response.entity == new CError(code: 500, message: "Internal Server Error :(")
+    response.javaType == CFailure.class
+    response.entity == new CFailure(code: 500, message: "Internal Server Error :(")
 
     when:
-    restClient.createPet("petId", false, 42, "500", pet)
+    restClient.createItem("systemId", false, 42, "500", item)
 
     then:
-    def e = thrown RestClientCErrorEntityException
+    def e = thrown RestClientCFailureEntityException
     e.httpStatusCode == 500
-    e.entity == new CError(code: 500, message: "Internal Server Error :(")
+    e.entity == new CFailure(code: 500, message: "Internal Server Error :(")
   }
 
   def "Server responds with response not conforming to the contract"() {
     when:
-    def genericResponse = restClient.createPetWithResponse("petId", false, 999, "undefined", pet)
+    def genericResponse = restClient.createItemWithResponse("systemId", false, 999, "undefined", item)
 
     then:
     def response = genericResponse as UndefinedResponse
-    response.request.url == "$BASE_URL/petId/pets?dryRun=false"
+    response.request.url == "$BASE_URL/systemId/components?dryRun=false"
     response.request.method == "POST"
     response.request.headers == [
-        new Header("customerId", "999"),
+        new Header("partNumber", "999"),
         new Header("testCaseSelector", "undefined"),
         new Header("Accept", "application/json"),
         new Header("Content-Type", "application/json; charset=utf-8"),
@@ -219,14 +219,14 @@ class ResponseVariantsTest extends EmbeddedJaxRsServerSpecification {
     response.cause == null
 
     when:
-    restClient.createPet("petId", false, 999, "undefined", pet)
+    restClient.createItem("systemId", false, 999, "undefined", item)
 
     then:
     def e = thrown ApiClientUndefinedResponseException
-    e.response.request.url == "$BASE_URL/petId/pets?dryRun=false"
+    e.response.request.url == "$BASE_URL/systemId/components?dryRun=false"
     e.response.request.method == "POST"
     e.response.request.headers == [
-        new Header("customerId", "999"),
+        new Header("partNumber", "999"),
         new Header("testCaseSelector", "undefined"),
         new Header("Accept", "application/json"),
         new Header("Content-Type", "application/json; charset=utf-8"),
@@ -249,21 +249,21 @@ class ResponseVariantsTest extends EmbeddedJaxRsServerSpecification {
   static class EmbeddedServerResource implements ResponseVariantsApi {
 
     @Override
-    CreatePetResponse createPet(String petStoreId, Boolean dryRun, Long customerId, String testCaseSelector, SPet requestBody) {
-      log("SERVER: createPet, testCaseSelector: $testCaseSelector, petStoreId: $petStoreId, dryRun: $dryRun, customerId: $customerId, body: $requestBody")
+    CreateItemResponse createItem(String systemId, Boolean dryRun, Long partNumber, String testCaseSelector, SItem requestBody) {
+      log("SERVER: createItem, testCaseSelector: $testCaseSelector, systemId: $systemId, dryRun: $dryRun, partNumber: $partNumber, body: $requestBody")
 
       if (testCaseSelector == "201") {
-        return CreatePetResponse.with201()
+        return CreateItemResponse.with201()
       } else if (testCaseSelector == "204") {
-        return CreatePetResponse.with204()
+        return CreateItemResponse.with204()
       } else if (testCaseSelector == "400") {
-        return CreatePetResponse.with400ApplicationJson(new SError().code(400).message("Unknown customer id: " + customerId))
+        return CreateItemResponse.with400ApplicationJson(new SFailure().code(400).message("Unknown customer id: " + partNumber))
       } else if (testCaseSelector == "500") {
-        return CreatePetResponse.withApplicationJson(500, new SError().code(500).message("Internal Server Error :("))
+        return CreateItemResponse.withApplicationJson(500, new SFailure().code(500).message("Internal Server Error :("))
       } else if (testCaseSelector == "undefined") {
-        return CreatePetResponse.withCustomResponse(Response.serverError().type("text/plain").entity("This is just plain text").build())
+        return CreateItemResponse.withCustomResponse(Response.serverError().type("text/plain").entity("This is just plain text").build())
       } else {
-        return CreatePetResponse.with200ApplicationJson(requestBody)
+        return CreateItemResponse.with200ApplicationJson(requestBody)
       }
     }
   }

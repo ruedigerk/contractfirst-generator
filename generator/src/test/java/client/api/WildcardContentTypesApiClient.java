@@ -1,6 +1,6 @@
 package client.api;
 
-import client.model.Error;
+import client.model.Failure;
 import java.io.InputStream;
 import org.contractfirst.generator.client.ApiClientIoException;
 import org.contractfirst.generator.client.ApiClientSupport;
@@ -31,7 +31,7 @@ public class WildcardContentTypesApiClient {
 
     builder.response(StatusCode.of(200), "text/*", String.class);
     builder.response(StatusCode.of(200), "application/*", InputStream.class);
-    builder.response(StatusCode.DEFAULT, "application/json", Error.class);
+    builder.response(StatusCode.DEFAULT, "application/json", Failure.class);
 
     return support.executeRequest(builder.build());
   }

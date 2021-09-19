@@ -1,9 +1,9 @@
-package client.model;
+package server.model;
 
 import java.util.Objects;
 import javax.validation.constraints.NotNull;
 
-public class Pet {
+public class Item {
   @NotNull
   private Long id;
 
@@ -12,7 +12,7 @@ public class Pet {
 
   private String tag;
 
-  public Pet id(Long id) {
+  public Item id(Long id) {
     this.id = id;
     return this;
   }
@@ -25,7 +25,7 @@ public class Pet {
     this.id = id;
   }
 
-  public Pet name(String name) {
+  public Item name(String name) {
     this.name = name;
     return this;
   }
@@ -38,7 +38,7 @@ public class Pet {
     this.name = name;
   }
 
-  public Pet tag(String tag) {
+  public Item tag(String tag) {
     this.tag = tag;
     return this;
   }
@@ -55,7 +55,7 @@ public class Pet {
   public boolean equals(Object other) {
     if (other == this) return true;
     if (other == null || getClass() != other.getClass()) return false;
-    Pet o = (Pet) other;
+    Item o = (Item) other;
     return Objects.equals(id, o.id)
         && Objects.equals(name, o.name)
         && Objects.equals(tag, o.tag);
@@ -72,6 +72,6 @@ public class Pet {
     builder.append(", id=").append(id);
     builder.append(", name=").append(name);
     builder.append(", tag=").append(tag);
-    return builder.replace(0, 2, "Pet{").append('}').toString();
+    return builder.replace(0, 2, "Item{").append('}').toString();
   }
 }

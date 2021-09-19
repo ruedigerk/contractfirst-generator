@@ -5,14 +5,14 @@ info:
 servers:
 - url: https://example.com/v1
 paths:
-  /{petStoreId}/pets:
+  /{systemId}/components:
     post:
-      operationId: createPet
+      operationId: createItem
       parameters:
-      - description: ID of pet store
+      - description: ID of the system to create the item in.
         explode: false
         in: path
-        name: petStoreId
+        name: systemId
         required: true
         schema:
           type: string
@@ -25,10 +25,10 @@ paths:
         schema:
           type: boolean
         style: form
-      - description: Optional customer ID
+      - description: Optional part number
         explode: false
         in: header
-        name: customerId
+        name: partNumber
         required: false
         schema:
           format: int64
@@ -46,15 +46,15 @@ paths:
         content:
           application/json:
             schema:
-              $ref: '#/components/schemas/Pet'
+              $ref: '#/components/schemas/Item'
         required: true
       responses:
         "200":
           content:
             application/json:
               schema:
-                $ref: '#/components/schemas/Pet'
-          description: Return created pet
+                $ref: '#/components/schemas/Item'
+          description: Return created item
         "201":
           description: "Accepted, also empty response."
         "204":
@@ -63,26 +63,26 @@ paths:
           content:
             application/json:
               schema:
-                $ref: '#/components/schemas/Error'
+                $ref: '#/components/schemas/Failure'
           description: "Error, customer ID unknown"
         default:
           content:
             application/json:
               schema:
-                $ref: '#/components/schemas/Error'
-          description: unexpected error
+                $ref: '#/components/schemas/Failure'
+          description: "Some other error, like 500."
       summary: Test for the various parameter locations and for serializing request and response body entities.
       tags:
       - ResponseVariants
-  /pets:
+  /items:
     post:
-      operationId: filterPets
+      operationId: filterItems
       requestBody:
         content:
           application/json:
             schema:
               items:
-                $ref: '#/components/schemas/Pet'
+                $ref: '#/components/schemas/Item'
               type: array
         required: true
       responses:
@@ -91,26 +91,26 @@ paths:
             application/json:
               schema:
                 items:
-                  $ref: '#/components/schemas/Pet'
+                  $ref: '#/components/schemas/Item'
                 type: array
-          description: Returned filtered pets.
+          description: Returned filtered items.
         default:
           content:
             application/json:
               schema:
-                $ref: '#/components/schemas/Error'
-          description: unexpected error
-      summary: "Test operation for generating generic types, e.g. List of Pet."
+                $ref: '#/components/schemas/Failure'
+          description: "Some other error, like 500."
+      summary: "Test operation for generating generic types, e.g. List of Item."
       tags:
       - PayloadVariants
-  /petBinaries:
+  /itemBinaries:
     post:
-      operationId: changePet
+      operationId: changeItem
       requestBody:
         content:
           application/json:
             schema:
-              $ref: '#/components/schemas/Pet'
+              $ref: '#/components/schemas/Item'
         required: true
       responses:
         "204":
@@ -119,8 +119,8 @@ paths:
           content:
             application/json:
               schema:
-                $ref: '#/components/schemas/Error'
-          description: unexpected error
+                $ref: '#/components/schemas/Failure'
+          description: "Some other error, like 500."
       summary: Test for 204 response.
       tags:
       - PayloadVariants
@@ -145,8 +145,8 @@ paths:
           content:
             application/json:
               schema:
-                $ref: '#/components/schemas/Error'
-          description: unexpected error
+                $ref: '#/components/schemas/Failure'
+          description: "Some other error, like 500."
       summary: Test binary input and output.
       tags:
       - PayloadVariants
@@ -178,15 +178,15 @@ paths:
             text/plain:
               schema:
                 type: string
-          description: "Returned a pet instead, also test wildcard content type."
+          description: Returned a description of the manual instead.
         "204":
           description: Return nothing.
         default:
           content:
             application/json:
               schema:
-                $ref: '#/components/schemas/Error'
-          description: unexpected error
+                $ref: '#/components/schemas/Failure'
+          description: "Some other error, like 500."
       summary: Test case for multiple response content types with different schemas.
       tags:
       - MultipleContentTypes
@@ -217,8 +217,8 @@ paths:
           content:
             application/json:
               schema:
-                $ref: '#/components/schemas/Error'
-          description: unexpected error
+                $ref: '#/components/schemas/Failure'
+          description: "Some other error, like 500."
       summary: Test wildcard response content types.
       tags:
       - WildcardContentTypes
@@ -283,8 +283,8 @@ paths:
           content:
             application/json:
               schema:
-                $ref: '#/components/schemas/Error'
-          description: unexpected error
+                $ref: '#/components/schemas/Failure'
+          description: "Some other error, like 500."
       summary: For testing handling of date and date-time formats.
       tags:
       - time
@@ -306,13 +306,50 @@ paths:
             application/json:
               schema:
                 type: number
-          description: Returned decimalNumber.
+          description: Returned decimal number.
+        default:
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Failure'
+          description: "Some other error, like 500."
       summary: Test serialization of schema type number as BigDecimal.
       tags:
       - BigDecimals
+  /testcases:
+    get:
+      description: A test case for the SchemaToJavaTypeTransformer.
+      operationId: getInlineObjectInArray
+      responses:
+        "200":
+          content:
+            application/json:
+              schema:
+                items:
+                  properties:
+                    someProperty:
+                      type: string
+                  type: object
+                type: array
+          description: Return an object embedded inline in an array.
+        default:
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Failure'
+          description: "Some other error, like 500."
+      tags:
+      - testcases
 components:
+  responses:
+    DefaultFailures:
+      content:
+        application/json:
+          schema:
+            $ref: '#/components/schemas/Failure'
+      description: "Some other error, like 500."
   schemas:
-    Pet:
+    Item:
       properties:
         id:
           format: int64
@@ -324,6 +361,41 @@ components:
       required:
       - id
       - name
+    Component:
+      description: A component.
+      properties:
+        id:
+          type: string
+        name:
+          type: string
+        type:
+          $ref: '#/components/schemas/ComponentType'
+        multiplier:
+          enum:
+          - "1"
+          - "2"
+          - "4"
+          type: string
+        rarity:
+          enum:
+          - COMMON
+          - UNCOMMON
+          - RARE
+          type: string
+      required:
+      - id
+      - name
+    ComponentType:
+      description: Type of a component.
+      enum:
+      - Integrated
+      - Plug-in
+      - After sales
+      type: string
+    Components:
+      items:
+        $ref: '#/components/schemas/Component'
+      type: array
     Manual:
       properties:
         title:
@@ -370,7 +442,7 @@ components:
           format: date-time
           type: string
       type: object
-    Error:
+    Failure:
       properties:
         code:
           format: int32

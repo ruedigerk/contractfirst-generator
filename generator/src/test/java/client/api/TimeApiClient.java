@@ -2,7 +2,7 @@ package client.api;
 
 import client.model.Clock;
 import client.model.ClockResponse;
-import client.model.Error;
+import client.model.Failure;
 import java.time.LocalDate;
 import java.time.OffsetDateTime;
 import org.contractfirst.generator.client.ApiClientIoException;
@@ -33,7 +33,7 @@ public class TimeApiClient {
     DefinedResponse response = genericResponse.asDefinedResponse();
 
     if (!response.isSuccessful()) {
-      throw new RestClientErrorEntityException(response.getStatusCode(), (Error) response.getEntity());
+      throw new RestClientFailureEntityException(response.getStatusCode(), (Failure) response.getEntity());
     }
 
     return (ClockResponse) response.getEntity();
@@ -56,7 +56,7 @@ public class TimeApiClient {
     builder.requestBody("application/json", true, requestBody);
 
     builder.response(StatusCode.of(200), "application/json", ClockResponse.class);
-    builder.response(StatusCode.DEFAULT, "application/json", Error.class);
+    builder.response(StatusCode.DEFAULT, "application/json", Failure.class);
 
     return support.executeRequest(builder.build());
   }

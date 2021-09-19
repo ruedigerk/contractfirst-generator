@@ -1,11 +1,11 @@
-package petstore.model;
+package client.model;
 
 import java.util.Objects;
 
-public class GetPetTransformer200 {
+public class GetInlineObjectInArray200 {
   private String someProperty;
 
-  public GetPetTransformer200 someProperty(String someProperty) {
+  public GetInlineObjectInArray200 someProperty(String someProperty) {
     this.someProperty = someProperty;
     return this;
   }
@@ -22,7 +22,7 @@ public class GetPetTransformer200 {
   public boolean equals(Object other) {
     if (other == this) return true;
     if (other == null || getClass() != other.getClass()) return false;
-    GetPetTransformer200 o = (GetPetTransformer200) other;
+    GetInlineObjectInArray200 o = (GetInlineObjectInArray200) other;
     return Objects.equals(someProperty, o.someProperty);
   }
 
@@ -35,6 +35,6 @@ public class GetPetTransformer200 {
   public String toString() {
     StringBuilder builder = new StringBuilder();
     builder.append(", someProperty=").append(someProperty);
-    return builder.replace(0, 2, "GetPetTransformer200{").append('}').toString();
+    return builder.replace(0, 2, "GetInlineObjectInArray200{").append('}').toString();
   }
 }

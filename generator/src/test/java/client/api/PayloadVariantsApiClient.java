@@ -1,7 +1,7 @@
 package client.api;
 
-import client.model.Error;
-import client.model.Pet;
+import client.model.Failure;
+import client.model.Item;
 import com.google.gson.reflect.TypeToken;
 import java.io.InputStream;
 import java.util.List;
@@ -22,33 +22,33 @@ public class PayloadVariantsApiClient {
   }
 
   /**
-   * Test operation for generating generic types, e.g. List of Pet.
+   * Test operation for generating generic types, e.g. List of Item.
    */
-  public List<Pet> filterPets(List<Pet> requestBody) throws ApiClientIoException,
+  public List<Item> filterItems(List<Item> requestBody) throws ApiClientIoException,
       ApiClientValidationException, ApiClientUndefinedResponseException {
 
-    GenericResponse genericResponse = filterPetsWithResponse(requestBody);
+    GenericResponse genericResponse = filterItemsWithResponse(requestBody);
     DefinedResponse response = genericResponse.asDefinedResponse();
 
     if (!response.isSuccessful()) {
-      throw new RestClientErrorEntityException(response.getStatusCode(), (Error) response.getEntity());
+      throw new RestClientFailureEntityException(response.getStatusCode(), (Failure) response.getEntity());
     }
 
-    return (List<Pet>) response.getEntity();
+    return (List<Item>) response.getEntity();
   }
 
   /**
-   * Test operation for generating generic types, e.g. List of Pet.
+   * Test operation for generating generic types, e.g. List of Item.
    */
-  public GenericResponse filterPetsWithResponse(List<Pet> requestBody) throws ApiClientIoException,
-      ApiClientValidationException {
+  public GenericResponse filterItemsWithResponse(List<Item> requestBody) throws
+      ApiClientIoException, ApiClientValidationException {
 
-    Operation.Builder builder = new Operation.Builder("/pets", "POST");
+    Operation.Builder builder = new Operation.Builder("/items", "POST");
 
     builder.requestBody("application/json", true, requestBody);
 
-    builder.response(StatusCode.of(200), "application/json", new TypeToken<List<Pet>>(){}.getType());
-    builder.response(StatusCode.DEFAULT, "application/json", Error.class);
+    builder.response(StatusCode.of(200), "application/json", new TypeToken<List<Item>>(){}.getType());
+    builder.response(StatusCode.DEFAULT, "application/json", Failure.class);
 
     return support.executeRequest(builder.build());
   }
@@ -63,7 +63,7 @@ public class PayloadVariantsApiClient {
     DefinedResponse response = genericResponse.asDefinedResponse();
 
     if (!response.isSuccessful()) {
-      throw new RestClientErrorEntityException(response.getStatusCode(), (Error) response.getEntity());
+      throw new RestClientFailureEntityException(response.getStatusCode(), (Failure) response.getEntity());
     }
 
     return (InputStream) response.getEntity();
@@ -75,12 +75,12 @@ public class PayloadVariantsApiClient {
   public GenericResponse uploadAndReturnBinaryWithResponse(InputStream requestBody) throws
       ApiClientIoException, ApiClientValidationException {
 
-    Operation.Builder builder = new Operation.Builder("/petBinaries", "PUT");
+    Operation.Builder builder = new Operation.Builder("/itemBinaries", "PUT");
 
     builder.requestBody("application/octet-stream", true, requestBody);
 
     builder.response(StatusCode.of(200), "application/octet-stream", InputStream.class);
-    builder.response(StatusCode.DEFAULT, "application/json", Error.class);
+    builder.response(StatusCode.DEFAULT, "application/json", Failure.class);
 
     return support.executeRequest(builder.build());
   }
@@ -88,29 +88,29 @@ public class PayloadVariantsApiClient {
   /**
    * Test for 204 response.
    */
-  public void changePet(Pet requestBody) throws ApiClientIoException, ApiClientValidationException,
-      ApiClientUndefinedResponseException {
+  public void changeItem(Item requestBody) throws ApiClientIoException,
+      ApiClientValidationException, ApiClientUndefinedResponseException {
 
-    GenericResponse genericResponse = changePetWithResponse(requestBody);
+    GenericResponse genericResponse = changeItemWithResponse(requestBody);
     DefinedResponse response = genericResponse.asDefinedResponse();
 
     if (!response.isSuccessful()) {
-      throw new RestClientErrorEntityException(response.getStatusCode(), (Error) response.getEntity());
+      throw new RestClientFailureEntityException(response.getStatusCode(), (Failure) response.getEntity());
     }
   }
 
   /**
    * Test for 204 response.
    */
-  public GenericResponse changePetWithResponse(Pet requestBody) throws ApiClientIoException,
+  public GenericResponse changeItemWithResponse(Item requestBody) throws ApiClientIoException,
       ApiClientValidationException {
 
-    Operation.Builder builder = new Operation.Builder("/petBinaries", "POST");
+    Operation.Builder builder = new Operation.Builder("/itemBinaries", "POST");
 
     builder.requestBody("application/json", true, requestBody);
 
     builder.response(StatusCode.of(204));
-    builder.response(StatusCode.DEFAULT, "application/json", Error.class);
+    builder.response(StatusCode.DEFAULT, "application/json", Failure.class);
 
     return support.executeRequest(builder.build());
   }
