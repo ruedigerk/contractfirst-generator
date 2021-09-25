@@ -1,7 +1,7 @@
 package client.api;
 
 import client.model.Failure;
-import org.contractfirst.generator.client.ApiClientEntityException;
+import io.github.ruedigerk.contractfirst.generator.client.ApiClientEntityException;
 
 /**
  * Exception for the error entity of type Failure.

@@ -23,7 +23,7 @@ The generated server code needs the following dependencies:
 
     <dependency>
         <!-- Contains a JAX-RS ParamConverterProvider and a Gson MessageBodyHandler to support LocalDate and OffsetDateTime -->
-        <groupId>org.contractfirst.generator</groupId>
+        <groupId>io.github.ruedigerk.contractfirst.generator</groupId>
         <artifactId>contractfirst-generator-server-support</artifactId>
         <version>${project.version}</version>
     </dependency>
@@ -50,7 +50,7 @@ The generated client code needs the following dependencies:
 
     <dependency>
         <!-- Support module for the generated client code -->
-        <groupId>org.contractfirst.generator</groupId>
+        <groupId>io.github.ruedigerk.contractfirst.generator</groupId>
         <artifactId>contractfirst-generator-client-support</artifactId>
         <version>${project.version}</version>
     </dependency>

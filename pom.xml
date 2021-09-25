@@ -2,10 +2,46 @@
 <project xmlns="http://maven.apache.org/POM/4.0.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/maven-v4_0_0.xsd">
    <modelVersion>4.0.0</modelVersion>
 
-   <groupId>org.contractfirst.generator</groupId>
+   <groupId>io.github.ruedigerk.contractfirst.generator</groupId>
    <artifactId>contractfirst-generator-parent</artifactId>
    <version>1.0-SNAPSHOT</version>
    <packaging>pom</packaging>
+
+   <name>Contractfirst-Generator</name>
+   <description>Contractfirst-Generator is a code generator for OpenAPI 3 contracts, enabling a contract-first approach to developing REST APIs.</description>
+   <url>https://github.com/ruedigerk/contractfirst-generator</url>
+
+   <licenses>
+      <license>
+         <name>MIT License</name>
+         <url>https://opensource.org/licenses/MIT</url>
+      </license>
+   </licenses>
+
+   <developers>
+      <developer>
+         <name>Rüdiger Keller</name>
+         <email>ruedigerkeller@mail.de</email>
+         <url>https://github.com/ruedigerk</url>
+      </developer>
+   </developers>
+
+   <scm>
+      <connection>scm:git:ssh://github.com:ruedigerk/contractfirst-generator.git</connection>
+      <developerConnection>scm:git:ssh://github.com:ruedigerk/contractfirst-generator.git</developerConnection>
+      <url>https://github.com/ruedigerk/contractfirst-generator</url>
+   </scm>
+
+   <distributionManagement>
+      <snapshotRepository>
+         <id>ossrh</id>
+         <url>https://oss.sonatype.org/content/repositories/snapshots</url>
+      </snapshotRepository>
+      <repository>
+         <id>ossrh</id>
+         <url>https://oss.sonatype.org/service/local/staging/deploy/maven2/</url>
+      </repository>
+   </distributionManagement>
 
    <properties>
       <!-- Build setup -->
@@ -14,9 +50,10 @@
       <maven.javadoc.skip>true</maven.javadoc.skip>
 
       <!-- Language versions -->
-      <target-jdk.version>8</target-jdk.version>
+      <target-jdk.release>8</target-jdk.release>
+      <target-jdk.version>1.8</target-jdk.version>
       <kotlin.version>1.5.30</kotlin.version>
-      <groovy.version>2.5.13</groovy.version>
+      <groovy.version>2.5.15</groovy.version>
 
       <!-- Apache plugin versions -->
       <maven-clean-plugin.version>3.1.0</maven-clean-plugin.version>
@@ -29,12 +66,13 @@
       <maven-release-plugin.version>2.5.3</maven-release-plugin.version>
       <maven-resources-plugin.version>3.2.0</maven-resources-plugin.version>
       <maven-scm-provider-jgit.version>1.10.0</maven-scm-provider-jgit.version>
+      <maven-site-plugin.version>3.9.1</maven-site-plugin.version>
       <maven-source-plugin.version>3.2.1</maven-source-plugin.version>
       <maven-surefire-plugin.version>2.22.2</maven-surefire-plugin.version>
 
       <!-- Other plugin versions -->
-      <gmavenplus-plugin.version>1.12.1</gmavenplus-plugin.version>
-      
+      <gmavenplus-plugin.version>1.13.0</gmavenplus-plugin.version>
+
       <!-- Dependency versions -->
       <bean-validation.version>1.1.0.Final</bean-validation.version>
       <byte-buddy.version>1.11.0</byte-buddy.version>
@@ -82,17 +120,18 @@
                      <!-- Progressive mode for the Kotlin compiler: https://kotlinlang.org/docs/compiler-reference.html#progressive -->
                      <arg>-progressive</arg>
                   </args>
+                  <jvmTarget>${target-jdk.version}</jvmTarget>
                </configuration>
             </plugin>
 
             <plugin>
                <!-- Java compiler needs to run after Kotlin compiler, see https://kotlinlang.org/docs/maven.html#compile-kotlin-and-java-sources -->
-               <groupId>org.apache.maven.plugins</groupId>
                <artifactId>maven-compiler-plugin</artifactId>
                <version>${maven-compiler-plugin.version}</version>
                <configuration>
-                  <!-- Configure release option (available since Java 9) -->
-                  <release>${target-jdk.version}</release>
+                  <source>${target-jdk.version}</source>
+                  <target>${target-jdk.version}</target>
+                  <release>${target-jdk.release}</release>
                </configuration>
                <executions>
                   <execution>
@@ -120,16 +159,6 @@
                      </goals>
                   </execution>
                </executions>
-            </plugin>
-
-            <plugin>
-               <artifactId>maven-surefire-plugin</artifactId>
-               <version>${maven-surefire-plugin.version}</version>
-            </plugin>
-
-            <plugin>
-               <artifactId>maven-failsafe-plugin</artifactId>
-               <version>${maven-failsafe-plugin.version}</version>
             </plugin>
 
             <plugin>
@@ -172,6 +201,10 @@
                <version>${maven-deploy-plugin.version}</version>
             </plugin>
             <plugin>
+               <artifactId>maven-failsafe-plugin</artifactId>
+               <version>${maven-failsafe-plugin.version}</version>
+            </plugin>
+            <plugin>
                <artifactId>maven-install-plugin</artifactId>
                <version>${maven-install-plugin.version}</version>
             </plugin>
@@ -182,6 +215,14 @@
             <plugin>
                <artifactId>maven-resources-plugin</artifactId>
                <version>${maven-resources-plugin.version}</version>
+            </plugin>
+            <plugin>
+               <artifactId>maven-site-plugin</artifactId>
+               <version>${maven-site-plugin.version}</version>
+            </plugin>
+            <plugin>
+               <artifactId>maven-surefire-plugin</artifactId>
+               <version>${maven-surefire-plugin.version}</version>
             </plugin>
          </plugins>
       </pluginManagement>

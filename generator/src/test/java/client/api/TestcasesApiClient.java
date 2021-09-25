@@ -3,15 +3,15 @@ package client.api;
 import client.model.Failure;
 import client.model.GetInlineObjectInArray200;
 import com.google.gson.reflect.TypeToken;
+import io.github.ruedigerk.contractfirst.generator.client.ApiClientIoException;
+import io.github.ruedigerk.contractfirst.generator.client.ApiClientSupport;
+import io.github.ruedigerk.contractfirst.generator.client.ApiClientUndefinedResponseException;
+import io.github.ruedigerk.contractfirst.generator.client.ApiClientValidationException;
+import io.github.ruedigerk.contractfirst.generator.client.DefinedResponse;
+import io.github.ruedigerk.contractfirst.generator.client.GenericResponse;
+import io.github.ruedigerk.contractfirst.generator.client.internal.Operation;
+import io.github.ruedigerk.contractfirst.generator.client.internal.StatusCode;
 import java.util.List;
-import org.contractfirst.generator.client.ApiClientIoException;
-import org.contractfirst.generator.client.ApiClientSupport;
-import org.contractfirst.generator.client.ApiClientUndefinedResponseException;
-import org.contractfirst.generator.client.ApiClientValidationException;
-import org.contractfirst.generator.client.DefinedResponse;
-import org.contractfirst.generator.client.GenericResponse;
-import org.contractfirst.generator.client.internal.Operation;
-import org.contractfirst.generator.client.internal.StatusCode;
 
 public class TestcasesApiClient {
   private final ApiClientSupport support;

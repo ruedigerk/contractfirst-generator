@@ -3,17 +3,17 @@ package client.api;
 import client.model.Clock;
 import client.model.ClockResponse;
 import client.model.Failure;
+import io.github.ruedigerk.contractfirst.generator.client.ApiClientIoException;
+import io.github.ruedigerk.contractfirst.generator.client.ApiClientSupport;
+import io.github.ruedigerk.contractfirst.generator.client.ApiClientUndefinedResponseException;
+import io.github.ruedigerk.contractfirst.generator.client.ApiClientValidationException;
+import io.github.ruedigerk.contractfirst.generator.client.DefinedResponse;
+import io.github.ruedigerk.contractfirst.generator.client.GenericResponse;
+import io.github.ruedigerk.contractfirst.generator.client.internal.Operation;
+import io.github.ruedigerk.contractfirst.generator.client.internal.ParameterLocation;
+import io.github.ruedigerk.contractfirst.generator.client.internal.StatusCode;
 import java.time.LocalDate;
 import java.time.OffsetDateTime;
-import org.contractfirst.generator.client.ApiClientIoException;
-import org.contractfirst.generator.client.ApiClientSupport;
-import org.contractfirst.generator.client.ApiClientUndefinedResponseException;
-import org.contractfirst.generator.client.ApiClientValidationException;
-import org.contractfirst.generator.client.DefinedResponse;
-import org.contractfirst.generator.client.GenericResponse;
-import org.contractfirst.generator.client.internal.Operation;
-import org.contractfirst.generator.client.internal.ParameterLocation;
-import org.contractfirst.generator.client.internal.StatusCode;
 
 public class TimeApiClient {
   private final ApiClientSupport support;

@@ -6,7 +6,7 @@
    <packaging>maven-plugin</packaging>
 
    <parent>
-      <groupId>org.contractfirst.generator</groupId>
+      <groupId>io.github.ruedigerk.contractfirst.generator</groupId>
       <artifactId>contractfirst-generator-parent</artifactId>
       <version>1.0-SNAPSHOT</version>
    </parent>
@@ -67,7 +67,7 @@
       <!-- #################### -->
       <dependency>
          <!-- Dependency on the generator module -->
-         <groupId>org.contractfirst.generator</groupId>
+         <groupId>io.github.ruedigerk.contractfirst.generator</groupId>
          <artifactId>contractfirst-generator</artifactId>
          <version>${project.version}</version>
       </dependency>

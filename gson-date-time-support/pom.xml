@@ -5,7 +5,7 @@
    <artifactId>contractfirst-generator-gson-date-time-support</artifactId>
 
    <parent>
-      <groupId>org.contractfirst.generator</groupId>
+      <groupId>io.github.ruedigerk.contractfirst.generator</groupId>
       <artifactId>contractfirst-generator-parent</artifactId>
       <version>1.0-SNAPSHOT</version>
    </parent>
