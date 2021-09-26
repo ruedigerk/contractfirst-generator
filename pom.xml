@@ -222,24 +222,6 @@
             </plugin>
 
             <plugin>
-               <!-- Adding gpg signatures is required for publishing to Maven Central -->
-               <artifactId>maven-gpg-plugin</artifactId>
-               <version>${maven-gpg-plugin.version}</version>
-               <executions>
-                  <execution>
-                     <id>sign-artifacts</id>
-                     <phase>verify</phase>
-                     <goals>
-                        <goal>sign</goal>
-                     </goals>
-                  </execution>
-               </executions>
-               <configuration>
-                  <passphraseServerId>gpg-key</passphraseServerId>
-               </configuration>
-            </plugin>
-
-            <plugin>
                <!-- Adding Javadoc JARs is required for publishing to Maven Central, this is for Kotlin code -->
                <groupId>org.jetbrains.dokka</groupId>
                <artifactId>dokka-maven-plugin</artifactId>
@@ -264,6 +246,35 @@
                         <version>${dokka.version}</version>
                      </plugin>
                   </dokkaPlugins>
+               </configuration>
+            </plugin>
+
+            <plugin>
+               <!-- Adding gpg signatures is required for publishing to Maven Central -->
+               <artifactId>maven-gpg-plugin</artifactId>
+               <version>${maven-gpg-plugin.version}</version>
+               <executions>
+                  <execution>
+                     <id>sign-artifacts</id>
+                     <phase>verify</phase>
+                     <goals>
+                        <goal>sign</goal>
+                     </goals>
+                  </execution>
+               </executions>
+               <configuration>
+                  <passphraseServerId>gpg-key</passphraseServerId>
+               </configuration>
+            </plugin>
+
+            <plugin>
+               <!-- For performing releases -->
+               <artifactId>maven-release-plugin</artifactId>
+               <version>${maven-release-plugin.version}</version>
+               <configuration>
+                  <autoVersionSubmodules>true</autoVersionSubmodules>
+                  <useReleaseProfile>false</useReleaseProfile>
+                  <releaseProfiles>release</releaseProfiles>
                </configuration>
             </plugin>
 
@@ -307,6 +318,20 @@
          </plugins>
       </pluginManagement>
    </build>
+
+   <profiles>
+      <profile>
+         <!-- Generate GPG signatures for published artifacts. Sources and Javadocs are configured per module. -->
+         <id>release</id>
+         <build>
+            <plugins>
+               <plugin>
+                  <artifactId>maven-gpg-plugin</artifactId>
+               </plugin>
+            </plugins>
+         </build>
+      </profile>
+   </profiles>
 
    <dependencyManagement>
       <dependencies>
