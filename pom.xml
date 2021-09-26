@@ -30,8 +30,8 @@
       <connection>scm:git:git://github.com/ruedigerk/contractfirst-generator.git</connection>
       <developerConnection>scm:git:git@github.com:ruedigerk/contractfirst-generator.git</developerConnection>
       <url>https://github.com/ruedigerk/contractfirst-generator</url>
-     <tag>HEAD</tag>
-  </scm>
+      <tag>HEAD</tag>
+   </scm>
 
    <distributionManagement>
       <snapshotRepository>
