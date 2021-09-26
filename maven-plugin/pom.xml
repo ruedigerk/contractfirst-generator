@@ -36,6 +36,23 @@
       </plugins>
    </build>
 
+   <profiles>
+      <profile>
+         <!-- Generate source and Javadoc JARs during release -->
+         <id>release</id>
+         <build>
+            <plugins>
+               <plugin>
+                  <artifactId>maven-source-plugin</artifactId>
+               </plugin>
+               <plugin>
+                  <artifactId>maven-javadoc-plugin</artifactId>
+               </plugin>
+            </plugins>
+         </build>
+      </profile>
+   </profiles>
+
    <dependencies>
       <!-- ##################################################################### -->
       <!-- Dependencies provided by the Maven "binaries" when running the plugin -->
@@ -70,12 +87,6 @@
          <groupId>io.github.ruedigerk.contractfirst.generator</groupId>
          <artifactId>contractfirst-generator</artifactId>
          <version>${project.version}</version>
-      </dependency>
-      <dependency>
-         <!-- Kotlin standard library for JDK 8+ -->
-         <groupId>org.jetbrains.kotlin</groupId>
-         <artifactId>kotlin-stdlib-jdk8</artifactId>
-         <version>${kotlin.version}</version>
       </dependency>
    </dependencies>
 

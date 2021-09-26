@@ -1,5 +1,6 @@
 <?xml version="1.0" encoding="UTF-8"?>
-<project xmlns="http://maven.apache.org/POM/4.0.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/maven-v4_0_0.xsd">
+<project xmlns="http://maven.apache.org/POM/4.0.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+   xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/maven-v4_0_0.xsd">
    <modelVersion>4.0.0</modelVersion>
 
    <artifactId>contractfirst-generator</artifactId>
@@ -30,6 +31,24 @@
          </plugin>
       </plugins>
    </build>
+
+   <profiles>
+      <profile>
+         <!-- Generate source and Javadoc JARs during release -->
+         <id>release</id>
+         <build>
+            <plugins>
+               <plugin>
+                  <artifactId>maven-source-plugin</artifactId>
+               </plugin>
+               <plugin>
+                  <groupId>org.jetbrains.dokka</groupId>
+                  <artifactId>dokka-maven-plugin</artifactId>
+               </plugin>
+            </plugins>
+         </build>
+      </profile>
+   </profiles>
 
    <dependencies>
       <!-- #################### -->
@@ -130,7 +149,7 @@
          <version>${gson.version}</version>
          <scope>test</scope>
       </dependency>
-      
+
       <!-- Dependencies of the generated client Code -->
       <dependency>
          <groupId>io.github.ruedigerk.contractfirst.generator</groupId>

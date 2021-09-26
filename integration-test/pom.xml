@@ -35,7 +35,7 @@
    <build>
       <plugins>
          <plugin>
-            <!-- Java compiler needs to run after Kotlin compiler, see https://kotlinlang.org/docs/maven.html#compile-kotlin-and-java-sources -->
+            <!-- Compile Java sources -->
             <artifactId>maven-compiler-plugin</artifactId>
          </plugin>
 

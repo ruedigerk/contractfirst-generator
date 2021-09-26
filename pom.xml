@@ -1,5 +1,6 @@
 <?xml version="1.0" encoding="UTF-8"?>
-<project xmlns="http://maven.apache.org/POM/4.0.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/maven-v4_0_0.xsd">
+<project xmlns="http://maven.apache.org/POM/4.0.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+   xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/maven-v4_0_0.xsd">
    <modelVersion>4.0.0</modelVersion>
 
    <groupId>io.github.ruedigerk.contractfirst.generator</groupId>
@@ -35,11 +36,11 @@
    <distributionManagement>
       <snapshotRepository>
          <id>ossrh</id>
-         <url>https://oss.sonatype.org/content/repositories/snapshots</url>
+         <url>https://s01.oss.sonatype.org/content/repositories/snapshots</url>
       </snapshotRepository>
       <repository>
          <id>ossrh</id>
-         <url>https://oss.sonatype.org/service/local/staging/deploy/maven2/</url>
+         <url>https://s01.oss.sonatype.org/service/local/staging/deploy/maven2/</url>
       </repository>
    </distributionManagement>
 
@@ -47,7 +48,6 @@
       <!-- Build setup -->
       <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
       <project.reporting.outputEncoding>UTF-8</project.reporting.outputEncoding>
-      <maven.javadoc.skip>true</maven.javadoc.skip>
 
       <!-- Language versions -->
       <target-jdk.release>8</target-jdk.release>
@@ -55,23 +55,25 @@
       <kotlin.version>1.5.30</kotlin.version>
       <groovy.version>2.5.15</groovy.version>
 
-      <!-- Apache plugin versions -->
+      <!-- Maven project plugin versions -->
       <maven-clean-plugin.version>3.1.0</maven-clean-plugin.version>
       <maven-compiler-plugin.version>3.8.1</maven-compiler-plugin.version>
       <maven-dependency-plugin.version>3.1.2</maven-dependency-plugin.version>
       <maven-deploy-plugin.version>2.8.2</maven-deploy-plugin.version>
       <maven-failsafe-plugin.version>2.22.2</maven-failsafe-plugin.version>
+      <maven-gpg-plugin.version>3.0.1</maven-gpg-plugin.version>
       <maven-install-plugin.version>2.5.2</maven-install-plugin.version>
       <maven-jar-plugin.version>3.2.0</maven-jar-plugin.version>
+      <maven-javadoc-plugin.version>3.3.1</maven-javadoc-plugin.version>
       <maven-release-plugin.version>2.5.3</maven-release-plugin.version>
       <maven-resources-plugin.version>3.2.0</maven-resources-plugin.version>
-      <maven-scm-provider-jgit.version>1.10.0</maven-scm-provider-jgit.version>
       <maven-site-plugin.version>3.9.1</maven-site-plugin.version>
       <maven-source-plugin.version>3.2.1</maven-source-plugin.version>
       <maven-surefire-plugin.version>2.22.2</maven-surefire-plugin.version>
 
-      <!-- Other plugin versions -->
+      <!-- Third party plugin versions -->
       <gmavenplus-plugin.version>1.13.0</gmavenplus-plugin.version>
+      <dokka.version>1.5.30</dokka.version>
 
       <!-- Dependency versions -->
       <bean-validation.version>1.1.0.Final</bean-validation.version>
@@ -184,6 +186,84 @@
                         </includes>
                      </testSource>
                   </testSources>
+               </configuration>
+            </plugin>
+
+            <plugin>
+               <!-- Adding source JARs is required for publishing to Maven Central -->
+               <artifactId>maven-source-plugin</artifactId>
+               <version>${maven-source-plugin.version}</version>
+               <executions>
+                  <execution>
+                     <id>attach-sources</id>
+                     <goals>
+                        <goal>jar-no-fork</goal>
+                     </goals>
+                  </execution>
+               </executions>
+            </plugin>
+
+            <plugin>
+               <!-- Adding Javadoc JARs is required for publishing to Maven Central -->
+               <artifactId>maven-javadoc-plugin</artifactId>
+               <version>${maven-javadoc-plugin.version}</version>
+               <executions>
+                  <execution>
+                     <id>attach-javadocs</id>
+                     <goals>
+                        <goal>jar</goal>
+                     </goals>
+                  </execution>
+               </executions>
+               <configuration>
+                  <source>${target-jdk.version}</source>
+                  <doclint>reference,syntax</doclint>
+               </configuration>
+            </plugin>
+
+            <plugin>
+               <!-- Adding gpg signatures is required for publishing to Maven Central -->
+               <artifactId>maven-gpg-plugin</artifactId>
+               <version>${maven-gpg-plugin.version}</version>
+               <executions>
+                  <execution>
+                     <id>sign-artifacts</id>
+                     <phase>verify</phase>
+                     <goals>
+                        <goal>sign</goal>
+                     </goals>
+                  </execution>
+               </executions>
+               <configuration>
+                  <passphraseServerId>gpg-key</passphraseServerId>
+               </configuration>
+            </plugin>
+
+            <plugin>
+               <!-- Adding Javadoc JARs is required for publishing to Maven Central, this is for Kotlin code -->
+               <groupId>org.jetbrains.dokka</groupId>
+               <artifactId>dokka-maven-plugin</artifactId>
+               <version>${dokka.version}</version>
+               <executions>
+                  <execution>
+                     <phase>package</phase>
+                     <goals>
+                        <goal>javadocJar</goal>
+                     </goals>
+                  </execution>
+               </executions>
+               <configuration>
+                  <jdkVersion>${target-jdk.release}</jdkVersion>
+                  <sourceDirectories>
+                     <directory>${project.basedir}/src/main/kotlin</directory>
+                  </sourceDirectories>
+                  <dokkaPlugins>
+                     <plugin>
+                        <groupId>org.jetbrains.dokka</groupId>
+                        <artifactId>kotlin-as-java-plugin</artifactId>
+                        <version>${dokka.version}</version>
+                     </plugin>
+                  </dokkaPlugins>
                </configuration>
             </plugin>
 
