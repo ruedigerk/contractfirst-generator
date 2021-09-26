@@ -1,6 +1,9 @@
 Contractfirst-Generator
 =======================
 
+[![Maven Central](https://img.shields.io/maven-central/v/io.github.ruedigerk.contractfirst.generator/contractfirst-generator-parent?label=Available%20on%20Maven%20Central&style=flat-square)](https://search.maven.org/search?q=g:io.github.ruedigerk.contractfirst.generator)
+[![GitHub](https://img.shields.io/github/license/ruedigerk/contractfirst-generator?label=License&style=flat-square)](https://github.com/ruedigerk/contractfirst-generator/blob/master/LICENSE.txt)
+
 Contractfirst-Generator is a code generator for OpenAPI 3 contracts, enabling a contract-first approach to developing REST APIs.
 
 Currently, it consists of two different code generators:
