@@ -8,7 +8,7 @@
    <parent>
       <groupId>io.github.ruedigerk.contractfirst.generator</groupId>
       <artifactId>contractfirst-generator-parent</artifactId>
-      <version>1.0-SNAPSHOT</version>
+      <version>1.0.0</version>
    </parent>
 
    <properties>
