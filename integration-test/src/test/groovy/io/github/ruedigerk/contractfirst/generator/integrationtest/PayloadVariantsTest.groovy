@@ -1,7 +1,6 @@
 package io.github.ruedigerk.contractfirst.generator.integrationtest
 
 import com.google.gson.reflect.TypeToken
-import okhttp3.logging.HttpLoggingInterceptor
 import io.github.ruedigerk.contractfirst.generator.client.DefinedResponse
 import io.github.ruedigerk.contractfirst.generator.client.GenericResponse
 import io.github.ruedigerk.contractfirst.generator.integrationtest.generated.client.api.PayloadVariantsApiClient
@@ -9,12 +8,13 @@ import io.github.ruedigerk.contractfirst.generator.integrationtest.generated.cli
 import io.github.ruedigerk.contractfirst.generator.integrationtest.generated.server.model.SItem
 import io.github.ruedigerk.contractfirst.generator.integrationtest.generated.server.resources.PayloadVariantsApi
 import io.github.ruedigerk.contractfirst.generator.integrationtest.spec.EmbeddedJaxRsServerSpecification
+import okhttp3.logging.HttpLoggingInterceptor
 import spock.lang.Subject
 
 /**
  * Tests for various request and response payloads.
  */
-class PayloadVariantsTest extends io.github.ruedigerk.contractfirst.generator.integrationtest.spec.EmbeddedJaxRsServerSpecification {
+class PayloadVariantsTest extends EmbeddedJaxRsServerSpecification {
 
   @Subject
   PayloadVariantsApiClient restClient = new PayloadVariantsApiClient(restClientSupport)
@@ -32,10 +32,10 @@ class PayloadVariantsTest extends io.github.ruedigerk.contractfirst.generator.in
     noExceptionThrown()
 
     when:
-    io.github.ruedigerk.contractfirst.generator.client.GenericResponse genericResponse = restClient.changeItemWithResponse(new CItem(id: 1L, name: "Buddy", tag: "new tag"))
+    GenericResponse genericResponse = restClient.changeItemWithResponse(new CItem(id: 1L, name: "Buddy", tag: "new tag"))
 
     then:
-    io.github.ruedigerk.contractfirst.generator.client.DefinedResponse response = genericResponse.asDefinedResponse()
+    DefinedResponse response = genericResponse.asDefinedResponse()
     response.request.url == "$BASE_URL/itemBinaries"
     response.request.method == "POST"
     response.statusCode == 204
@@ -57,10 +57,10 @@ class PayloadVariantsTest extends io.github.ruedigerk.contractfirst.generator.in
     responseItems == expectedOutput
 
     when:
-    io.github.ruedigerk.contractfirst.generator.client.GenericResponse genericResponse = restClient.filterItemsWithResponse(input)
+    GenericResponse genericResponse = restClient.filterItemsWithResponse(input)
 
     then:
-    io.github.ruedigerk.contractfirst.generator.client.DefinedResponse response = genericResponse.asDefinedResponse()
+    DefinedResponse response = genericResponse.asDefinedResponse()
     response.request.url == "$BASE_URL/items"
     response.request.method == "POST"
     response.statusCode == 200
@@ -84,10 +84,10 @@ class PayloadVariantsTest extends io.github.ruedigerk.contractfirst.generator.in
     responseBytes == pdfBytes
 
     when:
-    io.github.ruedigerk.contractfirst.generator.client.GenericResponse genericResponse = restClient.uploadAndReturnBinaryWithResponse(new ByteArrayInputStream(pdfBytes))
+    GenericResponse genericResponse = restClient.uploadAndReturnBinaryWithResponse(new ByteArrayInputStream(pdfBytes))
 
     then:
-    io.github.ruedigerk.contractfirst.generator.client.DefinedResponse response = genericResponse.asDefinedResponse()
+    DefinedResponse response = genericResponse.asDefinedResponse()
     response.request.url == "$BASE_URL/itemBinaries"
     response.request.method == "PUT"
     response.statusCode == 200

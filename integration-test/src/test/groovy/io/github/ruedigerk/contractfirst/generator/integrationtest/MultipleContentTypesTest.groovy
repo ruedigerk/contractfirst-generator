@@ -1,6 +1,5 @@
 package io.github.ruedigerk.contractfirst.generator.integrationtest
 
-import okhttp3.logging.HttpLoggingInterceptor
 import io.github.ruedigerk.contractfirst.generator.client.DefinedResponse
 import io.github.ruedigerk.contractfirst.generator.client.GenericResponse
 import io.github.ruedigerk.contractfirst.generator.client.Header
@@ -9,9 +8,10 @@ import io.github.ruedigerk.contractfirst.generator.integrationtest.generated.cli
 import io.github.ruedigerk.contractfirst.generator.integrationtest.generated.server.model.SManual
 import io.github.ruedigerk.contractfirst.generator.integrationtest.generated.server.resources.MultipleContentTypesApi
 import io.github.ruedigerk.contractfirst.generator.integrationtest.spec.EmbeddedJaxRsServerSpecification
+import okhttp3.logging.HttpLoggingInterceptor
 import spock.lang.Subject
 
-class MultipleContentTypesTest extends io.github.ruedigerk.contractfirst.generator.integrationtest.spec.EmbeddedJaxRsServerSpecification {
+class MultipleContentTypesTest extends EmbeddedJaxRsServerSpecification {
 
   @Subject
   MultipleContentTypesApiClient restClient = new MultipleContentTypesApiClient(restClientSupport)
@@ -26,10 +26,10 @@ class MultipleContentTypesTest extends io.github.ruedigerk.contractfirst.generat
     setLoggingInterceptorLevel(HttpLoggingInterceptor.Level.HEADERS)
 
     when:
-    io.github.ruedigerk.contractfirst.generator.client.GenericResponse genericResponse = restClient.getManualWithResponse("application/json")
+    GenericResponse genericResponse = restClient.getManualWithResponse("application/json")
 
     then:
-    io.github.ruedigerk.contractfirst.generator.client.DefinedResponse response = genericResponse.asDefinedResponse()
+    DefinedResponse response = genericResponse.asDefinedResponse()
     response.request.url == "$BASE_URL/manuals"
     response.request.method == "GET"
     response.request.headers == [

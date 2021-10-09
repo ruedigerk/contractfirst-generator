@@ -1,6 +1,6 @@
 package io.github.ruedigerk.contractfirst.generator
 
-import io.swagger.v3.oas.models.OpenAPI
+import io.github.ruedigerk.contractfirst.generator.java.Identifiers.toJavaTypeIdentifier
 import io.github.ruedigerk.contractfirst.generator.java.generator.ClientGenerator
 import io.github.ruedigerk.contractfirst.generator.java.generator.ModelGenerator
 import io.github.ruedigerk.contractfirst.generator.java.generator.ServerStubGenerator
@@ -10,6 +10,7 @@ import io.github.ruedigerk.contractfirst.generator.logging.LogAdapter
 import io.github.ruedigerk.contractfirst.generator.parser.Parser
 import io.github.ruedigerk.contractfirst.generator.parser.ParserException
 import io.github.ruedigerk.contractfirst.generator.serializer.YamlSerializer
+import io.swagger.v3.oas.models.OpenAPI
 import java.io.File
 
 /**
@@ -24,9 +25,11 @@ class ContractfirstGenerator(logAdapter: LogAdapter) {
    * @throws NotSupportedException when an OpenAPI feature is used in the input contract that is not supported by the generator.
    * @throws ParserException when the input contract is invalid and cannot be parsed.
    */
-  @Throws(NotSupportedException::class, ParserException::class)
+  @Throws(NotSupportedException::class, ParserException::class, InvalidConfigurationException::class)
   fun generate(configuration: Configuration) {
     log.debug { "Configuration:\n${configuration.prettyPrint()}" }
+
+    validateConfiguration(configuration)
 
     val specification = Parser(log).parse(configuration.inputContractFile)
 
@@ -42,6 +45,17 @@ class ContractfirstGenerator(logAdapter: LogAdapter) {
     }
 
     ModelGenerator(configuration).generateCode(javaSpecification)
+  }
+
+  // TODO: also validate the other configuration parameters
+  @Throws(InvalidConfigurationException::class)
+  private fun validateConfiguration(configuration: Configuration) {
+    if (configuration.outputJavaModelNamePrefix.isNotEmpty() && configuration.outputJavaModelNamePrefix != configuration.outputJavaModelNamePrefix.toJavaTypeIdentifier()) {
+      throw InvalidConfigurationException(
+          "parameter outputJavaModelNamePrefix: \"${configuration.outputJavaModelNamePrefix}\" is not a valid prefix for a Java class name, " +
+              "e.g. it must start with an upper case letter and must not contain spaces or invalid characters."
+      )
+    }
   }
 
   private fun writeParsedContract(configuration: Configuration, openApi: OpenAPI) {

@@ -1,5 +1,13 @@
 package io.github.ruedigerk.contractfirst.generator.mavenplugin;
 
+import com.google.common.base.Throwables;
+import io.github.ruedigerk.contractfirst.generator.Configuration;
+import io.github.ruedigerk.contractfirst.generator.ContractfirstGenerator;
+import io.github.ruedigerk.contractfirst.generator.GeneratorType;
+import io.github.ruedigerk.contractfirst.generator.InvalidConfigurationException;
+import io.github.ruedigerk.contractfirst.generator.NotSupportedException;
+import io.github.ruedigerk.contractfirst.generator.logging.LogAdapter;
+import io.github.ruedigerk.contractfirst.generator.parser.ParserException;
 import org.apache.maven.plugin.AbstractMojo;
 import org.apache.maven.plugin.MojoExecutionException;
 import org.apache.maven.plugin.MojoFailureException;
@@ -7,17 +15,12 @@ import org.apache.maven.plugins.annotations.LifecyclePhase;
 import org.apache.maven.plugins.annotations.Mojo;
 import org.apache.maven.plugins.annotations.Parameter;
 import org.apache.maven.project.MavenProject;
-import io.github.ruedigerk.contractfirst.generator.Configuration;
-import io.github.ruedigerk.contractfirst.generator.ContractfirstGenerator;
-import io.github.ruedigerk.contractfirst.generator.GeneratorType;
-import io.github.ruedigerk.contractfirst.generator.NotSupportedException;
-import io.github.ruedigerk.contractfirst.generator.logging.LogAdapter;
-import io.github.ruedigerk.contractfirst.generator.parser.ParserException;
 
 /**
  * Goal for generating sources from an OpenAPI contract.
  */
 @Mojo(name = "generate", defaultPhase = LifecyclePhase.GENERATE_SOURCES)
+@SuppressWarnings("FieldMayBeFinal")
 public class CodeGeneratorMojo extends AbstractMojo {
 
   // See https://developer.okta.com/blog/2019/09/23/tutorial-build-a-maven-plugin
@@ -64,10 +67,10 @@ public class CodeGeneratorMojo extends AbstractMojo {
   private String outputJavaBasePackage;
 
   /**
-   * the prefix for file names of the Java model
+   * the prefix for Java model class names; defaults to the empty String
    */
-  @Parameter(name = "outputJavaNamePrefix", property = "openapi.generator.maven.plugin.outputJavaNamePrefix", defaultValue = "")
-  private String outputJavaNamePrefix;
+  @Parameter(name = "outputJavaModelNamePrefix", property = "openapi.generator.maven.plugin.outputJavaModelNamePrefix")
+  private String outputJavaModelNamePrefix = "";
 
   /**
    * skip execution of this plugin
@@ -76,7 +79,7 @@ public class CodeGeneratorMojo extends AbstractMojo {
   private boolean skip = false;
 
   /**
-   * For adding the generated sources root.
+   * Dependency on the Maven project instance for adding the generated sources root.
    */
   @Parameter(defaultValue = "${project}", readonly = true)
   private MavenProject project;
@@ -88,23 +91,38 @@ public class CodeGeneratorMojo extends AbstractMojo {
       return;
     }
 
+    getLog().debug(getConfigurationAsString());
+
     Configuration config = determineConfiguration();
 
-    getLog().info("Running code generation for contract '" + config.getInputContractFile() + "'...");
+    getLog().info("Running code generation for contract '" + config.getInputContractFile() + "'");
 
     addGeneratedSourcesRoot(config);
     runGenerator(config);
   }
 
+  private String getConfigurationAsString() {
+    return "Configuration:" +
+        "\n\tinputContractFile='" + inputContractFile + '\'' +
+        "\n\tgenerator='" + generator + '\'' +
+        "\n\toutputDir='" + outputDir + '\'' +
+        "\n\toutputContract=" + outputContract +
+        "\n\toutputContractFile='" + outputContractFile + '\'' +
+        "\n\toutputJavaBasePackage='" + outputJavaBasePackage + '\'' +
+        "\n\toutputJavaModelNamePrefix='" + outputJavaModelNamePrefix + '\'' +
+        "\n\tskip=" + skip +
+        "\n\tproject=" + project;
+  }
+
   private Configuration determineConfiguration() throws MojoExecutionException {
     return new Configuration(
-        require(inputContractFile),
+        inputContractFile,
         determineGenerator(),
-        require(outputDir),
+        outputDir,
         outputContract,
-        require(outputContractFile),
-        require(outputJavaBasePackage),
-        require(outputJavaNamePrefix)
+        outputContractFile,
+        outputJavaBasePackage,
+        outputJavaModelNamePrefix
     );
   }
 
@@ -119,8 +137,8 @@ public class CodeGeneratorMojo extends AbstractMojo {
     }
   }
 
-  private void addGeneratedSourcesRoot(Configuration config) throws MojoExecutionException {
-    require(project).addCompileSourceRoot(config.getOutputDir());
+  private void addGeneratedSourcesRoot(Configuration config) {
+    project.addCompileSourceRoot(config.getOutputDir());
   }
 
   private void runGenerator(Configuration config) throws MojoFailureException {
@@ -131,14 +149,11 @@ public class CodeGeneratorMojo extends AbstractMojo {
       throw new MojoFailureException("Could not parse contract: " + String.join("\n", e.getMessages()));
     } catch (NotSupportedException e) {
       throw new MojoFailureException("Contract contains usage of unsupported feature: " + e.getMessage());
+    } catch (InvalidConfigurationException e) {
+      throw new MojoFailureException("Invalid configuration " + e.getMessage());
+    } catch (Exception e) {
+      getLog().error("Generator failed with an unexpected exception: " + Throwables.getStackTraceAsString(e));
+      throw new MojoFailureException("Generator failed with an unexpected exception: " + e);
     }
-  }
-
-  private <T> T require(T input) throws MojoExecutionException {
-    if (input == null) {
-      throw new MojoExecutionException("Mojo not properly initialized, parameter is null");
-    }
-
-    return input;
   }
 }

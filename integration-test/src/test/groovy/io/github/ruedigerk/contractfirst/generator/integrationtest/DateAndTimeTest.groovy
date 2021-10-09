@@ -15,7 +15,7 @@ import java.time.OffsetDateTime
 /**
  * Tests date and date-time formats used at different places in the contract.
  */
-class DateAndTimeTest extends io.github.ruedigerk.contractfirst.generator.integrationtest.spec.EmbeddedJaxRsServerSpecification {
+class DateAndTimeTest extends EmbeddedJaxRsServerSpecification {
 
   @Subject
   TimeApiClient restClient = new TimeApiClient(restClientSupport)
@@ -52,7 +52,7 @@ class DateAndTimeTest extends io.github.ruedigerk.contractfirst.generator.integr
   /**
    * JAX-RS resource implementation used in this test.
    */
-  static class EmbeddedServerResource implements io.github.ruedigerk.contractfirst.generator.integrationtest.generated.server.resources.TimeApi {
+  static class EmbeddedServerResource implements TimeApi {
 
     @Override
     UpdateTimeResponse updateTime(

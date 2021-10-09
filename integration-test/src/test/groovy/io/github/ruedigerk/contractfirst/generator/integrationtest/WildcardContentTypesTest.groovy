@@ -1,15 +1,14 @@
 package io.github.ruedigerk.contractfirst.generator.integrationtest
 
-import okhttp3.logging.HttpLoggingInterceptor
 import io.github.ruedigerk.contractfirst.generator.client.DefinedResponse
 import io.github.ruedigerk.contractfirst.generator.client.GenericResponse
 import io.github.ruedigerk.contractfirst.generator.integrationtest.generated.client.api.WildcardContentTypesApiClient
 import io.github.ruedigerk.contractfirst.generator.integrationtest.generated.server.resources.WildcardContentTypesApi
 import io.github.ruedigerk.contractfirst.generator.integrationtest.spec.EmbeddedJaxRsServerSpecification
+import okhttp3.logging.HttpLoggingInterceptor
 import spock.lang.Subject
 
-import javax.ws.rs.core.Response
-
+import javax.ws.rs.core.Response 
 /**
  * Test for wildcards in response content types.
  */
@@ -25,8 +24,8 @@ class WildcardContentTypesTest extends EmbeddedJaxRsServerSpecification {
 
   def "Operation with multiple wildcard response content types"() {
     when:
-    io.github.ruedigerk.contractfirst.generator.client.GenericResponse genericResponse = restClient.getWildcardContentTypesWithResponse("text")
-    io.github.ruedigerk.contractfirst.generator.client.DefinedResponse response = genericResponse.asDefinedResponse()
+    GenericResponse genericResponse = restClient.getWildcardContentTypesWithResponse("text")
+    DefinedResponse response = genericResponse.asDefinedResponse()
 
     then:
     response.request.url == "$BASE_URL/wildcardContentTypes"
@@ -57,7 +56,7 @@ class WildcardContentTypesTest extends EmbeddedJaxRsServerSpecification {
   /**
    * JAX-RS resource implementation used in this test.
    */
-  static class EmbeddedServerResource implements io.github.ruedigerk.contractfirst.generator.integrationtest.generated.server.resources.WildcardContentTypesApi {
+  static class EmbeddedServerResource implements WildcardContentTypesApi {
 
     @Override
     GetWildcardContentTypesResponse getWildcardContentTypes(String testCaseSelector) {

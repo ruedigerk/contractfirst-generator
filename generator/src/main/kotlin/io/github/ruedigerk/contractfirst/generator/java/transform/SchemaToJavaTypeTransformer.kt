@@ -52,7 +52,7 @@ class SchemaToJavaTypeTransformer(private val log: Log, private val configuratio
   private fun determineName(schema: MSchemaNonRef): String {
     val name = when (val parent = schema.embeddedIn) {
       is MSchemaObject -> toJavaType(parent).name + suggestName(schema, schema.nameHint.removePrefix(parent.nameHint))
-      else -> configuration.outputJavaNamePrefix + suggestName(schema)
+      else -> configuration.outputJavaModelNamePrefix + suggestName(schema)
     }
 
     return uniqueNameFinder.toUniqueName(name)

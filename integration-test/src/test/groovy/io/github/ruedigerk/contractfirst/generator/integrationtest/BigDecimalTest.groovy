@@ -9,7 +9,7 @@ import spock.lang.Unroll
 /**
  * Tests serialization of schema type number to BigDecimal.
  */
-class BigDecimalTest extends io.github.ruedigerk.contractfirst.generator.integrationtest.spec.EmbeddedJaxRsServerSpecification {
+class BigDecimalTest extends EmbeddedJaxRsServerSpecification {
 
   @Subject
   BigDecimalsApiClient restClient = new BigDecimalsApiClient(restClientSupport)

@@ -48,6 +48,8 @@ object CommandLineInterface {
       exit(2) { "Could not parse contract: ${e.messages.joinToString("\n")}" }
     } catch (e: NotSupportedException) {
       exit(3) { "Contract contains unsupported usage: ${e.message}" }
+    } catch (e: InvalidConfigurationException) {
+      exit(4) { "Invalid configuration ${e.message}" }
     }
   }
 
@@ -63,7 +65,7 @@ object CommandLineInterface {
       cliConfiguration.outputContract,
       cliConfiguration.outputContractFile,
       cliConfiguration.outputJavaBasePackage,
-      cliConfiguration.outputJavaNamePrefix,
+      cliConfiguration.outputJavaModelNamePrefix,
   )
 
   private fun determineGenerator(generator: String): GeneratorType = when (generator) {
@@ -99,7 +101,7 @@ private class CliConfiguration(parser: ArgParser) {
 
   val outputJavaBasePackage: String by parser.storing("--output-java-base-package", help = "the Java package to put generated classes into")
 
-  val outputJavaNamePrefix: String by parser.storing("--output-java-name-prefix", help = "the prefix for model file names").default("")
+  val outputJavaModelNamePrefix: String by parser.storing("--output-java-model-name-prefix", help = "the prefix for Java model class names").default("")
 
   val verbose: Boolean by parser.flagging("--verbose", "-v", help = "verbose output")
 

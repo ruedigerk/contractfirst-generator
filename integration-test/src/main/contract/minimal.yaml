@@ -1,0 +1,35 @@
+openapi: "3.0.0"
+info:
+  version: 1.0.0
+  title: Minimal contract for testing the Maven plugin.
+servers:
+  - url: https://example.com/
+paths:
+  /v1/components:
+    post:
+      summary: Create a component.
+      operationId: createComponent
+      tags:
+        - V1Components
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/Component"
+      responses:
+        204:
+          description: Component created.
+                      
+components:
+  schemas:
+    Component:
+      description: A component.
+      required:
+        - id
+        - name
+      properties:
+        id:
+          type: string
+        name:
+          type: string

@@ -18,7 +18,7 @@ import javax.ws.rs.core.Response
 /**
  * Tests different variants of responses that a server can respond with.
  */
-class ResponseVariantsTest extends io.github.ruedigerk.contractfirst.generator.integrationtest.spec.EmbeddedJaxRsServerSpecification {
+class ResponseVariantsTest extends EmbeddedJaxRsServerSpecification {
 
   CItem item = new CItem(id: 42L, name: "name", tag: "tag")
 
@@ -198,7 +198,7 @@ class ResponseVariantsTest extends io.github.ruedigerk.contractfirst.generator.i
     def genericResponse = restClient.createItemWithResponse("systemId", false, 999, "undefined", item)
 
     then:
-    def response = genericResponse as io.github.ruedigerk.contractfirst.generator.client.UndefinedResponse
+    def response = genericResponse as UndefinedResponse
     response.request.url == "$BASE_URL/systemId/components?dryRun=false"
     response.request.method == "POST"
     response.request.headers == [
@@ -222,7 +222,7 @@ class ResponseVariantsTest extends io.github.ruedigerk.contractfirst.generator.i
     restClient.createItem("systemId", false, 999, "undefined", item)
 
     then:
-    def e = thrown io.github.ruedigerk.contractfirst.generator.client.ApiClientUndefinedResponseException
+    def e = thrown ApiClientUndefinedResponseException
     e.response.request.url == "$BASE_URL/systemId/components?dryRun=false"
     e.response.request.method == "POST"
     e.response.request.headers == [

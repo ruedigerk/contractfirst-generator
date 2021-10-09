@@ -51,31 +51,50 @@
             <version>${project.version}</version>
             <executions>
                <execution>
-                  <id>generate-server-code</id>
+                  <id>generate-integrationtest-server-code</id>
                   <goals>
                      <goal>generate</goal>
                   </goals>
                   <configuration>
                      <generator>server</generator>
+                     <inputContractFile>${project.basedir}/src/main/contract/testsuite.yaml</inputContractFile>
+                     <outputDir>${project.build.directory}/generated-sources/integrationtest</outputDir>
                      <outputJavaBasePackage>io.github.ruedigerk.contractfirst.generator.integrationtest.generated.server</outputJavaBasePackage>
-                     <outputJavaNamePrefix>S</outputJavaNamePrefix>
+                     <outputJavaModelNamePrefix>S</outputJavaModelNamePrefix>
                   </configuration>
                </execution>
                <execution>
-                  <id>generate-client-code</id>
+                  <id>generate-integrationtest-client-code</id>
                   <goals>
                      <goal>generate</goal>
                   </goals>
                   <configuration>
                      <generator>client</generator>
+                     <inputContractFile>${project.basedir}/src/main/contract/testsuite.yaml</inputContractFile>
+                     <outputDir>${project.build.directory}/generated-sources/integrationtest</outputDir>
                      <outputJavaBasePackage>io.github.ruedigerk.contractfirst.generator.integrationtest.generated.client</outputJavaBasePackage>
-                     <outputJavaNamePrefix>C</outputJavaNamePrefix>
+                     <outputJavaModelNamePrefix>C</outputJavaModelNamePrefix>
                   </configuration>
                </execution>
+               <execution>
+                  <id>test-plugin-parameter-defaults</id>
+                  <goals>
+                     <goal>generate</goal>
+                  </goals>
+                  <configuration>
+                     <generator>server</generator>
+                     <inputContractFile>${project.basedir}/src/main/contract/minimal.yaml</inputContractFile>
+                     <outputJavaBasePackage>io.github.ruedigerk.contractfirst.generator.integrationtest.defaults</outputJavaBasePackage>
+                  </configuration>
+               </execution>
+               <execution>
+                  <id>test-help-mojo</id>
+                  <goals>
+                     <goal>help</goal>
+                  </goals>
+                  <phase>generate-sources</phase>
+               </execution>
             </executions>
-            <configuration>
-               <inputContractFile>${project.basedir}/src/main/contract/testsuite.yaml</inputContractFile>
-            </configuration>
          </plugin>
       </plugins>
    </build>
