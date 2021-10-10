@@ -69,28 +69,3 @@ The generated client code needs the following dependencies:
         <artifactId>gson</artifactId>
         <version>2.8.7</version>
     </dependency>
-
-
-### Feature ideas
-
-- Make it possible to select the desired response content type (via Accept header), if the contract defines multiple response content types.
-- Optionally enable request body and parameter validation using BeanValidation.
-
-
-Unsupported features and ideas for improvement
-----------------------------------------------
-
-### General / in the parser
-
-- Add JSON-Pointers to exceptions/error messages to pinpoint the error origin.
-- Print out the YAML in case of error, as swagger-parser inlines external references and the error locations are based on this transformed contract.
-- Enums of a different primitive type than string
-- Status code ranges in responses, e.g. "2XX", see https://github.com/OAI/OpenAPI-Specification/blob/main/versions/3.0.2.md#responsesObject
-- Response headers, see "headers" at https://github.com/OAI/OpenAPI-Specification/blob/main/versions/3.0.2.md#responseObject
-- Array or object type schemas in request parameters
-- Support for oneOf, allOf, anyOf in schemas
-- Using Jackson instead of Gson for Serializing JSON.
-
-### In the server
-
-- Wildcard content types in operation responses (the server does not generate response methods that allow setting the content type)
