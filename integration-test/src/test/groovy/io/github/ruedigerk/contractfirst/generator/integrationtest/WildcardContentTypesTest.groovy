@@ -15,7 +15,7 @@ import javax.ws.rs.core.Response
 class WildcardContentTypesTest extends EmbeddedJaxRsServerSpecification {
 
   @Subject
-  WildcardContentTypesApiClient restClient = new WildcardContentTypesApiClient(restClientSupport)
+  WildcardContentTypesApiClient apiClient = new WildcardContentTypesApiClient(apiClientSupport)
 
   @Override
   Class<?> getTestResource() {
@@ -24,7 +24,7 @@ class WildcardContentTypesTest extends EmbeddedJaxRsServerSpecification {
 
   def "Operation with multiple wildcard response content types"() {
     when:
-    GenericResponse genericResponse = restClient.getWildcardContentTypesWithResponse("text")
+    GenericResponse genericResponse = apiClient.getWildcardContentTypesWithResponse("text")
     DefinedResponse response = genericResponse.asDefinedResponse()
 
     then:
@@ -40,7 +40,7 @@ class WildcardContentTypesTest extends EmbeddedJaxRsServerSpecification {
     // First, disable logging of request body
     setLoggingInterceptorLevel(HttpLoggingInterceptor.Level.HEADERS)
     
-    genericResponse = restClient.getWildcardContentTypesWithResponse("pdf")
+    genericResponse = apiClient.getWildcardContentTypesWithResponse("pdf")
     response = genericResponse.asDefinedResponse()
 
     then:

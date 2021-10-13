@@ -50,6 +50,16 @@ public class ApiClientSupport {
     gson = createGson();
   }
 
+  private static <T> T firstNonNull(T first, T second) {
+    return first != null ? first : Objects.requireNonNull(second);
+  }
+
+  private static List<Header> extractHeaders(Headers headers) {
+    return StreamSupport.stream(headers.spliterator(), false)
+        .map(pair -> new Header(pair.getFirst(), pair.getSecond()))
+        .collect(Collectors.toList());
+  }
+
   private OkHttpClient addInternalInterceptors(OkHttpClient httpClient) {
     return httpClient.newBuilder()
         .addNetworkInterceptor(new RequestAccessInterceptor())
@@ -95,22 +105,18 @@ public class ApiClientSupport {
       // late in the request processing, like Content-Type, Content-Size, etc.
       return new RequestAndResponse(RequestAccessInterceptor.getLastRequest(), response);
     } catch (IOException e) {
-      RequestDescription requestDescription = asCorrespondingRequest(RequestAccessInterceptor.getLastRequest());
+      // Special case for extremely short request timeouts, where the request times out even before the RequestAccessInterceptor was called
+      Request detailedRequest = firstNonNull(RequestAccessInterceptor.getLastRequest(), request);
+      RequestDescription requestDescription = toRequestDescription(detailedRequest);
       throw new ApiClientIoException("Error executing request: " + e, requestDescription, e);
     } finally {
       RequestAccessInterceptor.clearThreadLocal();
     }
   }
 
-  private RequestDescription asCorrespondingRequest(Request request) {
+  private RequestDescription toRequestDescription(Request request) {
     List<Header> headers = extractHeaders(request.headers());
     return new RequestDescription(request.url().toString(), request.method(), headers);
-  }
-
-  private static List<Header> extractHeaders(Headers headers) {
-    return StreamSupport.stream(headers.spliterator(), false)
-        .map(pair -> new Header(pair.getFirst(), pair.getSecond()))
-        .collect(Collectors.toList());
   }
 
   public Request createRequest(Operation operation) throws ApiClientIoException {
@@ -260,7 +266,7 @@ public class ApiClientSupport {
     int statusCode = response.code();
     String mediaType = response.header(CONTENT_TYPE_HEADER);
 
-    RequestDescription requestDescription = asCorrespondingRequest(request);
+    RequestDescription requestDescription = toRequestDescription(request);
     ResponseBuilder responseBuilder = new ResponseBuilder(requestDescription, statusCode, response.message(), mediaType, response.headers());
 
     try {
@@ -271,7 +277,7 @@ public class ApiClientSupport {
         // The response is not described in the contract, return an unexpected response.
         String bodyContent = responseBody.string();
         response.close();
-        return responseBuilder.undefinedResponse(bodyContent, "The combination of status code and content type is not defined in the contract");
+        return responseBuilder.undefinedResponse(bodyContent, "The combination of the response's status code and content type is unknown");
       } else if (javaType.equals(Void.TYPE)) {
         // The response should be empty according to the contract. Ignore body if exists.
         response.close();

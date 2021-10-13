@@ -23,7 +23,7 @@ class ResponseVariantsTest extends EmbeddedJaxRsServerSpecification {
   CItem item = new CItem(id: 42L, name: "name", tag: "tag")
 
   @Subject
-  ResponseVariantsApiClient restClient = new ResponseVariantsApiClient(restClientSupport)
+  ResponseVariantsApiClient apiClient = new ResponseVariantsApiClient(apiClientSupport)
 
   @Override
   Class<?> getTestResource() {
@@ -32,7 +32,7 @@ class ResponseVariantsTest extends EmbeddedJaxRsServerSpecification {
 
   def "Server response with explicitly defined 200"() {
     when:
-    def genericResponse = restClient.createItemWithResponse("systemId", true, 4711L, null, item)
+    def genericResponse = apiClient.createItemWithResponse("systemId", true, 4711L, null, item)
 
     then:
     def response = genericResponse.asDefinedResponse()
@@ -55,7 +55,7 @@ class ResponseVariantsTest extends EmbeddedJaxRsServerSpecification {
     response.entity == item
 
     when:
-    def createdItem = restClient.createItem("systemId", true, 4711L, null, item)
+    def createdItem = apiClient.createItem("systemId", true, 4711L, null, item)
 
     then:
     createdItem == item
@@ -63,7 +63,7 @@ class ResponseVariantsTest extends EmbeddedJaxRsServerSpecification {
 
   def "Server response with explicitly defined 201"() {
     when:
-    def genericResponse = restClient.createItemWithResponse("systemId", true, 4711L, "201", item)
+    def genericResponse = apiClient.createItemWithResponse("systemId", true, 4711L, "201", item)
 
     then:
     def response = genericResponse.asDefinedResponse()
@@ -87,7 +87,7 @@ class ResponseVariantsTest extends EmbeddedJaxRsServerSpecification {
     response.entity == null
 
     when:
-    def responseEntity = restClient.createItem("systemId", true, 4711L, "201", item)
+    def responseEntity = apiClient.createItem("systemId", true, 4711L, "201", item)
 
     then:
     responseEntity == null
@@ -95,7 +95,7 @@ class ResponseVariantsTest extends EmbeddedJaxRsServerSpecification {
 
   def "Server response with explicitly defined 204"() {
     when:
-    def genericResponse = restClient.createItemWithResponse("systemId", true, 4711L, "204", item)
+    def genericResponse = apiClient.createItemWithResponse("systemId", true, 4711L, "204", item)
 
     then:
     def response = genericResponse.asDefinedResponse()
@@ -119,7 +119,7 @@ class ResponseVariantsTest extends EmbeddedJaxRsServerSpecification {
     response.entity == null
 
     when:
-    def responseEntity = restClient.createItem("systemId", true, 4711L, "204", item)
+    def responseEntity = apiClient.createItem("systemId", true, 4711L, "204", item)
 
     then:
     responseEntity == null
@@ -127,7 +127,7 @@ class ResponseVariantsTest extends EmbeddedJaxRsServerSpecification {
 
   def "Server responds with explicitly defined 400"() {
     when:
-    def genericResponse = restClient.createItemWithResponse("systemId", false, 23, "400", item)
+    def genericResponse = apiClient.createItemWithResponse("systemId", false, 23, "400", item)
 
     then:
     def response = genericResponse.asDefinedResponse()
@@ -151,7 +151,7 @@ class ResponseVariantsTest extends EmbeddedJaxRsServerSpecification {
     response.entity == new CFailure(code: 400, message: "Unknown customer id: 23")
 
     when:
-    restClient.createItem("systemId", false, 23, "400", item)
+    apiClient.createItem("systemId", false, 23, "400", item)
 
     then:
     def e = thrown RestClientCFailureEntityException
@@ -161,7 +161,7 @@ class ResponseVariantsTest extends EmbeddedJaxRsServerSpecification {
 
   def "Server responds with 500, covered by default"() {
     when:
-    def genericResponse = restClient.createItemWithResponse("systemId", false, 42, "500", item)
+    def genericResponse = apiClient.createItemWithResponse("systemId", false, 42, "500", item)
 
     then:
     def response = genericResponse.asDefinedResponse()
@@ -185,7 +185,7 @@ class ResponseVariantsTest extends EmbeddedJaxRsServerSpecification {
     response.entity == new CFailure(code: 500, message: "Internal Server Error :(")
 
     when:
-    restClient.createItem("systemId", false, 42, "500", item)
+    apiClient.createItem("systemId", false, 42, "500", item)
 
     then:
     def e = thrown RestClientCFailureEntityException
@@ -195,7 +195,7 @@ class ResponseVariantsTest extends EmbeddedJaxRsServerSpecification {
 
   def "Server responds with response not conforming to the contract"() {
     when:
-    def genericResponse = restClient.createItemWithResponse("systemId", false, 999, "undefined", item)
+    def genericResponse = apiClient.createItemWithResponse("systemId", false, 999, "undefined", item)
 
     then:
     def response = genericResponse as UndefinedResponse
@@ -224,7 +224,7 @@ class ResponseVariantsTest extends EmbeddedJaxRsServerSpecification {
     response.cause == null
 
     when:
-    restClient.createItem("systemId", false, 999, "undefined", item)
+    apiClient.createItem("systemId", false, 999, "undefined", item)
 
     then:
     def e = thrown ApiClientUndefinedResponseException

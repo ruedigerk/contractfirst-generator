@@ -5,8 +5,7 @@ import io.github.ruedigerk.contractfirst.generator.integrationtest.EmbeddedJaxRs
 import okhttp3.OkHttpClient
 import okhttp3.logging.HttpLoggingInterceptor
 import spock.lang.Shared
-import spock.lang.Specification
-
+import spock.lang.Specification 
 /**
  * Superclass for Spock tests that use an embedded JAX-RS server.
  */
@@ -27,7 +26,9 @@ abstract class EmbeddedJaxRsServerSpecification extends Specification {
   )
 
   @Shared
-  ApiClientSupport restClientSupport = new ApiClientSupport(new OkHttpClient.Builder().addNetworkInterceptor(loggingInterceptor).build(), BASE_URL)
+  OkHttpClient okHttpClient = new OkHttpClient.Builder().addNetworkInterceptor(loggingInterceptor).build()
+  @Shared
+  ApiClientSupport apiClientSupport = new ApiClientSupport(okHttpClient, BASE_URL)
 
   abstract Class<?> getTestResource()
 

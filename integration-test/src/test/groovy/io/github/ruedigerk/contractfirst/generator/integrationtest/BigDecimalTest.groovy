@@ -12,7 +12,7 @@ import spock.lang.Unroll
 class BigDecimalTest extends EmbeddedJaxRsServerSpecification {
 
   @Subject
-  BigDecimalsApiClient restClient = new BigDecimalsApiClient(restClientSupport)
+  BigDecimalsApiClient apiClient = new BigDecimalsApiClient(apiClientSupport)
 
   @Override
   Class<?> getTestResource() {
@@ -23,7 +23,7 @@ class BigDecimalTest extends EmbeddedJaxRsServerSpecification {
   @SuppressWarnings('ChangeToOperator')
   def "Test BigDecimal as parameter: #input"() {
     when:
-    BigDecimal response = restClient.getNumber(number)
+    BigDecimal response = apiClient.getNumber(number)
 
     then:
     response.equals(number)

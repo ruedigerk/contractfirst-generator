@@ -17,7 +17,7 @@ import spock.lang.Subject
 class PayloadVariantsTest extends EmbeddedJaxRsServerSpecification {
 
   @Subject
-  PayloadVariantsApiClient restClient = new PayloadVariantsApiClient(restClientSupport)
+  PayloadVariantsApiClient apiClient = new PayloadVariantsApiClient(apiClientSupport)
 
   @Override
   Class<?> getTestResource() {
@@ -26,13 +26,13 @@ class PayloadVariantsTest extends EmbeddedJaxRsServerSpecification {
 
   def "Response without body (status 204)"() {
     when:
-    restClient.changeItem(new CItem(id: 1L, name: "Buddy", tag: "new tag"))
+    apiClient.changeItem(new CItem(id: 1L, name: "Buddy", tag: "new tag"))
 
     then:
     noExceptionThrown()
 
     when:
-    GenericResponse genericResponse = restClient.changeItemWithResponse(new CItem(id: 1L, name: "Buddy", tag: "new tag"))
+    GenericResponse genericResponse = apiClient.changeItemWithResponse(new CItem(id: 1L, name: "Buddy", tag: "new tag"))
 
     then:
     DefinedResponse response = genericResponse.asDefinedResponse()
@@ -51,13 +51,13 @@ class PayloadVariantsTest extends EmbeddedJaxRsServerSpecification {
     def expectedOutput = [item(1, "Buddy"), item(3, "Snoopy")]
 
     when:
-    def responseItems = restClient.filterItems(input)
+    def responseItems = apiClient.filterItems(input)
 
     then:
     responseItems == expectedOutput
 
     when:
-    GenericResponse genericResponse = restClient.filterItemsWithResponse(input)
+    GenericResponse genericResponse = apiClient.filterItemsWithResponse(input)
 
     then:
     DefinedResponse response = genericResponse.asDefinedResponse()
@@ -77,14 +77,14 @@ class PayloadVariantsTest extends EmbeddedJaxRsServerSpecification {
     byte[] pdfBytes = getClass().getResourceAsStream("/sample.pdf").bytes
 
     when:
-    InputStream responseInputStream = restClient.uploadAndReturnBinary(new ByteArrayInputStream(pdfBytes))
+    InputStream responseInputStream = apiClient.uploadAndReturnBinary(new ByteArrayInputStream(pdfBytes))
 
     then:
     byte[] responseBytes = responseInputStream.bytes
     responseBytes == pdfBytes
 
     when:
-    GenericResponse genericResponse = restClient.uploadAndReturnBinaryWithResponse(new ByteArrayInputStream(pdfBytes))
+    GenericResponse genericResponse = apiClient.uploadAndReturnBinaryWithResponse(new ByteArrayInputStream(pdfBytes))
 
     then:
     DefinedResponse response = genericResponse.asDefinedResponse()

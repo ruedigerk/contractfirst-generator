@@ -18,7 +18,7 @@ import java.time.OffsetDateTime
 class DateAndTimeTest extends EmbeddedJaxRsServerSpecification {
 
   @Subject
-  TimeApiClient restClient = new TimeApiClient(restClientSupport)
+  TimeApiClient apiClient = new TimeApiClient(apiClientSupport)
 
   @Override
   Class<?> getTestResource() {
@@ -37,7 +37,7 @@ class DateAndTimeTest extends EmbeddedJaxRsServerSpecification {
     def input = new CClock(time1: time1, time2: time2)
 
     when:
-    CClockResponse clockResponse = restClient.updateTime(pathTime, queryTime1, queryTime2, headerTime1, headerTime2, input)
+    CClockResponse clockResponse = apiClient.updateTime(pathTime, queryTime1, queryTime2, headerTime1, headerTime2, input)
 
     then:
     clockResponse.time1 == time1

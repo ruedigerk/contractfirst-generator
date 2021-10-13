@@ -14,7 +14,7 @@ import spock.lang.Subject
 class MultipleContentTypesTest extends EmbeddedJaxRsServerSpecification {
 
   @Subject
-  MultipleContentTypesApiClient restClient = new MultipleContentTypesApiClient(restClientSupport)
+  MultipleContentTypesApiClient apiClient = new MultipleContentTypesApiClient(apiClientSupport)
 
   @Override
   Class<?> getTestResource() {
@@ -26,7 +26,7 @@ class MultipleContentTypesTest extends EmbeddedJaxRsServerSpecification {
     setLoggingInterceptorLevel(HttpLoggingInterceptor.Level.HEADERS)
 
     when:
-    GenericResponse genericResponse = restClient.getManualWithResponse("application/json")
+    GenericResponse genericResponse = apiClient.getManualWithResponse("application/json")
 
     then:
     DefinedResponse response = genericResponse.asDefinedResponse()
@@ -51,7 +51,7 @@ class MultipleContentTypesTest extends EmbeddedJaxRsServerSpecification {
     response.entity == new CManual(title: "The Title", content: "Content")
 
     when:
-    genericResponse = restClient.getManualWithResponse("application/pdf")
+    genericResponse = apiClient.getManualWithResponse("application/pdf")
     response = genericResponse.asDefinedResponse()
 
     then:
@@ -76,7 +76,7 @@ class MultipleContentTypesTest extends EmbeddedJaxRsServerSpecification {
     (response.entity as InputStream).bytes == getClass().getResourceAsStream("/sample.pdf").bytes
 
     when:
-    genericResponse = restClient.getManualWithResponse("text/plain")
+    genericResponse = apiClient.getManualWithResponse("text/plain")
     response = genericResponse.asDefinedResponse()
 
     then:
