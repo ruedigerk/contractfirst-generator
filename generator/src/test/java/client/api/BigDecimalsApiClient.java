@@ -31,7 +31,7 @@ public class BigDecimalsApiClient {
     DefinedResponse response = genericResponse.asDefinedResponse();
 
     if (!response.isSuccessful()) {
-      throw new RestClientFailureEntityException(response.getStatusCode(), (Failure) response.getEntity());
+      throw new RestClientFailureEntityException(response);
     }
 
     return (BigDecimal) response.getEntity();

@@ -3,6 +3,12 @@ package io.github.ruedigerk.contractfirst.generator.client;
 import com.google.gson.Gson;
 import com.google.gson.GsonBuilder;
 import com.google.gson.JsonParseException;
+import io.github.ruedigerk.contractfirst.generator.client.internal.Operation;
+import io.github.ruedigerk.contractfirst.generator.client.internal.OperationRequestBody;
+import io.github.ruedigerk.contractfirst.generator.client.internal.Parameter;
+import io.github.ruedigerk.contractfirst.generator.client.internal.ResponseDefinition;
+import io.github.ruedigerk.contractfirst.generator.support.gson.LocalDateGsonTypeAdapter;
+import io.github.ruedigerk.contractfirst.generator.support.gson.OffsetDateTimeGsonTypeAdapter;
 import java.io.ByteArrayOutputStream;
 import java.io.IOException;
 import java.io.InputStream;
@@ -25,12 +31,6 @@ import okhttp3.Request;
 import okhttp3.RequestBody;
 import okhttp3.Response;
 import okhttp3.ResponseBody;
-import io.github.ruedigerk.contractfirst.generator.client.internal.Operation;
-import io.github.ruedigerk.contractfirst.generator.client.internal.OperationRequestBody;
-import io.github.ruedigerk.contractfirst.generator.client.internal.Parameter;
-import io.github.ruedigerk.contractfirst.generator.client.internal.ResponseDefinition;
-import io.github.ruedigerk.contractfirst.generator.support.gson.LocalDateGsonTypeAdapter;
-import io.github.ruedigerk.contractfirst.generator.support.gson.OffsetDateTimeGsonTypeAdapter;
 
 /**
  * Performs HTTP requests as defined by generated client code.
@@ -107,7 +107,7 @@ public class ApiClientSupport {
     return new RequestDescription(request.url().toString(), request.method(), headers);
   }
 
-  private List<Header> extractHeaders(Headers headers) {
+  private static List<Header> extractHeaders(Headers headers) {
     return StreamSupport.stream(headers.spliterator(), false)
         .map(pair -> new Header(pair.getFirst(), pair.getSecond()))
         .collect(Collectors.toList());
@@ -115,14 +115,20 @@ public class ApiClientSupport {
 
   public Request createRequest(Operation operation) throws ApiClientIoException {
     HttpUrl url = determineRequestUrl(operation);
-    RequestBody requestBody = serializeRequestBody(operation.getRequestBody());
     Headers headers = determineRequestHeaders(operation);
 
-    return new Request.Builder()
-        .url(url)
-        .method(operation.getMethod(), requestBody)
-        .headers(headers)
-        .build();
+    try {
+      RequestBody requestBody = serializeRequestBody(operation.getRequestBody());
+
+      return new Request.Builder()
+          .url(url)
+          .method(operation.getMethod(), requestBody)
+          .headers(headers)
+          .build();
+    } catch (IOException e) {
+      RequestDescription requestDescription = new RequestDescription(url.toString(), operation.getMethod(), extractHeaders(headers));
+      throw new ApiClientIoException("Error serializing request body: " + e, requestDescription, e);
+    }
   }
 
   private HttpUrl determineRequestUrl(Operation operation) {
@@ -201,7 +207,7 @@ public class ApiClientSupport {
     }
   }
 
-  private RequestBody serializeRequestBody(OperationRequestBody requestBody) throws ApiClientIoException {
+  private RequestBody serializeRequestBody(OperationRequestBody requestBody) throws IOException {
     if (requestBody.getEntity() == null) {
       return null;
     }
@@ -224,7 +230,7 @@ public class ApiClientSupport {
     }
   }
 
-  private byte[] readBytes(InputStream inputStream) throws ApiClientIoException {
+  private byte[] readBytes(InputStream inputStream) throws IOException {
     ByteArrayOutputStream outputStream = new ByteArrayOutputStream();
     byte[] buffer = new byte[4096];
 
@@ -233,8 +239,6 @@ public class ApiClientSupport {
       while ((bytesRead = input.read(buffer)) != -1) {
         outputStream.write(buffer, 0, bytesRead);
       }
-    } catch (IOException e) {
-      throw new ApiClientIoException("Error serializing request body: " + e, e);
     }
 
     // Closing a ByteArrayOutputStream has no effect, so we don't do it.
@@ -257,7 +261,7 @@ public class ApiClientSupport {
     String mediaType = response.header(CONTENT_TYPE_HEADER);
 
     RequestDescription requestDescription = asCorrespondingRequest(request);
-    ResponseBuilder responseBuilder = new ResponseBuilder(requestDescription, statusCode, response.message(), mediaType);
+    ResponseBuilder responseBuilder = new ResponseBuilder(requestDescription, statusCode, response.message(), mediaType, response.headers());
 
     try {
       boolean isEmptyBody = responseBody.source().exhausted();
@@ -267,38 +271,38 @@ public class ApiClientSupport {
         // The response is not described in the contract, return an unexpected response.
         String bodyContent = responseBody.string();
         response.close();
-        return responseBuilder.unexpectedResponse(bodyContent, "The combination of status code and content type is not defined in the contract");
+        return responseBuilder.undefinedResponse(bodyContent, "The combination of status code and content type is not defined in the contract");
       } else if (javaType.equals(Void.TYPE)) {
         // The response should be empty according to the contract. Ignore body if exists.
         response.close();
-        return responseBuilder.expectedResponse(javaType, null);
+        return responseBuilder.definedResponse(javaType, null);
       } else if (javaType.equals(InputStream.class)) {
         // The contract says to return the body unprocessed, i.e., as type InputStream.
         // In this case, the application is responsible for closing the InputStream!
-        return responseBuilder.expectedResponse(javaType, responseBody.byteStream());
+        return responseBuilder.definedResponse(javaType, responseBody.byteStream());
       } else if (isJsonMediaType(mediaType)) {
         // The contract defines the response to be a JSON entity. Deserialize and return it.
         // Note: deserializeFromJson closes the response body.
         return deserializeFromJson(responseBuilder, responseBody, javaType);
       } else if (javaType.equals(String.class)) {
         // The contract defines the response to be some string content, e.g., text/plain, so just return it as a string.
-        return responseBuilder.expectedResponse(javaType, responseBody.string());
+        return responseBuilder.definedResponse(javaType, responseBody.string());
       } else {
         // In this case, the contract defines a schema for the response, but the server sends it in an unsupported format, i.e., a non-JSON format.
         String bodyContent = responseBody.string();
-        return responseBuilder.unexpectedResponse(bodyContent, "Content-Type not supported by client: " + mediaType);
+        return responseBuilder.undefinedResponse(bodyContent, "Content-Type not supported by client: " + mediaType);
       }
     } catch (IOException e) {
       // The body could not be read
       response.close();
       IncompleteResponse incompleteResponse = responseBuilder.incompleteResponse();
-      throw new ApiClientIoException("Error reading response body", incompleteResponse, e);
+      throw new ApiClientIoException("Error reading response body: " + e, incompleteResponse, e);
     }
   }
 
   /**
-   * Returns the Java type of the response. If the response is not matching the contract, null is returned. If the response is defined to have no content,
-   * type {@link Void#TYPE} is returned.
+   * Returns the Java type of the response. If the response is not matching the contract, null is returned. If the response is defined to have no content, type
+   * {@link Void#TYPE} is returned.
    */
   // TODO: Write unit test
   private Type determineTypeOfContent(int statusCode, String contentType, boolean isEmptyBody, Operation operation) {
@@ -358,9 +362,9 @@ public class ApiClientSupport {
 
     try {
       Object entity = gson.fromJson(stringContent, expectedType);
-      return responseBuilder.expectedResponse(expectedType, entity);
+      return responseBuilder.definedResponse(expectedType, entity);
     } catch (JsonParseException e) {
-      return responseBuilder.unexpectedResponse(stringContent, "JSON response from server cannot be parsed to " + expectedType + ": " + e, e);
+      return responseBuilder.undefinedResponse(stringContent, "JSON response from server cannot be parsed to " + expectedType + ": " + e, e);
     }
   }
 
@@ -392,34 +396,36 @@ public class ApiClientSupport {
     private final int statusCode;
     private final String httpStatusMessage;
     private final String contentType;
+    private final List<Header> headers;
 
-    public ResponseBuilder(RequestDescription request, int statusCode, String httpStatusMessage, String contentType) {
+    public ResponseBuilder(RequestDescription request, int statusCode, String httpStatusMessage, String contentType, Headers headers) {
       this.request = request;
       this.statusCode = statusCode;
       this.httpStatusMessage = httpStatusMessage;
       this.contentType = contentType;
+      this.headers = extractHeaders(headers);
     }
 
-    public UndefinedResponse unexpectedResponse(String responseContent, String reason) {
-      return new UndefinedResponse(request, statusCode, httpStatusMessage, contentType, responseContent, reason, null);
+    public UndefinedResponse undefinedResponse(String responseContent, String reason) {
+      return new UndefinedResponse(request, statusCode, httpStatusMessage, contentType, responseContent, reason, headers, null);
     }
 
-    public UndefinedResponse unexpectedResponse(String responseContent, String reason, Throwable cause) {
-      return new UndefinedResponse(request, statusCode, httpStatusMessage, contentType, responseContent, reason, cause);
+    public UndefinedResponse undefinedResponse(String responseContent, String reason, Throwable cause) {
+      return new UndefinedResponse(request, statusCode, httpStatusMessage, contentType, responseContent, reason, headers, cause);
     }
 
-    public DefinedResponse expectedResponse(Type javaType, Object entity) {
-      return new DefinedResponse(request, statusCode, httpStatusMessage, contentType, javaType, entity);
+    public DefinedResponse definedResponse(Type javaType, Object entity) {
+      return new DefinedResponse(request, statusCode, httpStatusMessage, contentType, javaType, headers, entity);
     }
 
     public IncompleteResponse incompleteResponse() {
-      return new IncompleteResponse(request, statusCode, httpStatusMessage, contentType);
+      return new IncompleteResponse(request, statusCode, httpStatusMessage, contentType, headers);
     }
   }
 
   /**
-   * OkHttp interceptor for accessing the final request. This is necessary, because the application can use interceptors that add or modify headers, and we
-   * want to report the final set of headers used.
+   * OkHttp interceptor for accessing the final request. This is necessary, because the application can use interceptors that add or modify headers, and we want
+   * to report the final set of headers used.
    */
   private static class RequestAccessInterceptor implements Interceptor {
 

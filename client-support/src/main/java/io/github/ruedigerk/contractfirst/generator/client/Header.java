@@ -15,10 +15,16 @@ public class Header {
     this.value = value;
   }
 
+  /**
+   * The name of the header, e.g., "Content-Type".
+   */
   public String getName() {
     return name;
   }
 
+  /**
+   * The value of the header, e.g., "application/json".
+   */
   public String getValue() {
     return value;
   }

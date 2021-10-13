@@ -4,7 +4,7 @@ import java.io.IOException;
 import java.util.Optional;
 
 /**
- * Thrown when an IOException occurs during a request of the REST-API client.
+ * Thrown when an IOException occurs during a request of the API client.
  */
 public class ApiClientIoException extends ApiClientException {
 
@@ -12,35 +12,38 @@ public class ApiClientIoException extends ApiClientException {
   private final IncompleteResponse incompleteResponse;
 
   public ApiClientIoException(String message, RequestDescription request, IOException cause) {
-    super(toMessage(message, request, cause), cause);
+    super(toMessage(message, request), cause);
     this.request = request;
-    this.incompleteResponse = null;
-  }
-
-  public ApiClientIoException(String message, IOException cause) {
-    super(message, cause);
-    this.request = null;
-    this.incompleteResponse = null;
-  }
-
-  private static String toMessage(String message, RequestDescription requestDescription, IOException cause) {
-    return message + ", request: " + requestDescription + ": " + cause;
+    incompleteResponse = null;
   }
 
   public ApiClientIoException(String message, IncompleteResponse incompleteResponse, IOException cause) {
-    super(toMessage(message, incompleteResponse, cause), cause);
-    this.request = incompleteResponse.getRequest();
+    super(toMessage(message, incompleteResponse), cause);
+    request = incompleteResponse.getRequest();
     this.incompleteResponse = incompleteResponse;
   }
 
-  private static String toMessage(String message, IncompleteResponse incompleteResponse, IOException cause) {
-    return message + ", request: " + incompleteResponse.getRequest() + ", response: " + incompleteResponse + ": " + cause;
+  private static String toMessage(String message, RequestDescription request) {
+    return message + ", for: " + request.getMethod() + " " + request.getUrl();
   }
 
-  public Optional<RequestDescription> getRequestData() {
-    return Optional.ofNullable(request);
+  private static String toMessage(String message, IncompleteResponse incompleteResponse) {
+    RequestDescription request = incompleteResponse.getRequest();
+    return message + 
+        ", for " + request.getMethod() + " " + request.getUrl() + 
+        ", status=" + incompleteResponse.getStatusCode() + " " + incompleteResponse.getHttpStatusMessage();
   }
 
+  /**
+   * Returns a description of the request that lead to the IOException.
+   */
+  public RequestDescription getRequest() {
+    return request;
+  }
+
+  /**
+   * Return the incomplete response from the server, if available.
+   */
   public Optional<IncompleteResponse> getIncompleteResponse() {
     return Optional.ofNullable(incompleteResponse);
   }

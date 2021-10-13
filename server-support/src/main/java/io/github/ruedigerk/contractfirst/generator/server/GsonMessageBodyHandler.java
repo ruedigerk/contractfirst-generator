@@ -25,8 +25,6 @@ import javax.ws.rs.core.MultivaluedMap;
 import javax.ws.rs.ext.MessageBodyReader;
 import javax.ws.rs.ext.MessageBodyWriter;
 import javax.ws.rs.ext.Provider;
-import io.github.ruedigerk.contractfirst.generator.support.gson.LocalDateGsonTypeAdapter;
-import io.github.ruedigerk.contractfirst.generator.support.gson.OffsetDateTimeGsonTypeAdapter;
 
 /**
  * JAX-RS MessageBodyWriter and -Reader for serializing and deserializing JSON messages with Gson.

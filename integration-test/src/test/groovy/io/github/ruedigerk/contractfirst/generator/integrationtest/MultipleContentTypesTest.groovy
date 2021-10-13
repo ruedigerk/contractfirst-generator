@@ -40,6 +40,10 @@ class MultipleContentTypesTest extends EmbeddedJaxRsServerSpecification {
         new Header("Accept-Encoding", "gzip"),
         new Header("User-Agent", "okhttp/4.9.1"),
     ]
+    response.headers == [
+        new Header("Content-Type", "application/json"),
+        new Header("Content-Length", "41"),
+    ]
     response.statusCode == 200
     response.httpStatusMessage == "OK"
     response.contentType == "application/json"
@@ -61,6 +65,10 @@ class MultipleContentTypesTest extends EmbeddedJaxRsServerSpecification {
         new Header("Accept-Encoding", "gzip"),
         new Header("User-Agent", "okhttp/4.9.1"),
     ]
+    response.headers == [
+        new Header("Content-Type", "application/pdf"),
+        new Header("Transfer-Encoding", "chunked"),
+    ]
     response.statusCode == 200
     response.httpStatusMessage == "OK"
     response.contentType == "application/pdf"
@@ -81,6 +89,10 @@ class MultipleContentTypesTest extends EmbeddedJaxRsServerSpecification {
         new Header("Connection", "Keep-Alive"),
         new Header("Accept-Encoding", "gzip"),
         new Header("User-Agent", "okhttp/4.9.1"),
+    ]
+    response.headers == [
+        new Header("Content-Type", "text/plain"),
+        new Header("Content-Length", "15"),
     ]
     response.statusCode == 202
     response.httpStatusMessage == "Accepted"

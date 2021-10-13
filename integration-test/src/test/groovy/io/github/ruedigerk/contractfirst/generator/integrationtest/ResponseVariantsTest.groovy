@@ -155,7 +155,7 @@ class ResponseVariantsTest extends EmbeddedJaxRsServerSpecification {
 
     then:
     def e = thrown RestClientCFailureEntityException
-    e.httpStatusCode == 400
+    e.statusCode == 400
     e.entity == new CFailure(code: 400, message: "Unknown customer id: 23")
   }
 
@@ -189,7 +189,7 @@ class ResponseVariantsTest extends EmbeddedJaxRsServerSpecification {
 
     then:
     def e = thrown RestClientCFailureEntityException
-    e.httpStatusCode == 500
+    e.statusCode == 500
     e.entity == new CFailure(code: 500, message: "Internal Server Error :(")
   }
 
@@ -212,10 +212,15 @@ class ResponseVariantsTest extends EmbeddedJaxRsServerSpecification {
         new Header("Accept-Encoding", "gzip"),
         new Header("User-Agent", "okhttp/4.9.1"),
     ]
+    response.headers == [
+        new Header("Content-Type","text/plain"),
+        new Header("Connection","close"),
+        new Header("Content-Length","23"),
+    ]
     response.statusCode == 500
     response.httpStatusMessage == "Internal Server Error"
     response.contentType == "text/plain"
-    response.bodyContent == "This is just plain text"
+    response.body == "This is just plain text"
     response.cause == null
 
     when:
@@ -239,7 +244,7 @@ class ResponseVariantsTest extends EmbeddedJaxRsServerSpecification {
     e.response.statusCode == 500
     e.response.httpStatusMessage == "Internal Server Error"
     e.response.contentType == "text/plain"
-    e.response.bodyContent == "This is just plain text"
+    e.response.body == "This is just plain text"
     e.response.cause == null
   }
 

@@ -31,7 +31,7 @@ public class PayloadVariantsApiClient {
     DefinedResponse response = genericResponse.asDefinedResponse();
 
     if (!response.isSuccessful()) {
-      throw new RestClientFailureEntityException(response.getStatusCode(), (Failure) response.getEntity());
+      throw new RestClientFailureEntityException(response);
     }
 
     return (List<Item>) response.getEntity();
@@ -63,7 +63,7 @@ public class PayloadVariantsApiClient {
     DefinedResponse response = genericResponse.asDefinedResponse();
 
     if (!response.isSuccessful()) {
-      throw new RestClientFailureEntityException(response.getStatusCode(), (Failure) response.getEntity());
+      throw new RestClientFailureEntityException(response);
     }
 
     return (InputStream) response.getEntity();
@@ -95,7 +95,7 @@ public class PayloadVariantsApiClient {
     DefinedResponse response = genericResponse.asDefinedResponse();
 
     if (!response.isSuccessful()) {
-      throw new RestClientFailureEntityException(response.getStatusCode(), (Failure) response.getEntity());
+      throw new RestClientFailureEntityException(response);
     }
   }
 

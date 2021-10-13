@@ -1,9 +1,9 @@
 package io.github.ruedigerk.contractfirst.generator.integrationtest.spec
 
-import okhttp3.OkHttpClient
-import okhttp3.logging.HttpLoggingInterceptor
 import io.github.ruedigerk.contractfirst.generator.client.ApiClientSupport
 import io.github.ruedigerk.contractfirst.generator.integrationtest.EmbeddedJaxRsServer
+import okhttp3.OkHttpClient
+import okhttp3.logging.HttpLoggingInterceptor
 import spock.lang.Shared
 import spock.lang.Specification
 
@@ -18,7 +18,7 @@ abstract class EmbeddedJaxRsServerSpecification extends Specification {
   private static final boolean VERBOSE = Boolean.parseBoolean(System.getenv("VERBOSE"))
 
   @Shared
-  private io.github.ruedigerk.contractfirst.generator.integrationtest.EmbeddedJaxRsServer embeddedServer
+  private EmbeddedJaxRsServer embeddedServer
   @Shared
   private HttpLoggingInterceptor loggingInterceptor = new HttpLoggingInterceptor(
       {
@@ -27,7 +27,7 @@ abstract class EmbeddedJaxRsServerSpecification extends Specification {
   )
 
   @Shared
-  io.github.ruedigerk.contractfirst.generator.client.ApiClientSupport restClientSupport = new io.github.ruedigerk.contractfirst.generator.client.ApiClientSupport(new OkHttpClient.Builder().addNetworkInterceptor(loggingInterceptor).build(), BASE_URL)
+  ApiClientSupport restClientSupport = new ApiClientSupport(new OkHttpClient.Builder().addNetworkInterceptor(loggingInterceptor).build(), BASE_URL)
 
   abstract Class<?> getTestResource()
 
@@ -36,9 +36,9 @@ abstract class EmbeddedJaxRsServerSpecification extends Specification {
       println(msg)
     }
   }
-  
+
   def setupSpec() {
-    embeddedServer = new io.github.ruedigerk.contractfirst.generator.integrationtest.EmbeddedJaxRsServer(BASE_URL, getTestResource())
+    embeddedServer = new EmbeddedJaxRsServer(BASE_URL, getTestResource())
     embeddedServer.startServer()
   }
 

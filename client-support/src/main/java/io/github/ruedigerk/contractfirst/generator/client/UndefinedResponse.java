@@ -1,8 +1,11 @@
 package io.github.ruedigerk.contractfirst.generator.client;
 
+import java.util.List;
+import java.util.Objects;
+
 /**
- * Represents a response that is not defined in the contract of the REST-API, or a response that the client can not process as defined by the contract,
- * e.g., when the server returns an entity in a non-JSON-encoding.
+ * Represents a response that is not in accordance with the API specification of the called operation. Also used for responses that the API client can not
+ * process, e.g., when the server returns an entity in XML-encoding.
  */
 public class UndefinedResponse implements GenericResponse {
 
@@ -10,8 +13,9 @@ public class UndefinedResponse implements GenericResponse {
   private final int statusCode;
   private final String httpStatusMessage;
   private final String contentType;
-  private final String bodyContent;
+  private final String body;
   private final String reason;
+  private final List<Header> headers;
   private final Throwable cause;
 
   public UndefinedResponse(
@@ -19,16 +23,18 @@ public class UndefinedResponse implements GenericResponse {
       int statusCode,
       String httpStatusMessage,
       String contentType,
-      String bodyContent,
+      String body,
       String reason,
+      List<Header> headers,
       Throwable cause
   ) {
     this.request = request;
     this.statusCode = statusCode;
     this.httpStatusMessage = httpStatusMessage;
     this.contentType = contentType;
-    this.bodyContent = bodyContent;
+    this.body = body;
     this.reason = reason;
+    this.headers = headers;
     this.cause = cause;
   }
 
@@ -39,11 +45,7 @@ public class UndefinedResponse implements GenericResponse {
 
   @Override
   public DefinedResponse asDefinedResponse() throws ApiClientUndefinedResponseException {
-    if (cause == null) {
-      throw new ApiClientUndefinedResponseException(reason, this);
-    } else {
-      throw new ApiClientUndefinedResponseException(reason, this, cause);
-    }
+    throw new ApiClientUndefinedResponseException(this);
   }
 
   @Override
@@ -66,15 +68,67 @@ public class UndefinedResponse implements GenericResponse {
     return contentType;
   }
 
-  public String getBodyContent() {
-    return bodyContent;
+  /**
+   * The content of the response as a String.
+   */
+  public String getBody() {
+    return body;
   }
 
+  /**
+   * Description why the response is incompatible with the specification of the operation.
+   */
   public String getReason() {
     return reason;
   }
 
+  @Override
+  public List<Header> getHeaders() {
+    return headers;
+  }
+
+  /**
+   * Returns the Throwable that occurred processing the response, e.g., a parsing Exception. Is null, when the response is unexpected due to another reason,
+   * e.g., an unknown Content-Type.
+   */
   public Throwable getCause() {
     return cause;
+  }
+
+  @Override
+  public boolean equals(Object o) {
+    if (this == o) {
+      return true;
+    }
+    if (o == null || getClass() != o.getClass()) {
+      return false;
+    }
+    UndefinedResponse that = (UndefinedResponse) o;
+    return statusCode == that.statusCode
+        && Objects.equals(request, that.request)
+        && Objects.equals(httpStatusMessage, that.httpStatusMessage)
+        && Objects.equals(contentType, that.contentType)
+        && Objects.equals(body, that.body)
+        && Objects.equals(reason, that.reason)
+        && Objects.equals(headers, that.headers)
+        && Objects.equals(cause, that.cause);
+  }
+
+  @Override
+  public int hashCode() {
+    return Objects.hash(request, statusCode, httpStatusMessage, contentType, body, reason, headers, cause);
+  }
+
+  @Override
+  public String toString() {
+    return "UndefinedResponse(" +
+        "reason='" + reason + '\'' +
+        ",cause=" + cause +
+        ",request=" + request +
+        ",status=" + statusCode + " " + httpStatusMessage +
+        ",contentType='" + contentType + '\'' +
+        ",headers=" + headers +
+        ",body='" + body + '\'' +
+        ')';
   }
 }

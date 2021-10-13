@@ -10,7 +10,7 @@ import io.github.ruedigerk.contractfirst.generator.model.StatusCode
 import java.io.File
 import javax.lang.model.element.Modifier
 
-class ClientGenerator(private val configuration: Configuration) {
+class ClientGenerator(configuration: Configuration) {
 
   private val outputDir = File(configuration.outputDir)
   private val apiPackage = "${configuration.outputJavaBasePackage}.$API_PACKAGE"
@@ -196,11 +196,7 @@ class ClientGenerator(private val configuration: Configuration) {
 
     if (failureType != null) {
       codeBuilder.beginControlFlow("if (!response.isSuccessful())")
-      codeBuilder.addStatement(
-          "throw new \$T(response.getStatusCode(), (\$T) response.getEntity())",
-          entityExceptionTypeName(failureType),
-          failureType.toTypeName()
-      )
+      codeBuilder.addStatement("throw new \$T(response)", entityExceptionTypeName(failureType))
       codeBuilder.endControlFlow()
     }
 
@@ -215,9 +211,8 @@ class ClientGenerator(private val configuration: Configuration) {
   private fun toRestClientEntityException(entityType: JavaAnyType): JavaFile {
     val constructorSpec = MethodSpec.constructorBuilder()
         .addModifiers(Modifier.PUBLIC)
-        .addParameter(Integer.TYPE, "httpStatusCode")
-        .addParameter(entityType.toTypeName(), "entity")
-        .addStatement("super(httpStatusCode, entity)")
+        .addParameter(SupportTypes.DefinedResponse, "response")
+        .addStatement("super(response)")
         .build()
 
     val methodSpecGetEntity = MethodSpec.methodBuilder("getEntity")

@@ -1,33 +1,43 @@
 package io.github.ruedigerk.contractfirst.generator.client;
 
 /**
- * Abstract superclass of all exceptions that indicate an error defined in the contract. Assumes that the error is completely described by the
- * status code and the returned error entity.
+ * Abstract superclass of all exceptions thrown by the API client that indicate an error defined in the contract. Assumes that the error is completely described
+ * by the status code and the entity returned by the server.
  */
 public abstract class ApiClientEntityException extends ApiClientException {
 
-  private final int httpStatusCode;
-  private final Object entity;
+  private final DefinedResponse response;
 
-  protected ApiClientEntityException(int httpStatusCode, Object entity) {
-    super(toMessage(httpStatusCode, entity));
-    this.httpStatusCode = httpStatusCode;
-    this.entity = entity;
+  protected ApiClientEntityException(DefinedResponse response) {
+    super(toMessage(response));
+    this.response = response;
   }
 
-  private static String toMessage(int httpStatusCode, Object entity) {
-    if (entity == null) {
-      return "httpStatusCode=" + httpStatusCode;
-    } else {
-      return "httpStatusCode=" + httpStatusCode + ", entity=" + entity;
-    }
+  private static String toMessage(DefinedResponse response) {
+    RequestDescription request = response.getRequest();
+    return "Error for " + request.getMethod() + " " + request.getUrl() +
+        ", status=" + response.getStatusCode() + " " + response.getHttpStatusMessage() +
+        ", entity=" + response.getEntity();
   }
 
-  public int getHttpStatusCode() {
-    return httpStatusCode;
+  /**
+   * The response sent by the server. 
+   */
+  public DefinedResponse getResponse() {
+    return response;
   }
 
+  /**
+   * The HTTP status code sent by the server.
+   */
+  public int getStatusCode() {
+    return response.getStatusCode();
+  }
+
+  /**
+   * The entity sent by the server.
+   */
   public Object getEntity() {
-    return entity;
+    return response.getEntity();
   }
 }
