@@ -22,6 +22,27 @@ filling in the application logic.
 For the generated data model to be serialized to JSON properly, it is necessary to register Gson as a JAX-RS MessageBodyReader and MessageBodyWriter. This
 can be done by using the class `GsonMessageBodyHandler` from the contractfirst-generator-server-support artifact.
 
+Here is an example for using the Maven plugin to generate server stubs:
+
+    <plugin>
+       <artifactId>contractfirst-generator-maven-plugin</artifactId>
+       <groupId>io.github.ruedigerk.contractfirst.generator</groupId>
+       <version>1.2.0</version>
+       <executions>
+          <execution>
+             <id>generate-server</id>
+             <goals>
+                <goal>generate</goal>
+             </goals>
+             <configuration>
+                <generator>server</generator>
+                <inputContractFile>${project.basedir}/src/main/contract/openapi.yaml</inputContractFile>
+                <outputJavaBasePackage>my.java.pkg</outputJavaBasePackage>
+             </configuration>
+          </execution>
+       </executions>
+    </plugin>
+
 The generated server code needs the following dependencies:
 
     <dependency>
@@ -48,6 +69,27 @@ Client Generator
 ----------------
 
 The client generator generates Java code that uses OkHttp, and a data model that can be serialized with Gson.
+
+Here is an example for using the Maven plugin to generate an API client:
+
+    <plugin>
+       <artifactId>contractfirst-generator-maven-plugin</artifactId>
+       <groupId>io.github.ruedigerk.contractfirst.generator</groupId>
+       <version>1.2.0</version>
+       <executions>
+          <execution>
+             <id>generate-client</id>
+             <goals>
+                <goal>generate</goal>
+             </goals>
+             <configuration>
+                <generator>client</generator>
+                <inputContractFile>${project.basedir}/src/main/contract/openapi.yaml</inputContractFile>
+                <outputJavaBasePackage>my.java.pkg</outputJavaBasePackage>
+             </configuration>
+          </execution>
+       </executions>
+    </plugin>
 
 The generated client code needs the following dependencies:
 
