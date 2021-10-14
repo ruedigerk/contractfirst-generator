@@ -1,0 +1,29 @@
+openapi: 3.0.0
+info:
+  title: Minimal contract for testing a self-referential data model.
+  version: 1.0.0
+servers:
+- url: https://example.com/
+paths:
+  /v1/components:
+    get:
+      operationId: getComponent
+      responses:
+        "200":
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Model'
+          description: Returned component.
+      summary: Get component.
+      tags:
+      - V1Components
+components:
+  schemas:
+    Model:
+      description: A self-referential Model
+      properties:
+        name:
+          type: string
+        next:
+          $ref: '#/components/schemas/Model'

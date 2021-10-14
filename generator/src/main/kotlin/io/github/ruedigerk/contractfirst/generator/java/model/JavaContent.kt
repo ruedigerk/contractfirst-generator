@@ -5,5 +5,5 @@ package io.github.ruedigerk.contractfirst.generator.java.model
  */
 data class JavaContent(
     val mediaType: String,
-    var javaType: JavaAnyType
+    val javaType: JavaAnyType
 )

@@ -13,33 +13,37 @@ import io.github.ruedigerk.contractfirst.generator.model.MPrimitiveType.*
  * Transforms the parsed Schemas into Java types, assigning unique and valid type names. This needs to be done before creating Java source file models for these
  * types.
  */
-class SchemaToJavaTypeTransformer(private val log: Log, private val configuration: Configuration) {
+class SchemaToJavaTypeTransformer(
+    private val log: Log,
+    private val configuration: Configuration,
+    private val schemaRefLookup: SchemaRefLookup
+) {
 
   private val modelPackage = "${configuration.outputJavaBasePackage}.model"
-  private val schemaToTypeLookup: MutableMap<MSchemaNonRef, JavaAnyType> = mutableMapOf()
+  private val schemaToTypeLookup: MutableMap<ActualSchema, JavaAnyType> = mutableMapOf()
   private val uniqueNameFinder = UniqueNameFinder()
 
   /*
    * Using the schemaToTypeLookup is necessary for correctness, as calling toJavaType multiple times for the same schema would otherwise generate a new type 
    * name for generated types each time. 
    */
-  fun toJavaType(schema: MSchemaNonRef): JavaAnyType {
+  fun toJavaType(schema: ActualSchema): JavaAnyType {
     log.debug { "toJavaType ${schema.nameHint}" }
 
     return schemaToTypeLookup.getOrPut(schema) {
       when (schema) {
-        is MSchemaObject -> toGeneratedJavaType(schema, false)
-        is MSchemaEnum -> toGeneratedJavaType(schema, true)
-        is MSchemaArray -> toJavaCollectionType(schema)
-        is MSchemaMap -> toJavaMapType(schema)
-        is MSchemaPrimitive -> toJavaBuiltInType(schema)
+        is ObjectSchema -> toGeneratedJavaType(schema, false)
+        is EnumSchema -> toGeneratedJavaType(schema, true)
+        is ArraySchema -> toJavaCollectionType(schema)
+        is MapSchema -> toJavaMapType(schema)
+        is PrimitiveSchema -> toJavaBuiltInType(schema)
       }
     }
   }
 
-  private fun toGeneratedJavaType(schema: MSchemaNonRef, isEnum: Boolean): JavaType {
+  private fun toGeneratedJavaType(schema: ActualSchema, isEnum: Boolean): JavaType {
     // Objects without properties seem to be used in the wild. Special-case to java.lang.Object.
-    if (schema is MSchemaObject && schema.properties.isEmpty()) {
+    if (schema is ObjectSchema && schema.properties.isEmpty()) {
       return JavaType("Object", "java.lang")
     }
 
@@ -49,36 +53,34 @@ class SchemaToJavaTypeTransformer(private val log: Log, private val configuratio
     return JavaType(typeName, modelPackage, validations)
   }
 
-  private fun determineName(schema: MSchemaNonRef): String {
+  private fun determineName(schema: ActualSchema): String {
     val name = when (val parent = schema.embeddedIn) {
-      is MSchemaObject -> toJavaType(parent).name + suggestName(schema, schema.nameHint.removePrefix(parent.nameHint))
+      is ObjectSchema -> toJavaType(parent).name + suggestName(schema, schema.nameHint.removePrefix(parent.nameHint))
       else -> configuration.outputJavaModelNamePrefix + suggestName(schema)
     }
 
     return uniqueNameFinder.toUniqueName(name)
   }
 
-  private fun suggestName(schema: MSchemaNonRef, nameHint: NameHint = schema.nameHint) =
+  private fun suggestName(schema: ActualSchema, nameHint: NameHint = schema.nameHint) =
       nameHint.path.joinToString("/").toJavaTypeIdentifier()
 
-  private fun toJavaCollectionType(schema: MSchemaArray): JavaCollectionType {
-    val elementSchema = schema.itemSchema as? MSchemaNonRef ?: throw IllegalArgumentException("Unexpected SchemaRef in $schema")
-    val elementType = toJavaType(elementSchema)
+  private fun toJavaCollectionType(schema: ArraySchema): JavaCollectionType {
+    val elementType = toJavaType(schemaRefLookup.lookupIfRef(schema.itemSchema))
     val typeName = if (schema.uniqueItems) "Set" else "List"
     val elementValidations = if (ValidatedValidation in elementType.validations) listOf(ValidatedValidation) else emptyList()
 
     return JavaCollectionType(typeName, "java.util", elementType, elementValidations + sizeValidations(schema.minItems, schema.maxItems))
   }
 
-  private fun toJavaMapType(schema: MSchemaMap): JavaMapType {
-    val valuesSchema = schema.valuesSchema as? MSchemaNonRef ?: throw IllegalArgumentException("Unexpected SchemaRef in $schema")
-    val valuesType = toJavaType(valuesSchema)
+  private fun toJavaMapType(schema: MapSchema): JavaMapType {
+    val valuesType = toJavaType(schemaRefLookup.lookupIfRef(schema.valuesSchema))
     val elementValidations = if (ValidatedValidation in valuesType.validations) listOf(ValidatedValidation) else emptyList()
 
     return JavaMapType("Map", "java.util", valuesType, elementValidations + sizeValidations(schema.minItems, schema.maxItems))
   }
 
-  private fun toJavaBuiltInType(schema: MSchemaPrimitive): JavaType = when (schema.type) {
+  private fun toJavaBuiltInType(schema: PrimitiveSchema): JavaType = when (schema.type) {
 
     BOOLEAN -> JavaType("Boolean", "java.lang")
 
@@ -108,7 +110,7 @@ class SchemaToJavaTypeTransformer(private val log: Log, private val configuratio
     }
   }
 
-  private fun integralValidations(schema: MSchemaPrimitive): List<TypeValidation> {
+  private fun integralValidations(schema: PrimitiveSchema): List<TypeValidation> {
     val validations = mutableListOf<TypeValidation>()
 
     if (schema.minimum != null) {
@@ -121,7 +123,7 @@ class SchemaToJavaTypeTransformer(private val log: Log, private val configuratio
     return validations.toList()
   }
 
-  private fun decimalValidations(schema: MSchemaPrimitive): List<TypeValidation> {
+  private fun decimalValidations(schema: PrimitiveSchema): List<TypeValidation> {
     val validations = mutableListOf<TypeValidation>()
 
     if (schema.minimum != null) {
@@ -140,7 +142,7 @@ class SchemaToJavaTypeTransformer(private val log: Log, private val configuratio
     emptyList()
   }
 
-  private fun patternValidations(schema: MSchemaPrimitive): List<TypeValidation> = if (schema.pattern != null) {
+  private fun patternValidations(schema: PrimitiveSchema): List<TypeValidation> = if (schema.pattern != null) {
     listOf(PatternValidation(schema.pattern))
   } else {
     emptyList()

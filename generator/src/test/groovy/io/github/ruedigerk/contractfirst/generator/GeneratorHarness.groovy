@@ -9,13 +9,17 @@ import org.slf4j.LoggerFactory
  */
 class GeneratorHarness {
 
+  static {
+    System.setProperty("org.slf4j.simpleLogger.defaultLogLevel", "info")
+  }
+
   // Tests are being run with the maven module directory as the working directory.
   private static final String OUTPUT_DIR = "target/generatedTestOutput"
 
   final List<String> relativePathNames
   final List<File> referenceFiles
   final List<File> generatedFiles
-  
+
   private final String referenceDir
   private final String generatedDir
   private final String inputContractFile
@@ -97,7 +101,7 @@ class GeneratorHarness {
     if (actuallyGeneratedFiles.size() > referenceFiles.size()) {
       def referenceFiles = discoverFiles(referenceDir)
       def additionalFiles = (actuallyGeneratedFiles as Set) - referenceFiles
-      
+
       // This will throw as we already checked that the sizes are different.
       assert additionalFiles.isEmpty()
     }

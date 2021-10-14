@@ -1,96 +1,110 @@
 package io.github.ruedigerk.contractfirst.generator.parser
 
-import io.swagger.v3.oas.models.media.Schema
+import io.github.ruedigerk.contractfirst.generator.NotSupportedException
 import io.github.ruedigerk.contractfirst.generator.logging.Log
 import io.github.ruedigerk.contractfirst.generator.model.*
+import io.swagger.v3.oas.models.media.Schema as SwaggerSchema
 
 /**
- * Used for resolving schema references and determining the set of all schemas of the contract that are actually used. Not all schemas in the
- * "/components/schemas" section of a contract are necessarily used/referenced in the contract. Also, there can be inline schemas in the contract.
+ * Used for finding all schemas used in the contract. For a schema to be used, it is not sufficient for it to be listed in the "/components/schemas" section of
+ * the contract. It must be referenced in a content element of the contract or be at least transitively referenced in schemas that are.
  */
-class SchemaResolver(log: Log, topLevelSchemas: Map<String, Schema<Any>>) {
+class SchemaResolver(log: Log, topLevelSchemas: Map<String, SwaggerSchema<Any>>) {
 
   private val schemaParser = SchemaParser(log)
 
-  // All schemas actually being used/referenced in the contract.
-  private val referencedSchemas: MutableSet<MSchemaNonRef> = mutableSetOf()
-
   // Top level schemas are the schemas of the components section of the contract. Only they can be referenced by a $ref.
-  private val topLevelSchemas: Map<MSchemaRef, MSchemaNonRef> = schemaParser.parseTopLevelSchemas(topLevelSchemas)
+  private val topLevelSchemas: Map<SchemaRef, ActualSchema> = topLevelSchemas
+      .mapValues { schemaParser.parseSchema(it.value, NameHint(it.key)) }
+      .mapValues { it.value as? ActualSchema ?: throw NotSupportedException("Unsupported schema reference in #/components/schemas: ${it.value}") }
+      .mapKeys { SchemaRef("#/components/schemas/${it.key}") }
 
-  fun resolveSchema(schema: Schema<Any>, location: NameHint): MSchemaNonRef =
-      when (val parsed = schemaParser.parseSchema(schema, location)) {
-        is MSchemaRef    -> lookupSchemaRef(parsed)
-        is MSchemaNonRef -> {
-          referencedSchemas.add(parsed)
-          parsed
+  // All schemas actually being used in the contract.
+  private val usedSchemas: MutableSet<ActualSchema> = mutableSetOf()
+
+  /**
+   * Parses and returns the schema. Also remembers that it is used in the contract. In case of a reference, remembers the referenced schema.
+   */
+  fun parseSchema(schema: SwaggerSchema<Any>, location: NameHint): Schema =
+      schemaParser.parseSchema(schema, location).also {
+        when (it) {
+          is SchemaRef -> rememberReferencedSchema(it)
+          is ActualSchema -> usedSchemas.add(it)
         }
       }
 
-  private fun lookupSchemaRef(schema: MSchemaRef): MSchemaNonRef {
-    val referencedSchema = topLevelSchemas[schema] ?: throw ParserException("Unresolvable schema reference $schema")
-    referencedSchemas.add(referencedSchema)
-    return referencedSchema
+  private fun rememberReferencedSchema(schemaRef: SchemaRef) {
+    val schema: Schema = topLevelSchemas[schemaRef] ?: throw ParserException("Unresolvable schema reference $schemaRef")
+    val referencedSchema = schema as? ActualSchema ?: throw NotSupportedException("Unsupported: schema reference pointing to reference: $schemaRef -> $schema")
+    usedSchemas.add(referencedSchema)
   }
 
   /**
-   * Resolves all schemas actually being used in the contract and returns them. A schema is resolved, when all schema references in its children (its
-   * properties, items, etc.) have been replaced with the referenced schemas and these referenced schemas themselves have been resolved, too.
+   * Finds all schemas actually being used in the contract. This is done by recursively examining all schemas remembered by parseSchema. Must be called after
+   * the contract has been parsed.
    */
-  fun determineAndResolveReferencedSchemas(): List<MSchemaNonRef> {
-    if (referencedSchemas.isEmpty()) {
+  fun findAllUsedSchemas(): Schemas {
+    if (usedSchemas.isEmpty()) {
       throw IllegalStateException("determineAndResolveReferencedSchemas must be called after parsing the contract's operations")
     }
 
-    val resolvedSchemas = mutableSetOf<MSchemaNonRef>()
-    var schemasForResolving = referencedSchemas.toSet()
+    val foundSchemas = mutableSetOf<ActualSchema>()
+    var schemasToExamine = usedSchemas.toSet()
 
-    // Iteratively resolve all child schemas. Not done recursively to avoid endless cycles on self-referencing schemas/cyclic schemas.
+    // Iteratively resolve all child schemas.
     do {
-      schemasForResolving.forEach(::resolveSchemaComponents)
-      resolvedSchemas.addAll(schemasForResolving)
-      schemasForResolving = referencedSchemas - resolvedSchemas
-    } while (schemasForResolving.isNotEmpty())
+      schemasToExamine.forEach(::examineSchema)
+      foundSchemas.addAll(schemasToExamine)
+      schemasToExamine = usedSchemas - foundSchemas
+    } while (schemasToExamine.isNotEmpty())
 
-    return referencedSchemas.toList()
+    return Schemas(usedSchemas.toSet(), topLevelSchemas.filterValues { usedSchemas.contains(it) })
   }
 
-  private fun resolveSchemaComponents(schema: MSchemaNonRef) = when (schema) {
-    is MSchemaObject -> resolveObjectProperties(schema)
-    is MSchemaArray  -> resolveArrayElements(schema)
-    is MSchemaMap    -> resolveMapValues(schema)
-    else               -> {
+  /**
+   * Recursively examines the schema for embedded schemas and remembers them by adding them to the usedSchemas set.
+   */
+  private fun examineSchema(schema: ActualSchema) = when (schema) {
+    is ObjectSchema -> examineObjectProperties(schema)
+    is ArraySchema -> examineArrayItems(schema)
+    is MapSchema -> examineMapValues(schema)
+    else -> {
       // do nothing 
     }
   }
 
-  private fun resolveFurther(schema: MSchemaNonRef) {
-    val newSchema = referencedSchemas.add(schema)
+  private fun rememberAndExamineSchema(schema: ActualSchema) {
+    val newSchema = usedSchemas.add(schema)
     if (newSchema) {
-      resolveSchemaComponents(schema)
+      examineSchema(schema)
     }
   }
 
-  private fun resolveObjectProperties(schema: MSchemaObject) {
+  private fun examineObjectProperties(schema: ObjectSchema) {
     schema.properties.forEach { property ->
       when (val propertySchema = property.schema) {
-        is MSchemaRef    -> property.schema = lookupSchemaRef(propertySchema)
-        is MSchemaNonRef -> resolveFurther(propertySchema)
+        is SchemaRef -> rememberReferencedSchema(propertySchema)
+        is ActualSchema -> rememberAndExamineSchema(propertySchema)
       }
     }
   }
 
-  private fun resolveArrayElements(schema: MSchemaArray) {
+  private fun examineArrayItems(schema: ArraySchema) {
     when (val itemSchema = schema.itemSchema) {
-      is MSchemaRef    -> schema.itemSchema = lookupSchemaRef(itemSchema)
-      is MSchemaNonRef -> resolveFurther(itemSchema)
+      is SchemaRef -> rememberReferencedSchema(itemSchema)
+      is ActualSchema -> rememberAndExamineSchema(itemSchema)
     }
   }
 
-  private fun resolveMapValues(schema: MSchemaMap) {
+  private fun examineMapValues(schema: MapSchema) {
     when (val valuesSchema = schema.valuesSchema) {
-      is MSchemaRef    -> schema.valuesSchema = lookupSchemaRef(valuesSchema)
-      is MSchemaNonRef -> resolveFurther(valuesSchema)
+      is SchemaRef -> rememberReferencedSchema(valuesSchema)
+      is ActualSchema -> rememberAndExamineSchema(valuesSchema)
     }
   }
+
+  data class Schemas(
+      val allSchemas: Set<ActualSchema>,
+      val topLevelSchemas: Map<SchemaRef, ActualSchema>,
+  )
 }

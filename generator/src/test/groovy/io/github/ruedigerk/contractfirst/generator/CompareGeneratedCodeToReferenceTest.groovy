@@ -10,6 +10,7 @@ class CompareGeneratedCodeToReferenceTest extends Specification {
 
   static def serverHarness = new GeneratorHarness("src/test/contract/testsuite.yaml", "server", true)
   static def clientHarness = new GeneratorHarness("src/test/contract/testsuite.yaml", "client", false)
+  static def selfReferentialHarness = new GeneratorHarness("src/test/contract/self-referential-model.yaml", "selfreferential", true)
 
   @Unroll
   def "Test testsuite server: #fileName"() {
@@ -43,5 +44,22 @@ class CompareGeneratedCodeToReferenceTest extends Specification {
     fileName << clientHarness.relativePathNames
     referenceFile << clientHarness.referenceFiles
     generatedFile << clientHarness.generatedFiles
+  }
+
+  @Unroll
+  def "Test self-referential data model: #fileName"() {
+    when:
+    selfReferentialHarness.runGenerator()
+
+    then:
+    generatedFile.exists()
+
+    and:
+    generatedFile.text == referenceFile.text
+
+    where:
+    fileName << selfReferentialHarness.relativePathNames
+    referenceFile << selfReferentialHarness.referenceFiles
+    generatedFile << selfReferentialHarness.generatedFiles
   }
 }

@@ -4,6 +4,7 @@ Ideas and Todos
 ## General / in the parser
 
 - Add a usage description with examples to the help Mojo of the Maven plugin and to the project Readme file.
+- Add support for $refs with description, e.g., in object schema properties.
 - Array or object type schemas in request parameters
 - Support for oneOf, allOf, anyOf in schemas
 - Using Jackson instead of Gson for Serializing JSON.
@@ -19,5 +20,6 @@ Ideas and Todos
 
 ## Client Generator
 
+- Allow simplified operation methods that throw multiple different error entity types ApiClientEntityExceptions.
 - Make it possible to select the desired response content type (via Accept header), if the contract defines multiple response content types.
 - Optionally enable request body and parameter validation using BeanValidation.

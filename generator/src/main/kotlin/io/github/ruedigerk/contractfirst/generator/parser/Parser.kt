@@ -1,19 +1,19 @@
 package io.github.ruedigerk.contractfirst.generator.parser
 
-import io.swagger.parser.OpenAPIParser
-import io.swagger.v3.oas.models.OpenAPI
-import io.swagger.v3.oas.models.Operation
-import io.swagger.v3.oas.models.PathItem
-import io.swagger.v3.oas.models.media.Content
-import io.swagger.v3.oas.models.parameters.Parameter
-import io.swagger.v3.oas.models.parameters.RequestBody
-import io.swagger.v3.oas.models.responses.ApiResponses
-import io.swagger.v3.parser.core.models.ParseOptions
 import io.github.ruedigerk.contractfirst.generator.NotSupportedException
 import io.github.ruedigerk.contractfirst.generator.logging.Log
 import io.github.ruedigerk.contractfirst.generator.model.*
 import io.github.ruedigerk.contractfirst.generator.parser.ParserHelper.normalize
 import io.github.ruedigerk.contractfirst.generator.parser.ParserHelper.nullToEmpty
+import io.swagger.parser.OpenAPIParser
+import io.swagger.v3.oas.models.OpenAPI
+import io.swagger.v3.oas.models.PathItem
+import io.swagger.v3.oas.models.responses.ApiResponses
+import io.swagger.v3.parser.core.models.ParseOptions
+import io.swagger.v3.oas.models.Operation as SwaggerOperation
+import io.swagger.v3.oas.models.media.Content as SwaggerContent
+import io.swagger.v3.oas.models.parameters.Parameter as SwaggerParameter
+import io.swagger.v3.oas.models.parameters.RequestBody as SwaggerRequestBody
 
 /**
  * Parser implementation based on swagger-parser.
@@ -22,7 +22,7 @@ class Parser(private val log: Log) {
 
   private lateinit var schemaResolver: SchemaResolver
 
-  fun parse(specFilePath: String): MSpecification {
+  fun parse(specFilePath: String): Specification {
     val openApiSpecification = runSwaggerParser(specFilePath)
     return toContract(openApiSpecification)
   }
@@ -42,20 +42,20 @@ class Parser(private val log: Log) {
     return result.openAPI!!
   }
 
-  private fun toContract(openApi: OpenAPI): MSpecification {
+  private fun toContract(openApi: OpenAPI): Specification {
     schemaResolver = SchemaResolver(log, openApi.components.schemas)
 
     val operations = toOperations(openApi.paths)
-    val referencedSchemas = schemaResolver.determineAndResolveReferencedSchemas()
+    val schemas = schemaResolver.findAllUsedSchemas()
 
-    return MSpecification(operations, referencedSchemas, openApi)
+    return Specification(operations, schemas.allSchemas, schemas.topLevelSchemas, openApi)
   }
 
-  private fun toOperations(pathItemMap: Map<String, PathItem>): List<MOperation> {
+  private fun toOperations(pathItemMap: Map<String, PathItem>): List<Operation> {
     return pathItemMap.entries.flatMap { (path, pathItem) -> toOperations(path, pathItem) }
   }
 
-  private fun toOperations(path: String, pathItem: PathItem): List<MOperation> {
+  private fun toOperations(path: String, pathItem: PathItem): List<Operation> {
     val nameHint = NameHint(path)
 
     val commonParameters = pathItem.parameters.nullToEmpty().map { toParameter(it, nameHint) }
@@ -79,11 +79,11 @@ class Parser(private val log: Log) {
   private fun toOperation(
       path: String,
       method: String,
-      operation: Operation,
-      commonParameters: List<MParameter>
-  ): MOperation {
+      operation: SwaggerOperation,
+      commonParameters: List<Parameter>
+  ): Operation {
     val nameHint = NameHint(operation.operationId)
-    return MOperation(
+    return Operation(
         path,
         method,
         operation.tags.nullToEmpty(),
@@ -96,20 +96,20 @@ class Parser(private val log: Log) {
     )
   }
 
-  private fun toRequestBody(requestBody: RequestBody, nameHint: NameHint): MRequestBody = MRequestBody(
+  private fun toRequestBody(requestBody: SwaggerRequestBody, nameHint: NameHint): RequestBody = RequestBody(
       requestBody.description.normalize(),
       requestBody.required ?: false,
-      toContents(requestBody.content, nameHint).map { it as? MContent ?: throw ParserException("Request body without content, at $nameHint") }
+      toContents(requestBody.content, nameHint).map { it as? Content ?: throw ParserException("Request body without content, at $nameHint") }
   )
 
-  private fun joinParameters(operationParameters: List<Parameter>, pathParameters: List<MParameter>, nameHint: NameHint): List<MParameter> {
+  private fun joinParameters(operationParameters: List<SwaggerParameter>, pathParameters: List<Parameter>, nameHint: NameHint): List<Parameter> {
     val operationParametersAsMap = operationParameters.map { toParameter(it, nameHint) }.associateBy { it.name }
     val pathParametersAsMap = pathParameters.associateBy { it.name }
 
     return (pathParametersAsMap + operationParametersAsMap).values.toList()
   }
 
-  private fun toParameter(parameter: Parameter, nameHint: NameHint): MParameter {
+  private fun toParameter(parameter: SwaggerParameter, nameHint: NameHint): Parameter {
     if (parameter.schema == null) {
       throw NotSupportedException("Parameters without schema are not supported: $parameter")
     }
@@ -117,12 +117,12 @@ class Parser(private val log: Log) {
       throw NotSupportedException("Parameters with content property are not supported: $parameter")
     }
 
-    return MParameter(
+    return Parameter(
         parameter.name,
         toParameterLocation(parameter.`in`),
         parameter.description.normalize(),
         parameter.required ?: false,
-        schemaResolver.resolveSchema(parameter.schema, nameHint / parameter.name)
+        schemaResolver.parseSchema(parameter.schema, nameHint / parameter.name)
     )
   }
 
@@ -136,8 +136,8 @@ class Parser(private val log: Log) {
     }
   }
 
-  private fun toResponses(responses: ApiResponses, nameHint: NameHint): List<MResponse> = responses.map { (statusCode, response) ->
-    MResponse(toStatusCode(statusCode), toContents(response.content, nameHint / statusCode))
+  private fun toResponses(responses: ApiResponses, nameHint: NameHint): List<Response> = responses.map { (statusCode, response) ->
+    Response(toStatusCode(statusCode), toContents(response.content, nameHint / statusCode))
   }
 
   private fun toStatusCode(statusCode: String): ResponseStatusCode = when (statusCode) {
@@ -145,7 +145,7 @@ class Parser(private val log: Log) {
     else -> StatusCode(statusCode.toInt())
   }
 
-  private fun toContents(content: Content?, nameHint: NameHint): List<MContent> = content?.map { (mediaType, content) ->
-    MContent(mediaType, schemaResolver.resolveSchema(content.schema, nameHint))
+  private fun toContents(content: SwaggerContent?, nameHint: NameHint): List<Content> = content?.map { (mediaType, content) ->
+    Content(mediaType, schemaResolver.parseSchema(content.schema, nameHint))
   } ?: listOf()
 }

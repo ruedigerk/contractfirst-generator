@@ -1,53 +1,55 @@
 package io.github.ruedigerk.contractfirst.generator.parser
 
-import io.swagger.v3.oas.models.media.ArraySchema
-import io.swagger.v3.oas.models.media.Schema
 import io.github.ruedigerk.contractfirst.generator.NotSupportedException
 import io.github.ruedigerk.contractfirst.generator.logging.Log
 import io.github.ruedigerk.contractfirst.generator.model.*
 import io.github.ruedigerk.contractfirst.generator.parser.ParserHelper.normalize
 import io.github.ruedigerk.contractfirst.generator.parser.ParserHelper.nullToEmpty
+import io.swagger.v3.oas.models.media.ArraySchema as SwaggerArraySchema
+import io.swagger.v3.oas.models.media.Schema as SwaggerSchema
 
+/**
+ * Parses Swagger schemas to Contractfirst schemas.
+ */
 class SchemaParser(private val log: Log) {
 
-  fun parseTopLevelSchemas(schemas: Map<String, Schema<*>>): Map<MSchemaRef, MSchemaNonRef> = schemas
-      .mapValues { toTopLevelSchema(it.value, NameHint(it.key)) }
-      .mapKeys { MSchemaRef("#/components/schemas/${it.key}") }
-
-  private fun toTopLevelSchema(schema: Schema<*>, location: NameHint): MSchemaNonRef =
-      (parseSchema(schema, location) as? MSchemaNonRef) ?: throw NotSupportedException("Unsupported schema reference in #/components/schemas: $schema")
-
-  fun parseSchema(schema: Schema<*>, location: NameHint): MSchema {
+  /**
+   * Parses the supplied Swagger schema to a Contractfirst schemas.
+   * @param schema the schema to parse.
+   * @param location the location of the schema in the contract. Can later be used for naming.
+   */
+  fun parseSchema(schema: SwaggerSchema<*>, location: NameHint): Schema {
     log.debug { "Parsing schema $location of ${schema.javaClass.simpleName}" }
 
     if (schema.`$ref` != null) {
-      return MSchemaRef(schema.`$ref`)
+      // TODO: Support "description" together with $ref? 
+      return SchemaRef(schema.`$ref`)
     }
     if (schema.enum != null && schema.enum.isNotEmpty()) {
       return toEnumSchema(schema, location)
     }
 
     return when (schema.type) {
-      "array" -> toArraySchema(schema as ArraySchema, location)
+      "array" -> toArraySchema(schema as SwaggerArraySchema, location)
       "boolean", "integer", "number", "string" -> toPrimitiveSchema(MPrimitiveType.valueOf(schema.type.uppercase()), schema, location)
       "object", null -> toObjectOrMapSchema(schema, location)
       else -> throw NotSupportedException("Schema type '${schema.type}' is not supported: $schema")
     }
   }
 
-  private fun toEnumSchema(schema: Schema<*>, location: NameHint): MSchemaEnum {
+  private fun toEnumSchema(schema: SwaggerSchema<*>, location: NameHint): EnumSchema {
     if (schema.type != "string") {
       throw NotSupportedException("Currently only enum schemas of type 'string' are supported, type is '${schema.type}'")
     }
 
-    return MSchemaEnum(schema.title.normalize(), schema.description.normalize(), schema.enum.map { it.toString() }, location)
+    return EnumSchema(schema.title.normalize(), schema.description.normalize(), schema.enum.map { it.toString() }, location)
   }
 
   @Suppress("UNCHECKED_CAST")
-  private fun toArraySchema(schema: ArraySchema, location: NameHint): MSchemaArray {
-    val itemsSchema = parseSchema(schema.items as Schema<*>, location)
+  private fun toArraySchema(schema: SwaggerArraySchema, location: NameHint): ArraySchema {
+    val itemsSchema = parseSchema(schema.items as SwaggerSchema<*>, location)
 
-    return MSchemaArray(
+    return ArraySchema(
         schema.title.normalize(),
         schema.description.normalize(),
         itemsSchema,
@@ -58,8 +60,8 @@ class SchemaParser(private val log: Log) {
     ).also { itemsSchema.embedIn(it) }
   }
 
-  private fun toPrimitiveSchema(primitiveType: MPrimitiveType, schema: Schema<*>, location: NameHint): MSchemaPrimitive {
-    return MSchemaPrimitive(
+  private fun toPrimitiveSchema(primitiveType: MPrimitiveType, schema: SwaggerSchema<*>, location: NameHint): PrimitiveSchema {
+    return PrimitiveSchema(
         schema.title.normalize(),
         schema.description.normalize(),
         primitiveType,
@@ -75,9 +77,9 @@ class SchemaParser(private val log: Log) {
     )
   }
 
-  private fun toObjectOrMapSchema(schema: Schema<*>, location: NameHint): MSchemaNonRef {
+  private fun toObjectOrMapSchema(schema: SwaggerSchema<*>, location: NameHint): ActualSchema {
     val properties = schema.properties.nullToEmpty()
-    val additionalProperties = schema.additionalProperties as? Schema<*>
+    val additionalProperties = schema.additionalProperties as? SwaggerSchema<*>
     // TODO: additionalProperties of type Boolean instead of Schema are ignored.
 
     return when {
@@ -89,26 +91,26 @@ class SchemaParser(private val log: Log) {
     }
   }
 
-  private fun toMapSchema(schema: Schema<*>, valuesSchema: MSchema, location: NameHint): MSchemaMap =
-      MSchemaMap(schema.title.normalize(), schema.description.normalize(), valuesSchema, schema.minItems, schema.maxItems, location)
+  private fun toMapSchema(schema: SwaggerSchema<*>, valuesSchema: Schema, location: NameHint): MapSchema =
+      MapSchema(schema.title.normalize(), schema.description.normalize(), valuesSchema, schema.minItems, schema.maxItems, location)
           .also { valuesSchema.embedIn(it) }
 
-  private fun toObjectSchema(schema: Schema<*>, location: NameHint): MSchemaObject {
+  private fun toObjectSchema(schema: SwaggerSchema<*>, location: NameHint): ObjectSchema {
     val requiredProperties = schema.required.nullToEmpty().toSet()
     val properties = schema.properties.nullToEmpty().map { (name, schema) ->
-      MSchemaProperty(name, requiredProperties.contains(name), parseSchema(schema, location / name))
+      SchemaProperty(name, requiredProperties.contains(name), parseSchema(schema, location / name))
     }
 
-    val schemaObject = MSchemaObject(schema.title.normalize(), schema.description.normalize(), properties, location)
+    val schemaObject = ObjectSchema(schema.title.normalize(), schema.description.normalize(), properties, location)
 
     properties.forEach { it.schema.embedIn(schemaObject) }
 
     return schemaObject
   }
 
-  private fun MSchema.embedIn(parent: MSchemaNonRef) {
+  private fun Schema.embedIn(parent: ActualSchema) {
     // Only inline schemas are treated as embedded in another schema, referencing a schema is not treated as embedding. 
-    if (this is MSchemaNonRef) {
+    if (this is ActualSchema) {
       this.embeddedIn = parent
     }
   }

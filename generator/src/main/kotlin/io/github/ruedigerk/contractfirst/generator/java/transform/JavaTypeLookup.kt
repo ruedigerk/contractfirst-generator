@@ -3,9 +3,9 @@ package io.github.ruedigerk.contractfirst.generator.java.transform
 import io.github.ruedigerk.contractfirst.generator.Configuration
 import io.github.ruedigerk.contractfirst.generator.java.model.JavaAnyType
 import io.github.ruedigerk.contractfirst.generator.logging.Log
-import io.github.ruedigerk.contractfirst.generator.model.MSchema
-import io.github.ruedigerk.contractfirst.generator.model.MSchemaNonRef
-import io.github.ruedigerk.contractfirst.generator.model.MSchemaRef
+import io.github.ruedigerk.contractfirst.generator.model.ActualSchema
+import io.github.ruedigerk.contractfirst.generator.model.Schema
+import io.github.ruedigerk.contractfirst.generator.model.SchemaRef
 
 /**
  * Used for looking up the Java type for a schema. Uses SchemaToJavaTypeTransformer to first translate all schemas to their respective types.
@@ -13,21 +13,22 @@ import io.github.ruedigerk.contractfirst.generator.model.MSchemaRef
 class JavaTypeLookup(
     private val log: Log,
     configuration: Configuration,
-    val allSchemas: List<MSchemaNonRef>
+    val allSchemas: Set<ActualSchema>,
+    topLevelSchemas: Map<SchemaRef, ActualSchema>
 ) {
 
-  private val schemasToTypes = createSchemasToTypesLookup(configuration)
+  private val schemaRefLookup = SchemaRefLookup(topLevelSchemas)
+  private val javaTypesForSchemas: Map<ActualSchema, JavaAnyType> = createSchemasToTypesLookup(configuration)
 
-  private fun createSchemasToTypesLookup(configuration: Configuration): Map<MSchemaNonRef, JavaAnyType> {
-    val typeTransformer = SchemaToJavaTypeTransformer(log, configuration)
-    return allSchemas.distinct().associateWith(typeTransformer::toJavaType)
+  private fun createSchemasToTypesLookup(configuration: Configuration): Map<ActualSchema, JavaAnyType> {
+    val typeTransformer = SchemaToJavaTypeTransformer(log, configuration, schemaRefLookup)
+    return allSchemas.associateWith(typeTransformer::toJavaType)
   }
 
-  fun lookupJavaTypeFor(schema: MSchema): JavaAnyType {
-    if (schema is MSchemaRef) {
-      throw IllegalStateException("Specification must not contain any MSchemaRef instances, but was: $schema")
-    }
+  fun lookupJavaTypeFor(schema: Schema): JavaAnyType = lookupJavaTypeFor(schemaRefLookup.lookupIfRef(schema))
 
-    return schemasToTypes[schema] ?: throw IllegalArgumentException("Schema not in schemasToTypes: $schema")
-  }
+  // SchemaResolver ensures that all schema used in the contract are known and therefore contained in javaTypesForSchemas. 
+  fun lookupJavaTypeFor(schema: ActualSchema): JavaAnyType = javaTypesForSchemas[schema]!!
+
+  fun lookupIfRef(schema: Schema): ActualSchema = schemaRefLookup.lookupIfRef(schema)
 }

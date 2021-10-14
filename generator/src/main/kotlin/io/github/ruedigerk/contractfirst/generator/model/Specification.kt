@@ -5,8 +5,9 @@ import io.swagger.v3.oas.models.OpenAPI
 /**
  * Represents the contents of a contract.
  */
-data class MSpecification(
-    val operations: List<MOperation>,
-    val schemas: List<MSchemaNonRef>,
+data class Specification(
+    val operations: List<Operation>,
+    val allSchemas: Set<ActualSchema>,
+    val topLevelSchemas: Map<SchemaRef, ActualSchema>,
     val source: OpenAPI
 )

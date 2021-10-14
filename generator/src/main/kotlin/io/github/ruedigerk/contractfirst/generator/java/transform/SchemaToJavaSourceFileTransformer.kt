@@ -12,15 +12,15 @@ class SchemaToJavaSourceFileTransformer(private val typeLookup: JavaTypeLookup) 
 
   fun transformedJavaModelFiles(): List<JavaSourceFile> = typeLookup.allSchemas.mapNotNull(::toJavaSourceFile)
 
-  private fun toJavaSourceFile(schema: MSchemaNonRef): JavaSourceFile? = when (schema) {
-    is MSchemaObject -> toJavaClassFile(schema)
-    is MSchemaEnum -> toJavaEnumFile(schema)
-    is MSchemaArray -> null
-    is MSchemaMap -> null
-    is MSchemaPrimitive -> null
+  private fun toJavaSourceFile(schema: ActualSchema): JavaSourceFile? = when (schema) {
+    is ObjectSchema -> toJavaClassFile(schema)
+    is EnumSchema -> toJavaEnumFile(schema)
+    is ArraySchema -> null
+    is MapSchema -> null
+    is PrimitiveSchema -> null
   }
 
-  private fun toJavaClassFile(schema: MSchemaObject): JavaClassFile? {
+  private fun toJavaClassFile(schema: ObjectSchema): JavaClassFile? {
     val type = typeLookup.lookupJavaTypeFor(schema)
     val className = type.name
     val properties = schema.properties.map(::toJavaProperty)
@@ -33,9 +33,8 @@ class SchemaToJavaSourceFileTransformer(private val typeLookup: JavaTypeLookup) 
     return JavaClassFile(className, JavadocHelper.toJavadoc(schema), properties)
   }
 
-  private fun toJavaProperty(property: MSchemaProperty): JavaProperty {
-    val schema = property.schema as? MSchemaNonRef ?: throw IllegalArgumentException("Unexpected SchemaRef in $property")
-    val type = typeLookup.lookupJavaTypeFor(schema)
+  private fun toJavaProperty(property: SchemaProperty): JavaProperty {
+    val type = typeLookup.lookupJavaTypeFor(property.schema)
 
     val initializer = when {
       type is JavaCollectionType && type.name == "Set" -> JavaType("HashSet", "java.util")
@@ -46,7 +45,7 @@ class SchemaToJavaSourceFileTransformer(private val typeLookup: JavaTypeLookup) 
 
     return JavaProperty(
         property.name.toJavaIdentifier(),
-        JavadocHelper.toJavadoc(schema),
+        JavadocHelper.toJavadoc(typeLookup.lookupIfRef(property.schema)),
         property.name,
         property.required,
         type,
@@ -54,7 +53,7 @@ class SchemaToJavaSourceFileTransformer(private val typeLookup: JavaTypeLookup) 
     )
   }
 
-  private fun toJavaEnumFile(schema: MSchemaEnum): JavaEnumFile {
+  private fun toJavaEnumFile(schema: EnumSchema): JavaEnumFile {
     val type = typeLookup.lookupJavaTypeFor(schema)
     val constants = schema.values.map { EnumConstant(it.toJavaConstant(), it) }
 
