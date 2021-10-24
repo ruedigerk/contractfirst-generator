@@ -10,6 +10,8 @@ class CompareGeneratedCodeToReferenceTest extends Specification {
 
   static def serverHarness = new GeneratorHarness("src/test/contract/testsuite.yaml", "server", true)
   static def clientHarness = new GeneratorHarness("src/test/contract/testsuite.yaml", "client", false)
+  static def combinationsServerHarness = new GeneratorHarness("src/test/contract/content-type-combinations.yaml", "combinations_server", true)
+  static def combinationsClientHarness = new GeneratorHarness("src/test/contract/content-type-combinations.yaml", "combinations_client", false)
   static def selfReferentialHarness = new GeneratorHarness("src/test/contract/self-referential-model.yaml", "selfreferential", true)
 
   @Unroll
@@ -44,6 +46,40 @@ class CompareGeneratedCodeToReferenceTest extends Specification {
     fileName << clientHarness.relativePathNames
     referenceFile << clientHarness.referenceFiles
     generatedFile << clientHarness.generatedFiles
+  }
+
+  @Unroll
+  def "Test content-type-combinations server: #fileName"() {
+    when:
+    combinationsServerHarness.runGenerator()
+
+    then:
+    generatedFile.exists()
+
+    and:
+    generatedFile.text == referenceFile.text
+
+    where:
+    fileName << combinationsServerHarness.relativePathNames
+    referenceFile << combinationsServerHarness.referenceFiles
+    generatedFile << combinationsServerHarness.generatedFiles
+  }
+
+  @Unroll
+  def "Test content-type-combinations client: #fileName"() {
+    when:
+    combinationsClientHarness.runGenerator()
+
+    then:
+    generatedFile.exists()
+
+    and:
+    generatedFile.text == referenceFile.text
+
+    where:
+    fileName << combinationsClientHarness.relativePathNames
+    referenceFile << combinationsClientHarness.referenceFiles
+    generatedFile << combinationsClientHarness.generatedFiles
   }
 
   @Unroll

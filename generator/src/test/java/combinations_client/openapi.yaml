@@ -1,0 +1,196 @@
+openapi: 3.0.0
+info:
+  title: Contract for testing various combinations of content types.
+  version: 1.0.0
+servers:
+- url: https://example.com/content-type-combinations/
+paths:
+  /defaultOnly:
+    get:
+      operationId: getDefaultOnly
+      parameters:
+      - explode: false
+        in: header
+        name: testCaseSelector
+        required: false
+        schema:
+          type: string
+        style: simple
+      responses:
+        default:
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Book'
+          description: The one response definition with status "default".
+      summary: Test case for only having a response with status code "default".
+      tags:
+      - ContentTypeCombinations
+  /successOnly:
+    get:
+      operationId: getSuccessOnly
+      responses:
+        "200":
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Book'
+          description: "The single response, successful."
+      summary: Test case for only having a single successful response.
+      tags:
+      - ContentTypeCombinations
+  /failureOnly:
+    get:
+      operationId: getFailureOnly
+      responses:
+        "400":
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/CtcError'
+          description: "The single response, being a failure."
+      summary: Test case for only having a single failure response.
+      tags:
+      - ContentTypeCombinations
+  /successEntityAndErrorDefault:
+    get:
+      operationId: getSuccessEntityAndErrorDefault
+      parameters:
+      - explode: false
+        in: header
+        name: testCaseSelector
+        required: false
+        schema:
+          type: string
+        style: simple
+      responses:
+        "200":
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Book'
+          description: Success is a book.
+        default:
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/CtcError'
+          description: Default is failure.
+      summary: Test case for having one successful response with an entity and a default for all errors.
+      tags:
+      - ContentTypeCombinations
+  /multipleSuccessEntities:
+    get:
+      operationId: getMultipleSuccessEntities
+      parameters:
+      - explode: false
+        in: header
+        name: testCaseSelector
+        required: false
+        schema:
+          type: string
+        style: simple
+      responses:
+        "200":
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Book'
+          description: Success is a book.
+        "201":
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/CtcError'
+          description: Success is also a failure.
+      summary: Test case for having multiple success entity types.
+      tags:
+      - ContentTypeCombinations
+  /multipleSuccessResponsesWithoutContent:
+    get:
+      operationId: getMultipleSuccessResponsesWithoutContent
+      parameters:
+      - explode: false
+        in: header
+        name: testCaseSelector
+        required: false
+        schema:
+          type: string
+        style: simple
+      responses:
+        "200":
+          description: 200 without content.
+        "204":
+          description: 204 also without content.
+      summary: Test case for having multiple successful responses without content.
+      tags:
+      - ContentTypeCombinations
+  /multipleErrorEntities:
+    get:
+      operationId: getMultipleErrorEntities
+      parameters:
+      - explode: false
+        in: header
+        name: testCaseSelector
+        required: false
+        schema:
+          type: string
+        style: simple
+      responses:
+        "200":
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Book'
+          description: Success is a book.
+        "400":
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/CtcError'
+          description: Error with CtcError entity.
+        "500":
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/SevereCtcError'
+          description: Error with SevereCtcError entity.
+      summary: Test case for having multiple error entity types.
+      tags:
+      - ContentTypeCombinations
+  /contentFor204:
+    get:
+      operationId: getContentFor204
+      responses:
+        "204":
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Book'
+          description: "Status 204, returning content."
+      summary: Test case for returning content with status code 204.
+      tags:
+      - ContentTypeCombinations
+components:
+  responses:
+    DefaultFailures:
+      content:
+        application/json:
+          schema:
+            $ref: '#/components/schemas/CtcError'
+      description: "Some other error, like 500."
+  schemas:
+    Book:
+      properties:
+        title:
+          type: string
+        isbn:
+          type: string
+    CtcError:
+      properties:
+        code:
+          type: string
+    SevereCtcError:
+      properties:
+        code:
+          type: integer

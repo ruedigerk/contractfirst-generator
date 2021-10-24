@@ -1,7 +1,7 @@
 openapi: "3.0.0"
 info:
   version: 1.0.0
-  title: Minimal contract for testing a self-referential data model.
+  title: Contract for testing a self-referential data model.
 servers:
   - url: https://example.com/
 paths:

@@ -26,10 +26,9 @@ class JavaTransformer(private val log: Log, private val configuration: Configura
   }
 
   private fun groupOperations(operations: List<Operation>): List<JavaOperationGroup> = operations
-      .groupBy { it.tags.firstOrNull() ?: DEFAULT_GROUP_NAME }
-      .mapKeys { it.key.toJavaTypeIdentifier() + GROUP_NAME_SUFFIX }
+      .groupBy { it.tags.firstOrNull() ?: DEFAULT_TAG_NAME }
       .mapValues { it.value.map(::toJavaOperation) }
-      .map { (groupJavaIdentifier, operations) -> JavaOperationGroup(groupJavaIdentifier, operations) }
+      .map { (tag, operations) -> JavaOperationGroup(tag.toJavaTypeIdentifier() + GROUP_NAME_SUFFIX, operations, tag) }
 
   // TODO add location suffix to parameter name, if parameter name is not unique within operation (name + location must be unique according to spec)
   private fun toJavaOperation(operation: Operation): JavaOperation {
@@ -49,13 +48,13 @@ class JavaTransformer(private val log: Log, private val configuration: Configura
         operation.method,
         requestBodyMediaTypes.toList(),
         parameters,
-        operation.responses.map(::toJavaResponse)
+        operation.responses.map(::toJavaResponse),
     )
   }
 
   private fun toOperationJavadoc(operation: Operation, parameters: List<JavaParameter>): String? {
     val docComment = operation.description ?: operation.summary
-    val paramsJavadoc = parameters.filter { it.javadoc != null }.joinToString("\n") { "@param ${it.javaIdentifier} ${it.javadoc}" }
+    val paramsJavadoc = parameters.filter { it.javadoc != null }.joinToString("\n") { "@param ${it.javaParameterName} ${it.javadoc}" }
 
     return when {
       docComment == null && paramsJavadoc.isEmpty() -> null
@@ -104,7 +103,7 @@ class JavaTransformer(private val log: Log, private val configuration: Configura
   companion object {
 
     private const val GROUP_NAME_SUFFIX = "Api"
-    private const val DEFAULT_GROUP_NAME = "Default"
+    private const val DEFAULT_TAG_NAME = "Default"
   }
 }
 

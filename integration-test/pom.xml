@@ -51,7 +51,7 @@
             <version>${project.version}</version>
             <executions>
                <execution>
-                  <id>generate-integrationtest-server-code</id>
+                  <id>generate-testsuite-server-code</id>
                   <goals>
                      <goal>generate</goal>
                   </goals>
@@ -64,7 +64,7 @@
                   </configuration>
                </execution>
                <execution>
-                  <id>generate-integrationtest-client-code</id>
+                  <id>generate-testsuite-client-code</id>
                   <goals>
                      <goal>generate</goal>
                   </goals>
@@ -73,6 +73,32 @@
                      <inputContractFile>${project.basedir}/src/main/contract/testsuite.yaml</inputContractFile>
                      <outputDir>${project.build.directory}/generated-sources/integrationtest</outputDir>
                      <outputJavaBasePackage>io.github.ruedigerk.contractfirst.generator.integrationtest.generated.client</outputJavaBasePackage>
+                     <outputJavaModelNamePrefix>C</outputJavaModelNamePrefix>
+                  </configuration>
+               </execution>
+               <execution>
+                  <id>generate-content-type-combinations-server-code</id>
+                  <goals>
+                     <goal>generate</goal>
+                  </goals>
+                  <configuration>
+                     <generator>server</generator>
+                     <inputContractFile>${project.basedir}/src/main/contract/content-type-combinations.yaml</inputContractFile>
+                     <outputDir>${project.build.directory}/generated-sources/integrationtest</outputDir>
+                     <outputJavaBasePackage>io.github.ruedigerk.contractfirst.generator.combinations.generated.server</outputJavaBasePackage>
+                     <outputJavaModelNamePrefix>S</outputJavaModelNamePrefix>
+                  </configuration>
+               </execution>
+               <execution>
+                  <id>generate-content-type-combinations-client-code</id>
+                  <goals>
+                     <goal>generate</goal>
+                  </goals>
+                  <configuration>
+                     <generator>client</generator>
+                     <inputContractFile>${project.basedir}/src/main/contract/content-type-combinations.yaml</inputContractFile>
+                     <outputDir>${project.build.directory}/generated-sources/integrationtest</outputDir>
+                     <outputJavaBasePackage>io.github.ruedigerk.contractfirst.generator.combinations.generated.client</outputJavaBasePackage>
                      <outputJavaModelNamePrefix>C</outputJavaModelNamePrefix>
                   </configuration>
                </execution>

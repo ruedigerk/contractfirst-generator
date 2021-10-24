@@ -5,5 +5,6 @@ package io.github.ruedigerk.contractfirst.generator.java.model
  */
 data class JavaOperationGroup(
     val javaIdentifier: String,
-    val operations: List<JavaOperation>
+    val operations: List<JavaOperation>,
+    val originalTag: String
 )

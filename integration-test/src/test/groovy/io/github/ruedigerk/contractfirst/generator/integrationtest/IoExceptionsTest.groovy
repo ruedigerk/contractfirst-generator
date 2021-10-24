@@ -1,7 +1,7 @@
 package io.github.ruedigerk.contractfirst.generator.integrationtest
 
 import io.github.ruedigerk.contractfirst.generator.client.ApiClientIoException
-import io.github.ruedigerk.contractfirst.generator.client.ApiClientSupport
+import io.github.ruedigerk.contractfirst.generator.client.RequestExecutor
 import io.github.ruedigerk.contractfirst.generator.integrationtest.generated.client.api.MultipleContentTypesApiClient
 import io.github.ruedigerk.contractfirst.generator.integrationtest.generated.server.resources.MultipleContentTypesApi
 import io.github.ruedigerk.contractfirst.generator.integrationtest.spec.EmbeddedJaxRsServerSpecification
@@ -20,11 +20,11 @@ class IoExceptionsTest extends EmbeddedJaxRsServerSpecification {
 
   def "IOException for callTimeout"() {
     given:
-    def clientSupport = new ApiClientSupport(okHttpClient.newBuilder().callTimeout(Duration.ofMillis(1)).build(), BASE_URL)
+    def clientSupport = new RequestExecutor(okHttpClient.newBuilder().callTimeout(Duration.ofMillis(1)).build(), BASE_URL)
     MultipleContentTypesApiClient apiClient = new MultipleContentTypesApiClient(clientSupport)
 
     when:
-    apiClient.getManualWithResponse(null)
+    apiClient.getManual(null)
 
     then:
     def e = thrown ApiClientIoException
@@ -34,11 +34,11 @@ class IoExceptionsTest extends EmbeddedJaxRsServerSpecification {
 
   def "IOException for readTimeout"() {
     given:
-    def clientSupport = new ApiClientSupport(okHttpClient.newBuilder().readTimeout(Duration.ofMillis(1)).build(), BASE_URL)
+    def clientSupport = new RequestExecutor(okHttpClient.newBuilder().readTimeout(Duration.ofMillis(1)).build(), BASE_URL)
     MultipleContentTypesApiClient apiClient = new MultipleContentTypesApiClient(clientSupport)
 
     when:
-    apiClient.getManualWithResponse(null)
+    apiClient.getManual(null)
 
     then:
     def e = thrown ApiClientIoException

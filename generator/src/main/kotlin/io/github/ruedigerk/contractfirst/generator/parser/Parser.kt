@@ -137,12 +137,22 @@ class Parser(private val log: Log) {
   }
 
   private fun toResponses(responses: ApiResponses, nameHint: NameHint): List<Response> = responses.map { (statusCode, response) ->
-    Response(toStatusCode(statusCode), toContents(response.content, nameHint / statusCode))
+    val status = toStatusCode(statusCode)
+    Response(status, toResponseContents(response.content, status, nameHint / statusCode))
   }
 
   private fun toStatusCode(statusCode: String): ResponseStatusCode = when (statusCode) {
     "default" -> DefaultStatusCode
     else -> StatusCode(statusCode.toInt())
+  }
+
+  private fun toResponseContents(content: SwaggerContent?, status: ResponseStatusCode, nameHint: NameHint): List<Content> {
+    // If status code is 204, ignore content if present, as HTTP does not allow content in a 204 response
+    return if (status == StatusCode(204)) {
+      listOf()
+    } else {
+      toContents(content, nameHint)
+    }
   }
 
   private fun toContents(content: SwaggerContent?, nameHint: NameHint): List<Content> = content?.map { (mediaType, content) ->

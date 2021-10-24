@@ -111,3 +111,12 @@ The generated client code needs the following dependencies:
         <artifactId>gson</artifactId>
         <version>2.8.7</version>
     </dependency>
+
+Changelog
+---------
+
+### 1.3.0
+
+**Changed**
+- Extensive rewrite of the client generator. The client now generates type-safe query and getter methods for working with responses, and also supports different
+  styles for handling exceptions.

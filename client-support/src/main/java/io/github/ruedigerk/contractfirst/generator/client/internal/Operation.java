@@ -123,7 +123,7 @@ public class Operation {
      * Adds a response definition without content/body.
      */
     public void response(StatusCode statusCode) {
-      responseDefinitions.add(new ResponseDefinition(statusCode, null, null));
+      responseDefinitions.add(new ResponseDefinition(statusCode, null, Void.TYPE));
     }
 
     /**

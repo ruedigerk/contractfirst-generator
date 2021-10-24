@@ -1,8 +1,7 @@
 package io.github.ruedigerk.contractfirst.generator.integrationtest
 
 import com.google.gson.reflect.TypeToken
-import io.github.ruedigerk.contractfirst.generator.client.DefinedResponse
-import io.github.ruedigerk.contractfirst.generator.client.GenericResponse
+import io.github.ruedigerk.contractfirst.generator.client.ApiResponse
 import io.github.ruedigerk.contractfirst.generator.integrationtest.generated.client.api.PayloadVariantsApiClient
 import io.github.ruedigerk.contractfirst.generator.integrationtest.generated.client.model.CItem
 import io.github.ruedigerk.contractfirst.generator.integrationtest.generated.server.model.SItem
@@ -32,16 +31,15 @@ class PayloadVariantsTest extends EmbeddedJaxRsServerSpecification {
     noExceptionThrown()
 
     when:
-    GenericResponse genericResponse = apiClient.changeItemWithResponse(new CItem(id: 1L, name: "Buddy", tag: "new tag"))
+    ApiResponse response = apiClient.returningAnyResponse().changeItem(new CItem(id: 1L, name: "Buddy", tag: "new tag"))
 
     then:
-    DefinedResponse response = genericResponse.asDefinedResponse()
     response.request.url == "$BASE_URL/itemBinaries"
     response.request.method == "POST"
     response.statusCode == 204
     response.httpStatusMessage == "No Content"
     response.contentType == null
-    response.javaType == Void.TYPE
+    response.entityType == Void.TYPE
     response.entity == null
   }
 
@@ -57,16 +55,15 @@ class PayloadVariantsTest extends EmbeddedJaxRsServerSpecification {
     responseItems == expectedOutput
 
     when:
-    GenericResponse genericResponse = apiClient.filterItemsWithResponse(input)
+    ApiResponse response = apiClient.returningAnyResponse().filterItems(input)
 
     then:
-    DefinedResponse response = genericResponse.asDefinedResponse()
     response.request.url == "$BASE_URL/items"
     response.request.method == "POST"
     response.statusCode == 200
     response.httpStatusMessage == "OK"
     response.contentType == "application/json"
-    response.javaType == new TypeToken<List<CItem>>() {
+    response.entityType == new TypeToken<List<CItem>>() {
     }.getType()
     response.entity == expectedOutput
   }
@@ -84,16 +81,15 @@ class PayloadVariantsTest extends EmbeddedJaxRsServerSpecification {
     responseBytes == pdfBytes
 
     when:
-    GenericResponse genericResponse = apiClient.uploadAndReturnBinaryWithResponse(new ByteArrayInputStream(pdfBytes))
+    ApiResponse response = apiClient.returningAnyResponse().uploadAndReturnBinary(new ByteArrayInputStream(pdfBytes))
 
     then:
-    DefinedResponse response = genericResponse.asDefinedResponse()
     response.request.url == "$BASE_URL/itemBinaries"
     response.request.method == "PUT"
     response.statusCode == 200
     response.httpStatusMessage == "OK"
     response.contentType == "application/octet-stream"
-    response.javaType == InputStream.class
+    response.entityType == InputStream.class
     (response.entity as InputStream).bytes == pdfBytes
   }
 

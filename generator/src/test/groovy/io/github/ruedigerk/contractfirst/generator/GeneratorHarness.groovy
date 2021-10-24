@@ -9,6 +9,8 @@ import org.slf4j.LoggerFactory
  */
 class GeneratorHarness {
 
+  private static final String NO_REFERENCE_FILES = "NO_REFERENCE_FILES"
+
   static {
     System.setProperty("org.slf4j.simpleLogger.defaultLogLevel", "info")
   }
@@ -46,8 +48,6 @@ class GeneratorHarness {
     generatedFiles = relativePathNames.collect {
       new File(generatedDir, it)
     }
-
-    assert !relativePathNames.isEmpty()
   }
 
   def runGenerator() {
@@ -56,6 +56,9 @@ class GeneratorHarness {
 
       deleteOutputDirectory()
       executeGenerator()
+
+      assert relativePathNames != [NO_REFERENCE_FILES]: "There are no reference files in $referenceDir"
+      
       checkForAdditionalFiles()
     }
   }
@@ -84,12 +87,20 @@ class GeneratorHarness {
   }
 
   private static List<String> discoverFiles(String dir) {
+    def directory = new File(dir)
+
     List<String> result = []
     int prefixLength = dir.length()
 
-    new File(dir).eachFileRecurse(FileType.FILES) {
-      def relativePath = it.toString().substring(prefixLength)
-      result.add(relativePath)
+    if (directory.exists()) {
+      directory.eachFileRecurse(FileType.FILES) {
+        def relativePath = it.toString().substring(prefixLength)
+        result.add(relativePath)
+      }
+    }
+
+    if (result.isEmpty()) {
+      return [NO_REFERENCE_FILES]
     }
 
     result

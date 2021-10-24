@@ -52,9 +52,9 @@ class ServerStubGenerator(private val configuration: Configuration) {
   private fun toOperationMethod(operation: JavaOperation, typesafeResponseClass: TypeSpec): MethodSpec {
     val parameters = operation.parameters.map(::toParameterSpec)
 
-    return MethodSpec.methodBuilder(operation.javaIdentifier)
+    return MethodSpec.methodBuilder(operation.javaMethodName)
         .doIfNotNull(operation.javadoc) { addJavadoc(it) }
-        .addAnnotation(httpMethodAnnotation(operation.method))
+        .addAnnotation(httpMethodAnnotation(operation.httpMethod))
         .addAnnotation(pathAnnotation(operation.path))
         .doIf(operation.requestBodyMediaTypes.isNotEmpty()) { addAnnotation(consumesAnnotation(operation.requestBodyMediaTypes)) }
         .addAnnotation(producesAnnotation(operation.responses))
@@ -67,7 +67,7 @@ class ServerStubGenerator(private val configuration: Configuration) {
   private fun toParameterSpec(parameter: JavaParameter): ParameterSpec {
     val typeValidationAnnotations = parameter.javaType.validations.map(GeneratorCommon::toAnnotation)
 
-    return ParameterSpec.builder(parameter.javaType.toTypeName(), parameter.javaIdentifier)
+    return ParameterSpec.builder(parameter.javaType.toTypeName(), parameter.javaParameterName)
         .doIfNotNull(parameter as? JavaRegularParameter) { addAnnotation(paramAnnotation(it)) }
         .doIf(parameter.required) { addAnnotation(NOT_NULL_ANNOTATION) }
         .addAnnotations(typeValidationAnnotations)
@@ -103,7 +103,7 @@ class ServerStubGenerator(private val configuration: Configuration) {
 
   private fun toTypesafeResponseClass(operation: JavaOperation): TypeSpec {
     val jaxRsResponseTypeName = "javax.ws.rs.core.Response".toTypeName()
-    val className = operation.javaIdentifier.capitalize() + "Response"
+    val className = operation.javaMethodName.capitalize() + "Response"
 
     val responseMethodsWithStatusCode = operation.responses
         .filter { it.statusCode is StatusCode }

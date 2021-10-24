@@ -8,10 +8,10 @@ import java.util.Optional;
  */
 public class ApiClientIoException extends ApiClientException {
 
-  private final RequestDescription request;
+  private final ApiRequest request;
   private final IncompleteResponse incompleteResponse;
 
-  public ApiClientIoException(String message, RequestDescription request, IOException cause) {
+  public ApiClientIoException(String message, ApiRequest request, IOException cause) {
     super(toMessage(message, request), cause);
     this.request = request;
     incompleteResponse = null;
@@ -23,12 +23,12 @@ public class ApiClientIoException extends ApiClientException {
     this.incompleteResponse = incompleteResponse;
   }
 
-  private static String toMessage(String message, RequestDescription request) {
+  private static String toMessage(String message, ApiRequest request) {
     return message + ", for: " + request.getMethod() + " " + request.getUrl();
   }
 
   private static String toMessage(String message, IncompleteResponse incompleteResponse) {
-    RequestDescription request = incompleteResponse.getRequest();
+    ApiRequest request = incompleteResponse.getRequest();
     return message + 
         ", for " + request.getMethod() + " " + request.getUrl() + 
         ", status=" + incompleteResponse.getStatusCode() + " " + incompleteResponse.getHttpStatusMessage();
@@ -37,7 +37,7 @@ public class ApiClientIoException extends ApiClientException {
   /**
    * Returns a description of the request that lead to the IOException.
    */
-  public RequestDescription getRequest() {
+  public ApiRequest getRequest() {
     return request;
   }
 

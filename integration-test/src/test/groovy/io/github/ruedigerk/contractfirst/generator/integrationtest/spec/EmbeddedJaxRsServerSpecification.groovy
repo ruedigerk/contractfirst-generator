@@ -1,6 +1,6 @@
 package io.github.ruedigerk.contractfirst.generator.integrationtest.spec
 
-import io.github.ruedigerk.contractfirst.generator.client.ApiClientSupport
+import io.github.ruedigerk.contractfirst.generator.client.RequestExecutor
 import io.github.ruedigerk.contractfirst.generator.integrationtest.EmbeddedJaxRsServer
 import okhttp3.OkHttpClient
 import okhttp3.logging.HttpLoggingInterceptor
@@ -28,7 +28,7 @@ abstract class EmbeddedJaxRsServerSpecification extends Specification {
   @Shared
   OkHttpClient okHttpClient = new OkHttpClient.Builder().addNetworkInterceptor(loggingInterceptor).build()
   @Shared
-  ApiClientSupport apiClientSupport = new ApiClientSupport(okHttpClient, BASE_URL)
+  RequestExecutor apiClientSupport = new RequestExecutor(okHttpClient, BASE_URL)
 
   abstract Class<?> getTestResource()
 

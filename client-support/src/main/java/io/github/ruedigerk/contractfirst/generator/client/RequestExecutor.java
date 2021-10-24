@@ -35,7 +35,7 @@ import okhttp3.ResponseBody;
 /**
  * Performs HTTP requests as defined by generated client code.
  */
-public class ApiClientSupport {
+public class RequestExecutor {
 
   private static final String CONTENT_TYPE_HEADER = "Content-Type";
 
@@ -43,9 +43,15 @@ public class ApiClientSupport {
   private final OkHttpClient httpClient;
   private final String baseUrl;
 
-  public ApiClientSupport(OkHttpClient httpClient, String baseUrl) {
+  /**
+   * Constructs a new instance of RequestExecutor. Instances are thread-safe and can be shared across multiple instances of generated ApiClients.
+   *
+   * @param httpClient the OkHttp-Client instance to use for sending HTTP requests.
+   * @param baseUrl    the base URL to send requests to.
+   */
+  public RequestExecutor(OkHttpClient httpClient, String baseUrl) {
     this.httpClient = addInternalInterceptors(httpClient);
-    this.baseUrl = adjustBaseUrl(baseUrl);
+    this.baseUrl = removeTrailingSlash(baseUrl);
 
     gson = createGson();
   }
@@ -66,7 +72,7 @@ public class ApiClientSupport {
         .build();
   }
 
-  private String adjustBaseUrl(String baseUrl) {
+  private String removeTrailingSlash(String baseUrl) {
     return baseUrl.endsWith("/") ? baseUrl.substring(0, baseUrl.length() - 1) : baseUrl;
   }
 
@@ -77,7 +83,8 @@ public class ApiClientSupport {
         .create();
   }
 
-  public GenericResponse executeRequest(Operation operation) throws ApiClientIoException, ApiClientValidationException {
+  public ApiResponse executeRequest(Operation operation)
+      throws ApiClientIoException, ApiClientValidationException, ApiClientIncompatibleResponseException {
     validateOperation(operation);
 
     Request request = createRequest(operation);
@@ -107,16 +114,16 @@ public class ApiClientSupport {
     } catch (IOException e) {
       // Special case for extremely short request timeouts, where the request times out even before the RequestAccessInterceptor was called
       Request detailedRequest = firstNonNull(RequestAccessInterceptor.getLastRequest(), request);
-      RequestDescription requestDescription = toRequestDescription(detailedRequest);
-      throw new ApiClientIoException("Error executing request: " + e, requestDescription, e);
+      ApiRequest apiRequest = toApiRequest(detailedRequest);
+      throw new ApiClientIoException("Error executing request: " + e, apiRequest, e);
     } finally {
       RequestAccessInterceptor.clearThreadLocal();
     }
   }
 
-  private RequestDescription toRequestDescription(Request request) {
+  private ApiRequest toApiRequest(Request request) {
     List<Header> headers = extractHeaders(request.headers());
-    return new RequestDescription(request.url().toString(), request.method(), headers);
+    return new ApiRequest(request.url().toString(), request.method(), headers);
   }
 
   public Request createRequest(Operation operation) throws ApiClientIoException {
@@ -132,8 +139,8 @@ public class ApiClientSupport {
           .headers(headers)
           .build();
     } catch (IOException e) {
-      RequestDescription requestDescription = new RequestDescription(url.toString(), operation.getMethod(), extractHeaders(headers));
-      throw new ApiClientIoException("Error serializing request body: " + e, requestDescription, e);
+      ApiRequest apiRequest = new ApiRequest(url.toString(), operation.getMethod(), extractHeaders(headers));
+      throw new ApiClientIoException("Error serializing request body: " + e, apiRequest, e);
     }
   }
 
@@ -256,9 +263,12 @@ public class ApiClientSupport {
    *
    * Note: this method closes the response body unless it returns an InputStream of the body!
    *
-   * @throws ApiClientIoException when an IOException occurs reading the response.
+   * @throws ApiClientIoException                   when an IOException occurs reading the response.
+   * @throws ApiClientIncompatibleResponseException when the response is not conforming to the specification of the API.
    */
-  private GenericResponse interpretResponse(RequestAndResponse requestAndResponse, Operation operation) {
+  private ApiResponse interpretResponse(RequestAndResponse requestAndResponse, Operation operation)
+      throws ApiClientIoException, ApiClientIncompatibleResponseException {
+
     Request request = requestAndResponse.request;
     Response response = requestAndResponse.response;
     ResponseBody responseBody = Objects.requireNonNull(response.body());
@@ -266,8 +276,8 @@ public class ApiClientSupport {
     int statusCode = response.code();
     String mediaType = response.header(CONTENT_TYPE_HEADER);
 
-    RequestDescription requestDescription = toRequestDescription(request);
-    ResponseBuilder responseBuilder = new ResponseBuilder(requestDescription, statusCode, response.message(), mediaType, response.headers());
+    ApiRequest apiRequest = toApiRequest(request);
+    ResponseBuilder responseBuilder = new ResponseBuilder(apiRequest, statusCode, response.message(), mediaType, response.headers());
 
     try {
       boolean isEmptyBody = responseBody.source().exhausted();
@@ -277,26 +287,28 @@ public class ApiClientSupport {
         // The response is not described in the contract, return an unexpected response.
         String bodyContent = responseBody.string();
         response.close();
-        return responseBuilder.undefinedResponse(bodyContent, "The combination of the response's status code and content type is unknown");
+        IncompatibleResponse incompatibleResponse = responseBuilder.incompatibleResponse(bodyContent);
+        throw new ApiClientIncompatibleResponseException("The combination of the response's status code and content type is unknown", incompatibleResponse);
       } else if (javaType.equals(Void.TYPE)) {
         // The response should be empty according to the contract. Ignore body if exists.
         response.close();
-        return responseBuilder.definedResponse(javaType, null);
+        return responseBuilder.apiResponse(javaType, null);
       } else if (javaType.equals(InputStream.class)) {
         // The contract says to return the body unprocessed, i.e., as type InputStream.
         // In this case, the application is responsible for closing the InputStream!
-        return responseBuilder.definedResponse(javaType, responseBody.byteStream());
+        return responseBuilder.apiResponse(javaType, responseBody.byteStream());
       } else if (isJsonMediaType(mediaType)) {
         // The contract defines the response to be a JSON entity. Deserialize and return it.
         // Note: deserializeFromJson closes the response body.
         return deserializeFromJson(responseBuilder, responseBody, javaType);
       } else if (javaType.equals(String.class)) {
         // The contract defines the response to be some string content, e.g., text/plain, so just return it as a string.
-        return responseBuilder.definedResponse(javaType, responseBody.string());
+        return responseBuilder.apiResponse(javaType, responseBody.string());
       } else {
         // In this case, the contract defines a schema for the response, but the server sends it in an unsupported format, i.e., a non-JSON format.
         String bodyContent = responseBody.string();
-        return responseBuilder.undefinedResponse(bodyContent, "Content-Type not supported by client: " + mediaType);
+        IncompatibleResponse incompatibleResponse = responseBuilder.incompatibleResponse(bodyContent);
+        throw new ApiClientIncompatibleResponseException("Content-Type not supported by API client: " + mediaType, incompatibleResponse);
       }
     } catch (IOException e) {
       // The body could not be read
@@ -363,14 +375,17 @@ public class ApiClientSupport {
   /**
    * Deserializes the response entity and closes the response body.
    */
-  private GenericResponse deserializeFromJson(ResponseBuilder responseBuilder, ResponseBody responseBody, Type expectedType) throws IOException {
+  private ApiResponse deserializeFromJson(ResponseBuilder responseBuilder, ResponseBody responseBody, Type expectedType)
+      throws IOException, ApiClientIncompatibleResponseException {
+
     String stringContent = readAndCloseResponseBody(responseBody);
 
     try {
       Object entity = gson.fromJson(stringContent, expectedType);
-      return responseBuilder.definedResponse(expectedType, entity);
+      return responseBuilder.apiResponse(expectedType, entity);
     } catch (JsonParseException e) {
-      return responseBuilder.undefinedResponse(stringContent, "JSON response from server cannot be parsed to " + expectedType + ": " + e, e);
+      IncompatibleResponse incompatibleResponse = responseBuilder.incompatibleResponse(stringContent);
+      throw new ApiClientIncompatibleResponseException("JSON response from server cannot be parsed to " + expectedType + ": " + e, incompatibleResponse, e);
     }
   }
 
@@ -398,13 +413,13 @@ public class ApiClientSupport {
    */
   private static class ResponseBuilder {
 
-    private final RequestDescription request;
+    private final ApiRequest request;
     private final int statusCode;
     private final String httpStatusMessage;
     private final String contentType;
     private final List<Header> headers;
 
-    public ResponseBuilder(RequestDescription request, int statusCode, String httpStatusMessage, String contentType, Headers headers) {
+    ResponseBuilder(ApiRequest request, int statusCode, String httpStatusMessage, String contentType, Headers headers) {
       this.request = request;
       this.statusCode = statusCode;
       this.httpStatusMessage = httpStatusMessage;
@@ -412,20 +427,16 @@ public class ApiClientSupport {
       this.headers = extractHeaders(headers);
     }
 
-    public UndefinedResponse undefinedResponse(String responseContent, String reason) {
-      return new UndefinedResponse(request, statusCode, httpStatusMessage, contentType, responseContent, reason, headers, null);
+    ApiResponse apiResponse(Type javaType, Object entity) {
+      return new ApiResponse(request, statusCode, httpStatusMessage, contentType, headers, entity, javaType);
     }
 
-    public UndefinedResponse undefinedResponse(String responseContent, String reason, Throwable cause) {
-      return new UndefinedResponse(request, statusCode, httpStatusMessage, contentType, responseContent, reason, headers, cause);
-    }
-
-    public DefinedResponse definedResponse(Type javaType, Object entity) {
-      return new DefinedResponse(request, statusCode, httpStatusMessage, contentType, javaType, headers, entity);
-    }
-
-    public IncompleteResponse incompleteResponse() {
+    IncompleteResponse incompleteResponse() {
       return new IncompleteResponse(request, statusCode, httpStatusMessage, contentType, headers);
+    }
+
+    IncompatibleResponse incompatibleResponse(String responseBody) {
+      return new IncompatibleResponse(request, statusCode, httpStatusMessage, contentType, headers, responseBody);
     }
   }
 

@@ -1,10 +1,9 @@
 package io.github.ruedigerk.contractfirst.generator.integrationtest
 
-import io.github.ruedigerk.contractfirst.generator.client.ApiClientUndefinedResponseException
+import io.github.ruedigerk.contractfirst.generator.client.ApiClientIncompatibleResponseException
 import io.github.ruedigerk.contractfirst.generator.client.Header
-import io.github.ruedigerk.contractfirst.generator.client.UndefinedResponse
+import io.github.ruedigerk.contractfirst.generator.integrationtest.generated.client.api.ApiClientErrorWithCFailureEntityException
 import io.github.ruedigerk.contractfirst.generator.integrationtest.generated.client.api.ResponseVariantsApiClient
-import io.github.ruedigerk.contractfirst.generator.integrationtest.generated.client.api.RestClientCFailureEntityException
 import io.github.ruedigerk.contractfirst.generator.integrationtest.generated.client.model.CFailure
 import io.github.ruedigerk.contractfirst.generator.integrationtest.generated.client.model.CItem
 import io.github.ruedigerk.contractfirst.generator.integrationtest.generated.server.model.SFailure
@@ -32,13 +31,12 @@ class ResponseVariantsTest extends EmbeddedJaxRsServerSpecification {
 
   def "Server response with explicitly defined 200"() {
     when:
-    def genericResponse = apiClient.createItemWithResponse("systemId", true, 4711L, null, item)
+    def response = apiClient.returningSuccessfulResponse().createItem("systemId", true, 4711L, null, item)
 
     then:
-    def response = genericResponse.asDefinedResponse()
-    response.request.url == "$BASE_URL/systemId/components?dryRun=true"
-    response.request.method == "POST"
-    response.request.headers == [
+    response.apiResponse.request.url == "$BASE_URL/systemId/components?dryRun=true"
+    response.apiResponse.request.method == "POST"
+    response.apiResponse.request.headers == [
         new Header("partNumber", "4711"),
         new Header("Accept", "application/json"),
         new Header("Content-Type", "application/json; charset=utf-8"),
@@ -48,28 +46,29 @@ class ResponseVariantsTest extends EmbeddedJaxRsServerSpecification {
         new Header("Accept-Encoding", "gzip"),
         new Header("User-Agent", "okhttp/4.9.1"),
     ]
-    response.statusCode == 200
-    response.httpStatusMessage == "OK"
-    response.contentType == "application/json"
-    response.javaType == CItem.class
-    response.entity == item
+    response.apiResponse.statusCode == 200
+    response.apiResponse.httpStatusMessage == "OK"
+    response.apiResponse.contentType == "application/json"
+    response.apiResponse.entityType == CItem.class
+    response.apiResponse.entity == item
 
     when:
     def createdItem = apiClient.createItem("systemId", true, 4711L, null, item)
+    def apiResponse = apiClient.returningAnyResponse().createItem("systemId", true, 4711L, null, item)
 
     then:
     createdItem == item
+    apiResponse == response.apiResponse
   }
 
   def "Server response with explicitly defined 201"() {
     when:
-    def genericResponse = apiClient.createItemWithResponse("systemId", true, 4711L, "201", item)
+    def response = apiClient.returningSuccessfulResponse().createItem("systemId", true, 4711L, "201", item)
 
     then:
-    def response = genericResponse.asDefinedResponse()
-    response.request.url == "$BASE_URL/systemId/components?dryRun=true"
-    response.request.method == "POST"
-    response.request.headers == [
+    response.apiResponse.request.url == "$BASE_URL/systemId/components?dryRun=true"
+    response.apiResponse.request.method == "POST"
+    response.apiResponse.request.headers == [
         new Header("partNumber", "4711"),
         new Header("testCaseSelector", "201"),
         new Header("Accept", "application/json"),
@@ -80,11 +79,11 @@ class ResponseVariantsTest extends EmbeddedJaxRsServerSpecification {
         new Header("Accept-Encoding", "gzip"),
         new Header("User-Agent", "okhttp/4.9.1"),
     ]
-    response.statusCode == 201
-    response.httpStatusMessage == "Created"
-    response.contentType == null
-    response.javaType == Void.TYPE
-    response.entity == null
+    response.apiResponse.statusCode == 201
+    response.apiResponse.httpStatusMessage == "Created"
+    response.apiResponse.contentType == null
+    response.apiResponse.entityType == Void.TYPE
+    response.apiResponse.entity == null
 
     when:
     def responseEntity = apiClient.createItem("systemId", true, 4711L, "201", item)
@@ -95,13 +94,12 @@ class ResponseVariantsTest extends EmbeddedJaxRsServerSpecification {
 
   def "Server response with explicitly defined 204"() {
     when:
-    def genericResponse = apiClient.createItemWithResponse("systemId", true, 4711L, "204", item)
+    def response = apiClient.returningSuccessfulResponse().createItem("systemId", true, 4711L, "204", item)
 
     then:
-    def response = genericResponse.asDefinedResponse()
-    response.request.url == "$BASE_URL/systemId/components?dryRun=true"
-    response.request.method == "POST"
-    response.request.headers == [
+    response.apiResponse.request.url == "$BASE_URL/systemId/components?dryRun=true"
+    response.apiResponse.request.method == "POST"
+    response.apiResponse.request.headers == [
         new Header("partNumber", "4711"),
         new Header("testCaseSelector", "204"),
         new Header("Accept", "application/json"),
@@ -112,11 +110,11 @@ class ResponseVariantsTest extends EmbeddedJaxRsServerSpecification {
         new Header("Accept-Encoding", "gzip"),
         new Header("User-Agent", "okhttp/4.9.1"),
     ]
-    response.statusCode == 204
-    response.httpStatusMessage == "No Content"
-    response.contentType == null
-    response.javaType == Void.TYPE
-    response.entity == null
+    response.apiResponse.statusCode == 204
+    response.apiResponse.httpStatusMessage == "No Content"
+    response.apiResponse.contentType == null
+    response.apiResponse.entityType == Void.TYPE
+    response.apiResponse.entity == null
 
     when:
     def responseEntity = apiClient.createItem("systemId", true, 4711L, "204", item)
@@ -127,13 +125,12 @@ class ResponseVariantsTest extends EmbeddedJaxRsServerSpecification {
 
   def "Server responds with explicitly defined 400"() {
     when:
-    def genericResponse = apiClient.createItemWithResponse("systemId", false, 23, "400", item)
+    def apiResponse = apiClient.returningAnyResponse().createItem("systemId", false, 23, "400", item)
 
     then:
-    def response = genericResponse.asDefinedResponse()
-    response.request.url == "$BASE_URL/systemId/components?dryRun=false"
-    response.request.method == "POST"
-    response.request.headers == [
+    apiResponse.request.url == "$BASE_URL/systemId/components?dryRun=false"
+    apiResponse.request.method == "POST"
+    apiResponse.request.headers == [
         new Header("partNumber", "23"),
         new Header("testCaseSelector", "400"),
         new Header("Accept", "application/json"),
@@ -144,30 +141,29 @@ class ResponseVariantsTest extends EmbeddedJaxRsServerSpecification {
         new Header("Accept-Encoding", "gzip"),
         new Header("User-Agent", "okhttp/4.9.1"),
     ]
-    response.statusCode == 400
-    response.httpStatusMessage == "Bad Request"
-    response.contentType == "application/json"
-    response.javaType == CFailure.class
-    response.entity == new CFailure(code: 400, message: "Unknown customer id: 23")
+    apiResponse.statusCode == 400
+    apiResponse.httpStatusMessage == "Bad Request"
+    apiResponse.contentType == "application/json"
+    apiResponse.entityType == CFailure.class
+    apiResponse.entity == new CFailure(code: 400, message: "Unknown customer id: 23")
 
     when:
     apiClient.createItem("systemId", false, 23, "400", item)
 
     then:
-    def e = thrown RestClientCFailureEntityException
+    def e = thrown ApiClientErrorWithCFailureEntityException
     e.statusCode == 400
     e.entity == new CFailure(code: 400, message: "Unknown customer id: 23")
   }
 
   def "Server responds with 500, covered by default"() {
     when:
-    def genericResponse = apiClient.createItemWithResponse("systemId", false, 42, "500", item)
+    def apiResponse = apiClient.returningAnyResponse().createItem("systemId", false, 42, "500", item)
 
     then:
-    def response = genericResponse.asDefinedResponse()
-    response.request.url == "$BASE_URL/systemId/components?dryRun=false"
-    response.request.method == "POST"
-    response.request.headers == [
+    apiResponse.request.url == "$BASE_URL/systemId/components?dryRun=false"
+    apiResponse.request.method == "POST"
+    apiResponse.request.headers == [
         new Header("partNumber", "42"),
         new Header("testCaseSelector", "500"),
         new Header("Accept", "application/json"),
@@ -178,27 +174,30 @@ class ResponseVariantsTest extends EmbeddedJaxRsServerSpecification {
         new Header("Accept-Encoding", "gzip"),
         new Header("User-Agent", "okhttp/4.9.1"),
     ]
-    response.statusCode == 500
-    response.httpStatusMessage == "Internal Server Error"
-    response.contentType == "application/json"
-    response.javaType == CFailure.class
-    response.entity == new CFailure(code: 500, message: "Internal Server Error :(")
+    apiResponse.statusCode == 500
+    apiResponse.httpStatusMessage == "Internal Server Error"
+    apiResponse.contentType == "application/json"
+    apiResponse.entityType == CFailure.class
+    apiResponse.entity == new CFailure(code: 500, message: "Internal Server Error :(")
 
     when:
     apiClient.createItem("systemId", false, 42, "500", item)
 
     then:
-    def e = thrown RestClientCFailureEntityException
+    def e = thrown ApiClientErrorWithCFailureEntityException
     e.statusCode == 500
     e.entity == new CFailure(code: 500, message: "Internal Server Error :(")
   }
 
   def "Server responds with response not conforming to the contract"() {
     when:
-    def genericResponse = apiClient.createItemWithResponse("systemId", false, 999, "undefined", item)
+    apiClient.returningSuccessfulResponse().createItem("systemId", false, 999, "undefined", item)
 
     then:
-    def response = genericResponse as UndefinedResponse
+    def e = thrown ApiClientIncompatibleResponseException
+    e.cause == null
+    
+    def response = e.response
     response.request.url == "$BASE_URL/systemId/components?dryRun=false"
     response.request.method == "POST"
     response.request.headers == [
@@ -221,13 +220,14 @@ class ResponseVariantsTest extends EmbeddedJaxRsServerSpecification {
     response.httpStatusMessage == "Internal Server Error"
     response.contentType == "text/plain"
     response.body == "This is just plain text"
-    response.cause == null
 
     when:
     apiClient.createItem("systemId", false, 999, "undefined", item)
 
     then:
-    def e = thrown ApiClientUndefinedResponseException
+    e = thrown ApiClientIncompatibleResponseException
+    e.cause == null
+    
     e.response.request.url == "$BASE_URL/systemId/components?dryRun=false"
     e.response.request.method == "POST"
     e.response.request.headers == [
@@ -245,7 +245,6 @@ class ResponseVariantsTest extends EmbeddedJaxRsServerSpecification {
     e.response.httpStatusMessage == "Internal Server Error"
     e.response.contentType == "text/plain"
     e.response.body == "This is just plain text"
-    e.response.cause == null
   }
 
   /**

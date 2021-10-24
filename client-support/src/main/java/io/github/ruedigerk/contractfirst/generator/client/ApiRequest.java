@@ -4,15 +4,15 @@ import java.util.List;
 import java.util.Objects;
 
 /**
- * Describes a request sent by the API client.
+ * Represents a request sent by the API client. Does not contain the request body. 
  */
-public class RequestDescription {
+public class ApiRequest {
 
   private final String url;
   private final String method;
   private final List<Header> headers;
 
-  public RequestDescription(String url, String method, List<Header> headers) {
+  public ApiRequest(String url, String method, List<Header> headers) {
     this.url = url;
     this.method = method;
     this.headers = headers;
@@ -38,7 +38,7 @@ public class RequestDescription {
   public List<Header> getHeaders() {
     return headers;
   }
-
+  
   @Override
   public boolean equals(Object o) {
     if (this == o) {
@@ -47,7 +47,7 @@ public class RequestDescription {
     if (o == null || getClass() != o.getClass()) {
       return false;
     }
-    RequestDescription that = (RequestDescription) o;
+    ApiRequest that = (ApiRequest) o;
     return Objects.equals(url, that.url) && Objects.equals(method, that.method) && Objects.equals(headers, that.headers);
   }
 
@@ -58,6 +58,6 @@ public class RequestDescription {
 
   @Override
   public String toString() {
-    return "RequestDescription(" + method + " " + url + ",headers=" + headers + ')';
+    return "ApiRequest(" + method + " " + url + ",headers=" + headers + ')';
   }
 }
