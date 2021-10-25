@@ -7,7 +7,7 @@ servers:
 paths:
   /v1/components:
     get:
-      summary: Get component.
+      summary: "Get component. Also, test escaping of JavaPoet placeholders: $L $1N $%."
       operationId: getComponent
       tags:
         - V1Components
@@ -22,9 +22,10 @@ paths:
 components:
   schemas:
     Model:
-      description: A self-referential Model
+      description: "A self-referential Model. Also, test escaping of JavaPoet placeholders: $L $1N $%."
       properties:
         name:
+          description: "The name. Also, test escaping of JavaPoet placeholders: $L $1N $%."
           type: string
         next:
           $ref: "#/components/schemas/Model"

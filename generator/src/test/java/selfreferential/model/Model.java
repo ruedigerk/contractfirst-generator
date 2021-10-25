@@ -4,13 +4,16 @@ import java.util.Objects;
 import javax.validation.Valid;
 
 /**
- * A self-referential Model
+ * A self-referential Model. Also, test escaping of JavaPoet placeholders: $L $1N $%.
  */
 public class Model {
+  /**
+   * The name. Also, test escaping of JavaPoet placeholders: $L $1N $%.
+   */
   private String name;
 
   /**
-   * A self-referential Model
+   * A self-referential Model. Also, test escaping of JavaPoet placeholders: $L $1N $%.
    */
   @Valid
   private Model next;

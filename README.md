@@ -27,7 +27,7 @@ Here is an example for using the Maven plugin to generate server stubs:
     <plugin>
        <artifactId>contractfirst-generator-maven-plugin</artifactId>
        <groupId>io.github.ruedigerk.contractfirst.generator</groupId>
-       <version>1.2.0</version>
+       <version>1.3.1</version>
        <executions>
           <execution>
              <id>generate-server</id>
@@ -75,7 +75,7 @@ Here is an example for using the Maven plugin to generate an API client:
     <plugin>
        <artifactId>contractfirst-generator-maven-plugin</artifactId>
        <groupId>io.github.ruedigerk.contractfirst.generator</groupId>
-       <version>1.2.0</version>
+       <version>1.3.1</version>
        <executions>
           <execution>
              <id>generate-client</id>
@@ -114,6 +114,11 @@ The generated client code needs the following dependencies:
 
 Changelog
 ---------
+
+### 1.3.1
+
+**Fixed**
+- Properly escape descriptions when passing them into JavaPoet as Javadoc, so that JavaPoet placeholders like $L do not crash the generator.
 
 ### 1.3.0
 

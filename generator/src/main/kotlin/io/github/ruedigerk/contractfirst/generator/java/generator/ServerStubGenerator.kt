@@ -53,7 +53,7 @@ class ServerStubGenerator(private val configuration: Configuration) {
     val parameters = operation.parameters.map(::toParameterSpec)
 
     return MethodSpec.methodBuilder(operation.javaMethodName)
-        .doIfNotNull(operation.javadoc) { addJavadoc(it) }
+        .doIfNotNull(operation.javadoc) { addJavadoc("\$L", it) }
         .addAnnotation(httpMethodAnnotation(operation.httpMethod))
         .addAnnotation(pathAnnotation(operation.path))
         .doIf(operation.requestBodyMediaTypes.isNotEmpty()) { addAnnotation(consumesAnnotation(operation.requestBodyMediaTypes)) }

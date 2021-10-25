@@ -235,7 +235,7 @@ class ClientGenerator(configuration: Configuration) {
     val parameters = operation.parameters.map(::toParameterSpec)
 
     return MethodSpec.methodBuilder(operation.javaMethodName)
-        .doIfNotNull(operation.javadoc) { addJavadoc(it) }
+        .doIfNotNull(operation.javadoc) { addJavadoc("\$L", it) }
         .addModifiers(Modifier.PUBLIC)
         .doIfNotNull(returnType) { returns(returnType) }
         .addParameters(parameters)

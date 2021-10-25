@@ -15,15 +15,16 @@ paths:
               schema:
                 $ref: '#/components/schemas/Model'
           description: Returned component.
-      summary: Get component.
+      summary: "Get component. Also, test escaping of JavaPoet placeholders: $L $1N $%."
       tags:
       - V1Components
 components:
   schemas:
     Model:
-      description: A self-referential Model
+      description: "A self-referential Model. Also, test escaping of JavaPoet placeholders: $L $1N $%."
       properties:
         name:
+          description: "The name. Also, test escaping of JavaPoet placeholders: $L $1N $%."
           type: string
         next:
           $ref: '#/components/schemas/Model'

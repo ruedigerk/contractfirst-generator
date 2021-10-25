@@ -12,7 +12,7 @@ class CompareGeneratedCodeToReferenceTest extends Specification {
   static def clientHarness = new GeneratorHarness("src/test/contract/testsuite.yaml", "client", false)
   static def combinationsServerHarness = new GeneratorHarness("src/test/contract/content-type-combinations.yaml", "combinations_server", true)
   static def combinationsClientHarness = new GeneratorHarness("src/test/contract/content-type-combinations.yaml", "combinations_client", false)
-  static def selfReferentialHarness = new GeneratorHarness("src/test/contract/self-referential-model.yaml", "selfreferential", true)
+  static def selfReferentialHarness = new GeneratorHarness("src/test/contract/self-referential-model.yaml", "selfreferential", false)
 
   @Unroll
   def "Test testsuite server: #fileName"() {

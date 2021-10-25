@@ -48,7 +48,7 @@ class ModelGenerator(configuration: Configuration) {
     val equalsHashCodeAndToString = MethodsFromObject.generateEqualsHashCodeAndToString(classFile.className.toTypeName(), fields)
 
     return TypeSpec.classBuilder(classFile.className)
-        .doIfNotNull(classFile.javadoc) { addJavadoc(it) }
+        .doIfNotNull(classFile.javadoc) { addJavadoc("\$L", it) }
         .addModifiers(PUBLIC)
         .addFields(fields)
         .addMethods(accessors)
@@ -95,7 +95,7 @@ class ModelGenerator(configuration: Configuration) {
     val typeValidationAnnotations = property.type.validations.map(GeneratorCommon::toAnnotation)
 
     return FieldSpec.builder(property.type.toTypeName(), property.javaName, PRIVATE)
-        .doIfNotNull(property.javadoc) { addJavadoc(it) }
+        .doIfNotNull(property.javadoc) { addJavadoc("\$L", it) }
         .doIf(property.required) { addAnnotation(NOT_NULL_ANNOTATION) }
         .addAnnotations(typeValidationAnnotations)
         .doIfNotNull(property.initializerType) { initializer("new \$T<>()", it.toTypeName()) }
@@ -104,7 +104,7 @@ class ModelGenerator(configuration: Configuration) {
 
   private fun toJavaEnum(enumFile: JavaEnumFile): TypeSpec {
     val builder = TypeSpec.enumBuilder(enumFile.className)
-        .doIfNotNull(enumFile.javadoc) { addJavadoc(it) }
+        .doIfNotNull(enumFile.javadoc) { addJavadoc("\$L", it) }
         .addModifiers(PUBLIC)
 
     enumFile.constants.forEach { enumConstant ->
