@@ -92,7 +92,7 @@ class Parser(private val log: Log) {
         operation.description.normalize(),
         operation.operationId,
         operation.requestBody?.let { toRequestBody(it, nameHint / "RequestBody") },
-        joinParameters(operation.parameters.nullToEmpty(), commonParameters, nameHint),
+        joinParameters(commonParameters, operation.parameters.nullToEmpty(), nameHint),
         toResponses(operation.responses, nameHint)
     )
   }
@@ -103,12 +103,15 @@ class Parser(private val log: Log) {
       toContents(requestBody.content, nameHint).map { it as? Content ?: throw ParserException("Request body without content, at $nameHint") }
   )
 
-  // TODO: only name + location must be unique according to spec, group parameters by name + location
-  private fun joinParameters(operationParameters: List<SwaggerParameter>, pathParameters: List<Parameter>, nameHint: NameHint): List<Parameter> {
-    val operationParametersAsMap = operationParameters.map { toParameter(it, nameHint) }.associateBy { it.name }
-    val pathParametersAsMap = pathParameters.associateBy { it.name }
+  private fun joinParameters(commonParameters: List<Parameter>, operationParameters: List<SwaggerParameter>, nameHint: NameHint): List<Parameter> {
+    data class NameAndLocation(val name: String, val location: ParameterLocation)
+    fun Parameter.nameAndLocation() = NameAndLocation(this.name, this.location)
+    
+    val commonParametersAsMap = commonParameters.associateBy { it.nameAndLocation() }
+    val operationParametersAsMap = operationParameters.map { toParameter(it, nameHint) }.associateBy { it.nameAndLocation() }
 
-    return (pathParametersAsMap + operationParametersAsMap).values.toList()
+    // Operation parameters are overriding common parameters.
+    return (commonParametersAsMap + operationParametersAsMap).values.toList()
   }
 
   private fun toParameter(parameter: SwaggerParameter, nameHint: NameHint): Parameter {

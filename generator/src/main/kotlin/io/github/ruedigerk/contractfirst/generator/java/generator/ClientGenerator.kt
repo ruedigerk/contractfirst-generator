@@ -24,9 +24,19 @@ class ClientGenerator(configuration: Configuration) {
   private val apiPackage = "${configuration.outputJavaBasePackage}.$API_PACKAGE"
 
   fun generateCode(specification: JavaSpecification) {
-    generateApiClientClasses(specification)
-    generateErrorWithEntityExceptionClasses(specification)
+    // The client does not generate cookie parameters. They have to be supplied by cookies in the HTTP client itself.
+    val specWithoutCookieParameters = removeAllCookieParameters(specification)
+
+    generateApiClientClasses(specWithoutCookieParameters)
+    generateErrorWithEntityExceptionClasses(specWithoutCookieParameters)
   }
+
+  private fun removeAllCookieParameters(specification: JavaSpecification): JavaSpecification =
+      specification.copy(operationGroups = specification.operationGroups.map { group ->
+        group.copy(operations = group.operations.map { operation ->
+          operation.copy(parameters = operation.parameters.filterNot { it.isCookieParameter() })
+        })
+      })
 
   private fun generateApiClientClasses(specification: JavaSpecification) {
     specification.operationGroups.asSequence()
@@ -137,7 +147,7 @@ class ClientGenerator(configuration: Configuration) {
     codeBuilder.addStatement("\$1T builder = new \$1T(\$2S, \$3S)", SupportTypes.OperationBuilder, operation.path, operation.httpMethod)
     codeBuilder.add("\n")
 
-    // Add parameters (and request body) to operation builder.
+    // Add all parameters to the operation builder.
     operation.parameters.forEach { param ->
       when (param) {
         is JavaRegularParameter -> codeBuilder.addStatement(
@@ -161,7 +171,7 @@ class ClientGenerator(configuration: Configuration) {
         )
       }
     }
-    
+
     if (operation.parameters.any { it is JavaMultipartBodyParameter }) {
       codeBuilder.addStatement("builder.multipartRequestBody(\$S)", operation.requestBodyMediaType)
     }

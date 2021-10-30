@@ -3,6 +3,7 @@ package io.github.ruedigerk.contractfirst.generator.java.transform
 import io.github.ruedigerk.contractfirst.generator.Configuration
 import io.github.ruedigerk.contractfirst.generator.NotSupportedException
 import io.github.ruedigerk.contractfirst.generator.ParserException
+import io.github.ruedigerk.contractfirst.generator.java.Identifiers.capitalize
 import io.github.ruedigerk.contractfirst.generator.java.Identifiers.toJavaIdentifier
 import io.github.ruedigerk.contractfirst.generator.java.Identifiers.toJavaTypeIdentifier
 import io.github.ruedigerk.contractfirst.generator.java.model.*
@@ -40,7 +41,7 @@ class JavaTransformer(private val log: Log, private val configuration: Configura
 
     val requestBodyContent = requestBodyContents?.first()
     val bodyParameters = operation.requestBody?.let { requestBodyToParameters(operation, it, requestBodyContent!!) } ?: emptyList()
-    val parameters = operation.parameters.map(::toJavaParameter) + bodyParameters
+    val parameters = toParametersWithUniqueName(operation.parameters.map(::toJavaParameter) + bodyParameters)
 
     return JavaOperation(
         operation.operationId.toJavaIdentifier(),
@@ -120,6 +121,25 @@ class JavaTransformer(private val log: Log, private val configuration: Configura
       parameter.location,
       parameter.name,
   )
+
+  /**
+   * Makes duplicated parameter names unique by adding the location to the names.
+   */
+  private fun toParametersWithUniqueName(parameters: List<JavaParameter>): List<JavaParameter> {
+    val countByName = parameters.groupBy { it.javaParameterName }.mapValues { it.value.size }
+
+    return parameters.map { parameter ->
+      if (countByName[parameter.javaParameterName]!! > 1) {
+        when (parameter) {
+          is JavaBodyParameter -> parameter.copy(javaParameterName = parameter.javaParameterName + "Entity")
+          is JavaMultipartBodyParameter -> parameter.copy(javaParameterName = parameter.javaParameterName + "InBody")
+          is JavaRegularParameter -> parameter.copy(javaParameterName = parameter.javaParameterName + "In" + parameter.location.name.lowercase().capitalize())
+        }
+      } else {
+        parameter
+      }
+    }
+  }
 
   private fun toJavaResponse(response: Response): JavaResponse = JavaResponse(
       response.statusCode,

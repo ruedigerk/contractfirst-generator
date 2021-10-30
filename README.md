@@ -124,6 +124,7 @@ Changelog
 **Fixed**
 - Fixed IllegalArgumentException when trying to send a request without request body for the HTTP methods POST, PUT and PATCH with the generated client.
 - JSON representation of model classes is now correct when property names are not valid Java identifiers. 
+- Support equally named parameters with different locations for the same operation.
 
 **Changed**
 - Changed ApiClient classes of the client generator: there are now two methods for each operation, a simplified one, and one returning an operation specific 

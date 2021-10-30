@@ -3,7 +3,6 @@ Ideas and Todos
 
 ## General / in the parser
 
-- Support parameters with the same name if they have different locations.
 - Support type "string", format "byte" (Base64 encoded binary data).
 - HTTP methods GET and HEAD do not allow a request body -> adjust parser accordingly.
 - Support parameters defined with content instead of schema.
@@ -15,8 +14,6 @@ Ideas and Todos
 - Response headers, see "headers" at https://github.com/OAI/OpenAPI-Specification/blob/main/versions/3.0.2.md#responseObject
 - Status code ranges in responses, e.g. "2XX", see https://github.com/OAI/OpenAPI-Specification/blob/main/versions/3.0.2.md#responsesObject
 - Enums of a different primitive type than string.
-- Add JSON-Pointers to exceptions/error messages to pinpoint the error origin.
-- Print out the YAML in case of error, as swagger-parser inlines external references and the error locations are based on this transformed contract.
   
 ## Code-Generation, JavaPoet
 
@@ -31,6 +28,5 @@ Ideas and Todos
 
 ## Client Generator
 
-- Support request body with media type "application/x-www-form-urlencoded".
 - Make it possible to select the desired response content type (via Accept header), if the contract defines multiple response content types.
 - Optionally enable request body and parameter validation using BeanValidation.

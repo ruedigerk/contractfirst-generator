@@ -1,0 +1,43 @@
+openapi: "3.0.0"
+info:
+  version: 1.0.0
+  title: Contract for testing operations with multiple equally named parameters.
+servers:
+  - url: https://example.com/equally-named-parameters
+paths:
+  /getEquallyNamedParameters:
+    get:
+      summary: Test for multiple equally named parameters.
+      operationId: getEquallyNamedParameters
+      tags:
+        - EquallyNamedParameters
+      parameters:
+        - name: theParameter
+          in: cookie
+          schema: 
+            type: string
+        - name: theParameter
+          in: header
+          schema: 
+            type: string
+        - name: theParameter
+          in: path
+          schema: 
+            type: string
+        - name: theParameter
+          in: query
+          schema: 
+            type: string
+      requestBody:
+        content:
+          application/x-www-form-urlencoded:
+            schema:
+              type: object
+              properties:
+                theParameter:
+                  type: string
+                other:
+                  type: string
+      responses:
+        204:
+          description: Ok.
