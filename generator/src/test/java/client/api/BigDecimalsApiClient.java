@@ -11,6 +11,7 @@ import io.github.ruedigerk.contractfirst.generator.client.internal.ParameterLoca
 import io.github.ruedigerk.contractfirst.generator.client.internal.StatusCode;
 import java.math.BigDecimal;
 import java.util.Objects;
+import java.util.Optional;
 
 /**
  * Contains methods for all API operations tagged "BigDecimals".
@@ -18,28 +19,18 @@ import java.util.Objects;
 public class BigDecimalsApiClient {
   private final ApiRequestExecutor requestExecutor;
 
-  private final ReturningAnyResponse returningAnyResponse;
-
-  private final ReturningSuccessfulResult returningSuccessfulResult;
+  private final ReturningResult returningResult;
 
   public BigDecimalsApiClient(ApiRequestExecutor requestExecutor) {
     this.requestExecutor = requestExecutor;
-    this.returningAnyResponse = new ReturningAnyResponse();
-    this.returningSuccessfulResult = new ReturningSuccessfulResult();
+    this.returningResult = new ReturningResult();
   }
 
   /**
-   * Selects methods returning instances of ApiResponse and not throwing exceptions for unsuccessful status codes.
+   * Returns an API client with methods that return operation specific result classes, allowing inspection of the operations' responses.
    */
-  public ReturningAnyResponse returningAnyResponse() {
-    return returningAnyResponse;
-  }
-
-  /**
-   * Selects methods returning instances of operation specific success classes and throwing exceptions for unsuccessful status codes.
-   */
-  public ReturningSuccessfulResult returningSuccessfulResult() {
-    return returningSuccessfulResult;
+  public ReturningResult returningResult() {
+    return returningResult;
   }
 
   /**
@@ -51,44 +42,25 @@ public class BigDecimalsApiClient {
       ApiClientValidationException, ApiClientIncompatibleResponseException,
       ApiClientErrorWithFailureEntityException {
 
-    GetNumberSuccessfulResult response = returningSuccessfulResult.getNumber(decimalNumber);
+    GetNumberResult result = returningResult.getNumber(decimalNumber);
 
-    return response.getEntity();
-  }
-
-  /**
-   * Contains methods for all operations returning instances of operation specific success classes and throwing exceptions for unsuccessful status codes.
-   */
-  public class ReturningSuccessfulResult {
-    /**
-     * Test serialization of schema type number as BigDecimal.
-     *
-     * @param decimalNumber Test BigDecimal
-     */
-    public GetNumberSuccessfulResult getNumber(BigDecimal decimalNumber) throws
-        ApiClientIoException, ApiClientValidationException, ApiClientIncompatibleResponseException,
-        ApiClientErrorWithFailureEntityException {
-
-      ApiResponse response = returningAnyResponse.getNumber(decimalNumber);
-
-      if (!response.isSuccessful()) {
-        throw new ApiClientErrorWithFailureEntityException(response);
-      }
-
-      return new GetNumberSuccessfulResult(response);
+    if (!result.isSuccessful()) {
+      throw new ApiClientErrorWithFailureEntityException(result.getResponse());
     }
+
+    return result.getEntityAsBigDecimal();
   }
 
   /**
-   * Contains methods for all operations returning instances of ApiResponse and not throwing exceptions for unsuccessful status codes.
+   * Contains methods returning operation specific result classes, allowing inspection of the operations' responses.
    */
-  public class ReturningAnyResponse {
+  public class ReturningResult {
     /**
      * Test serialization of schema type number as BigDecimal.
      *
      * @param decimalNumber Test BigDecimal
      */
-    public ApiResponse getNumber(BigDecimal decimalNumber) throws ApiClientIoException,
+    public GetNumberResult getNumber(BigDecimal decimalNumber) throws ApiClientIoException,
         ApiClientValidationException, ApiClientIncompatibleResponseException {
 
       Operation.Builder builder = new Operation.Builder("/bigDecimals", "GET");
@@ -98,17 +70,19 @@ public class BigDecimalsApiClient {
       builder.response(StatusCode.of(200), "application/json", BigDecimal.class);
       builder.response(StatusCode.DEFAULT, "application/json", Failure.class);
 
-      return requestExecutor.executeRequest(builder.build());
+      ApiResponse response = requestExecutor.executeRequest(builder.build());
+
+      return new GetNumberResult(response);
     }
   }
 
   /**
-   * Represents a successful response of operation getNumber, i.e., the status code being in range 200 to 299.
+   * Represents the result of calling operation getNumber.
    */
-  public static class GetNumberSuccessfulResult {
+  public static class GetNumberResult {
     private final ApiResponse response;
 
-    public GetNumberSuccessfulResult(ApiResponse response) {
+    public GetNumberResult(ApiResponse response) {
       this.response = response;
     }
 
@@ -120,6 +94,20 @@ public class BigDecimalsApiClient {
     }
 
     /**
+     * Returns the HTTP status code of the operation's response.
+     */
+    public int getStatus() {
+      return response.getStatusCode();
+    }
+
+    /**
+     * Returns whether the response has a status code in the range 200 to 299.
+     */
+    public boolean isSuccessful() {
+      return response.isSuccessful();
+    }
+
+    /**
      * Returns whether the response's status code is 200, while the response's entity is of type {@code BigDecimal}.
      */
     public boolean isStatus200ReturningBigDecimal() {
@@ -127,17 +115,53 @@ public class BigDecimalsApiClient {
     }
 
     /**
-     * Returns the response's entity of type {@code BigDecimal}.
+     * Returns whether the response's entity is of type {@code Failure}.
      */
-    public BigDecimal getEntity() {
-      return (BigDecimal) response.getEntity();
+    public boolean isReturningFailure() {
+      return response.getEntityType() == Failure.class;
+    }
+
+    /**
+     * Returns the response's entity wrapped in {@code java.lang.Optional.of()} if it is of type {@code BigDecimal}. Otherwise, returns {@code Optional.empty()}.
+     */
+    public Optional<BigDecimal> getEntityIfBigDecimal() {
+      return Optional.ofNullable(getEntityAsBigDecimal());
+    }
+
+    /**
+     * Returns the response's entity if it is of type {@code BigDecimal}. Otherwise, returns null.
+     */
+    public BigDecimal getEntityAsBigDecimal() {
+      if (response.getEntityType() == BigDecimal.class) {
+        return (BigDecimal) response.getEntity();
+      } else {
+        return null;
+      }
+    }
+
+    /**
+     * Returns the response's entity wrapped in {@code java.lang.Optional.of()} if it is of type {@code Failure}. Otherwise, returns {@code Optional.empty()}.
+     */
+    public Optional<Failure> getEntityIfFailure() {
+      return Optional.ofNullable(getEntityAsFailure());
+    }
+
+    /**
+     * Returns the response's entity if it is of type {@code Failure}. Otherwise, returns null.
+     */
+    public Failure getEntityAsFailure() {
+      if (response.getEntityType() == Failure.class) {
+        return (Failure) response.getEntity();
+      } else {
+        return null;
+      }
     }
 
     @Override
     public boolean equals(Object other) {
       if (other == this) return true;
       if (other == null || getClass() != other.getClass()) return false;
-      GetNumberSuccessfulResult o = (GetNumberSuccessfulResult) other;
+      GetNumberResult o = (GetNumberResult) other;
       return Objects.equals(response, o.response);
     }
 
@@ -150,7 +174,7 @@ public class BigDecimalsApiClient {
     public String toString() {
       StringBuilder builder = new StringBuilder();
       builder.append(", response=").append(response);
-      return builder.replace(0, 2, "GetNumberSuccessfulResult{").append('}').toString();
+      return builder.replace(0, 2, "GetNumberResult{").append('}').toString();
     }
   }
 }

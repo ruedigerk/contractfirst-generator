@@ -20,28 +20,18 @@ import java.util.Optional;
 public class MultipleContentTypesApiClient {
   private final ApiRequestExecutor requestExecutor;
 
-  private final ReturningAnyResponse returningAnyResponse;
-
-  private final ReturningSuccessfulResult returningSuccessfulResult;
+  private final ReturningResult returningResult;
 
   public MultipleContentTypesApiClient(ApiRequestExecutor requestExecutor) {
     this.requestExecutor = requestExecutor;
-    this.returningAnyResponse = new ReturningAnyResponse();
-    this.returningSuccessfulResult = new ReturningSuccessfulResult();
+    this.returningResult = new ReturningResult();
   }
 
   /**
-   * Selects methods returning instances of ApiResponse and not throwing exceptions for unsuccessful status codes.
+   * Returns an API client with methods that return operation specific result classes, allowing inspection of the operations' responses.
    */
-  public ReturningAnyResponse returningAnyResponse() {
-    return returningAnyResponse;
-  }
-
-  /**
-   * Selects methods returning instances of operation specific success classes and throwing exceptions for unsuccessful status codes.
-   */
-  public ReturningSuccessfulResult returningSuccessfulResult() {
-    return returningSuccessfulResult;
+  public ReturningResult returningResult() {
+    return returningResult;
   }
 
   /**
@@ -49,48 +39,29 @@ public class MultipleContentTypesApiClient {
    *
    * @param testCaseSelector Used to select the desired behaviour of the server in the test.
    */
-  public GetManualSuccessfulResult getManual(String testCaseSelector) throws ApiClientIoException,
+  public GetManualResult getManual(String testCaseSelector) throws ApiClientIoException,
       ApiClientValidationException, ApiClientIncompatibleResponseException,
       ApiClientErrorWithFailureEntityException {
 
-    GetManualSuccessfulResult response = returningSuccessfulResult.getManual(testCaseSelector);
+    GetManualResult result = returningResult.getManual(testCaseSelector);
 
-    return response;
-  }
-
-  /**
-   * Contains methods for all operations returning instances of operation specific success classes and throwing exceptions for unsuccessful status codes.
-   */
-  public class ReturningSuccessfulResult {
-    /**
-     * Test case for multiple response content types with different schemas.
-     *
-     * @param testCaseSelector Used to select the desired behaviour of the server in the test.
-     */
-    public GetManualSuccessfulResult getManual(String testCaseSelector) throws ApiClientIoException,
-        ApiClientValidationException, ApiClientIncompatibleResponseException,
-        ApiClientErrorWithFailureEntityException {
-
-      ApiResponse response = returningAnyResponse.getManual(testCaseSelector);
-
-      if (!response.isSuccessful()) {
-        throw new ApiClientErrorWithFailureEntityException(response);
-      }
-
-      return new GetManualSuccessfulResult(response);
+    if (!result.isSuccessful()) {
+      throw new ApiClientErrorWithFailureEntityException(result.getResponse());
     }
+
+    return result;
   }
 
   /**
-   * Contains methods for all operations returning instances of ApiResponse and not throwing exceptions for unsuccessful status codes.
+   * Contains methods returning operation specific result classes, allowing inspection of the operations' responses.
    */
-  public class ReturningAnyResponse {
+  public class ReturningResult {
     /**
      * Test case for multiple response content types with different schemas.
      *
      * @param testCaseSelector Used to select the desired behaviour of the server in the test.
      */
-    public ApiResponse getManual(String testCaseSelector) throws ApiClientIoException,
+    public GetManualResult getManual(String testCaseSelector) throws ApiClientIoException,
         ApiClientValidationException, ApiClientIncompatibleResponseException {
 
       Operation.Builder builder = new Operation.Builder("/manuals", "GET");
@@ -103,17 +74,19 @@ public class MultipleContentTypesApiClient {
       builder.response(StatusCode.of(204));
       builder.response(StatusCode.DEFAULT, "application/json", Failure.class);
 
-      return requestExecutor.executeRequest(builder.build());
+      ApiResponse response = requestExecutor.executeRequest(builder.build());
+
+      return new GetManualResult(response);
     }
   }
 
   /**
-   * Represents a successful response of operation getManual, i.e., the status code being in range 200 to 299.
+   * Represents the result of calling operation getManual.
    */
-  public static class GetManualSuccessfulResult {
+  public static class GetManualResult {
     private final ApiResponse response;
 
-    public GetManualSuccessfulResult(ApiResponse response) {
+    public GetManualResult(ApiResponse response) {
       this.response = response;
     }
 
@@ -122,6 +95,20 @@ public class MultipleContentTypesApiClient {
      */
     public ApiResponse getResponse() {
       return response;
+    }
+
+    /**
+     * Returns the HTTP status code of the operation's response.
+     */
+    public int getStatus() {
+      return response.getStatusCode();
+    }
+
+    /**
+     * Returns whether the response has a status code in the range 200 to 299.
+     */
+    public boolean isSuccessful() {
+      return response.isSuccessful();
     }
 
     /**
@@ -150,6 +137,13 @@ public class MultipleContentTypesApiClient {
      */
     public boolean isStatus204WithoutEntity() {
       return response.getStatusCode() == 204;
+    }
+
+    /**
+     * Returns whether the response's entity is of type {@code Failure}.
+     */
+    public boolean isReturningFailure() {
+      return response.getEntityType() == Failure.class;
     }
 
     /**
@@ -206,11 +200,29 @@ public class MultipleContentTypesApiClient {
       }
     }
 
+    /**
+     * Returns the response's entity wrapped in {@code java.lang.Optional.of()} if it is of type {@code Failure}. Otherwise, returns {@code Optional.empty()}.
+     */
+    public Optional<Failure> getEntityIfFailure() {
+      return Optional.ofNullable(getEntityAsFailure());
+    }
+
+    /**
+     * Returns the response's entity if it is of type {@code Failure}. Otherwise, returns null.
+     */
+    public Failure getEntityAsFailure() {
+      if (response.getEntityType() == Failure.class) {
+        return (Failure) response.getEntity();
+      } else {
+        return null;
+      }
+    }
+
     @Override
     public boolean equals(Object other) {
       if (other == this) return true;
       if (other == null || getClass() != other.getClass()) return false;
-      GetManualSuccessfulResult o = (GetManualSuccessfulResult) other;
+      GetManualResult o = (GetManualResult) other;
       return Objects.equals(response, o.response);
     }
 
@@ -223,7 +235,7 @@ public class MultipleContentTypesApiClient {
     public String toString() {
       StringBuilder builder = new StringBuilder();
       builder.append(", response=").append(response);
-      return builder.replace(0, 2, "GetManualSuccessfulResult{").append('}').toString();
+      return builder.replace(0, 2, "GetManualResult{").append('}').toString();
     }
   }
 }

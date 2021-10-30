@@ -14,6 +14,7 @@ import java.io.InputStream;
 import java.lang.reflect.Type;
 import java.util.List;
 import java.util.Objects;
+import java.util.Optional;
 
 /**
  * Contains methods for all API operations tagged "PayloadVariants".
@@ -23,28 +24,18 @@ public class PayloadVariantsApiClient {
 
   private final ApiRequestExecutor requestExecutor;
 
-  private final ReturningAnyResponse returningAnyResponse;
-
-  private final ReturningSuccessfulResult returningSuccessfulResult;
+  private final ReturningResult returningResult;
 
   public PayloadVariantsApiClient(ApiRequestExecutor requestExecutor) {
     this.requestExecutor = requestExecutor;
-    this.returningAnyResponse = new ReturningAnyResponse();
-    this.returningSuccessfulResult = new ReturningSuccessfulResult();
+    this.returningResult = new ReturningResult();
   }
 
   /**
-   * Selects methods returning instances of ApiResponse and not throwing exceptions for unsuccessful status codes.
+   * Returns an API client with methods that return operation specific result classes, allowing inspection of the operations' responses.
    */
-  public ReturningAnyResponse returningAnyResponse() {
-    return returningAnyResponse;
-  }
-
-  /**
-   * Selects methods returning instances of operation specific success classes and throwing exceptions for unsuccessful status codes.
-   */
-  public ReturningSuccessfulResult returningSuccessfulResult() {
-    return returningSuccessfulResult;
+  public ReturningResult returningResult() {
+    return returningResult;
   }
 
   /**
@@ -54,9 +45,13 @@ public class PayloadVariantsApiClient {
       ApiClientValidationException, ApiClientIncompatibleResponseException,
       ApiClientErrorWithFailureEntityException {
 
-    FilterItemsSuccessfulResult response = returningSuccessfulResult.filterItems(requestBody);
+    FilterItemsResult result = returningResult.filterItems(requestBody);
 
-    return response.getEntity();
+    if (!result.isSuccessful()) {
+      throw new ApiClientErrorWithFailureEntityException(result.getResponse());
+    }
+
+    return result.getEntityAsListOfItem();
   }
 
   /**
@@ -66,9 +61,13 @@ public class PayloadVariantsApiClient {
       ApiClientValidationException, ApiClientIncompatibleResponseException,
       ApiClientErrorWithFailureEntityException {
 
-    UploadAndReturnBinarySuccessfulResult response = returningSuccessfulResult.uploadAndReturnBinary(requestBody);
+    UploadAndReturnBinaryResult result = returningResult.uploadAndReturnBinary(requestBody);
 
-    return response.getEntity();
+    if (!result.isSuccessful()) {
+      throw new ApiClientErrorWithFailureEntityException(result.getResponse());
+    }
+
+    return result.getEntityAsInputStream();
   }
 
   /**
@@ -78,70 +77,21 @@ public class PayloadVariantsApiClient {
       ApiClientValidationException, ApiClientIncompatibleResponseException,
       ApiClientErrorWithFailureEntityException {
 
-    ChangeItemSuccessfulResult response = returningSuccessfulResult.changeItem(requestBody);
-  }
+    ChangeItemResult result = returningResult.changeItem(requestBody);
 
-  /**
-   * Contains methods for all operations returning instances of operation specific success classes and throwing exceptions for unsuccessful status codes.
-   */
-  public class ReturningSuccessfulResult {
-    /**
-     * Test operation for generating generic types, e.g. List of Item.
-     */
-    public FilterItemsSuccessfulResult filterItems(List<Item> requestBody) throws
-        ApiClientIoException, ApiClientValidationException, ApiClientIncompatibleResponseException,
-        ApiClientErrorWithFailureEntityException {
-
-      ApiResponse response = returningAnyResponse.filterItems(requestBody);
-
-      if (!response.isSuccessful()) {
-        throw new ApiClientErrorWithFailureEntityException(response);
-      }
-
-      return new FilterItemsSuccessfulResult(response);
-    }
-
-    /**
-     * Test binary input and output.
-     */
-    public UploadAndReturnBinarySuccessfulResult uploadAndReturnBinary(InputStream requestBody)
-        throws ApiClientIoException, ApiClientValidationException,
-        ApiClientIncompatibleResponseException, ApiClientErrorWithFailureEntityException {
-
-      ApiResponse response = returningAnyResponse.uploadAndReturnBinary(requestBody);
-
-      if (!response.isSuccessful()) {
-        throw new ApiClientErrorWithFailureEntityException(response);
-      }
-
-      return new UploadAndReturnBinarySuccessfulResult(response);
-    }
-
-    /**
-     * Test for 204 response.
-     */
-    public ChangeItemSuccessfulResult changeItem(Item requestBody) throws ApiClientIoException,
-        ApiClientValidationException, ApiClientIncompatibleResponseException,
-        ApiClientErrorWithFailureEntityException {
-
-      ApiResponse response = returningAnyResponse.changeItem(requestBody);
-
-      if (!response.isSuccessful()) {
-        throw new ApiClientErrorWithFailureEntityException(response);
-      }
-
-      return new ChangeItemSuccessfulResult(response);
+    if (!result.isSuccessful()) {
+      throw new ApiClientErrorWithFailureEntityException(result.getResponse());
     }
   }
 
   /**
-   * Contains methods for all operations returning instances of ApiResponse and not throwing exceptions for unsuccessful status codes.
+   * Contains methods returning operation specific result classes, allowing inspection of the operations' responses.
    */
-  public class ReturningAnyResponse {
+  public class ReturningResult {
     /**
      * Test operation for generating generic types, e.g. List of Item.
      */
-    public ApiResponse filterItems(List<Item> requestBody) throws ApiClientIoException,
+    public FilterItemsResult filterItems(List<Item> requestBody) throws ApiClientIoException,
         ApiClientValidationException, ApiClientIncompatibleResponseException {
 
       Operation.Builder builder = new Operation.Builder("/items", "POST");
@@ -151,14 +101,16 @@ public class PayloadVariantsApiClient {
       builder.response(StatusCode.of(200), "application/json", LIST_OF_ITEM);
       builder.response(StatusCode.DEFAULT, "application/json", Failure.class);
 
-      return requestExecutor.executeRequest(builder.build());
+      ApiResponse response = requestExecutor.executeRequest(builder.build());
+
+      return new FilterItemsResult(response);
     }
 
     /**
      * Test binary input and output.
      */
-    public ApiResponse uploadAndReturnBinary(InputStream requestBody) throws ApiClientIoException,
-        ApiClientValidationException, ApiClientIncompatibleResponseException {
+    public UploadAndReturnBinaryResult uploadAndReturnBinary(InputStream requestBody) throws
+        ApiClientIoException, ApiClientValidationException, ApiClientIncompatibleResponseException {
 
       Operation.Builder builder = new Operation.Builder("/itemBinaries", "PUT");
 
@@ -167,13 +119,15 @@ public class PayloadVariantsApiClient {
       builder.response(StatusCode.of(200), "application/octet-stream", InputStream.class);
       builder.response(StatusCode.DEFAULT, "application/json", Failure.class);
 
-      return requestExecutor.executeRequest(builder.build());
+      ApiResponse response = requestExecutor.executeRequest(builder.build());
+
+      return new UploadAndReturnBinaryResult(response);
     }
 
     /**
      * Test for 204 response.
      */
-    public ApiResponse changeItem(Item requestBody) throws ApiClientIoException,
+    public ChangeItemResult changeItem(Item requestBody) throws ApiClientIoException,
         ApiClientValidationException, ApiClientIncompatibleResponseException {
 
       Operation.Builder builder = new Operation.Builder("/itemBinaries", "POST");
@@ -183,17 +137,19 @@ public class PayloadVariantsApiClient {
       builder.response(StatusCode.of(204));
       builder.response(StatusCode.DEFAULT, "application/json", Failure.class);
 
-      return requestExecutor.executeRequest(builder.build());
+      ApiResponse response = requestExecutor.executeRequest(builder.build());
+
+      return new ChangeItemResult(response);
     }
   }
 
   /**
-   * Represents a successful response of operation filterItems, i.e., the status code being in range 200 to 299.
+   * Represents the result of calling operation filterItems.
    */
-  public static class FilterItemsSuccessfulResult {
+  public static class FilterItemsResult {
     private final ApiResponse response;
 
-    public FilterItemsSuccessfulResult(ApiResponse response) {
+    public FilterItemsResult(ApiResponse response) {
       this.response = response;
     }
 
@@ -202,6 +158,20 @@ public class PayloadVariantsApiClient {
      */
     public ApiResponse getResponse() {
       return response;
+    }
+
+    /**
+     * Returns the HTTP status code of the operation's response.
+     */
+    public int getStatus() {
+      return response.getStatusCode();
+    }
+
+    /**
+     * Returns whether the response has a status code in the range 200 to 299.
+     */
+    public boolean isSuccessful() {
+      return response.isSuccessful();
     }
 
     /**
@@ -212,18 +182,54 @@ public class PayloadVariantsApiClient {
     }
 
     /**
-     * Returns the response's entity of type {@code List<Item>}.
+     * Returns whether the response's entity is of type {@code Failure}.
+     */
+    public boolean isReturningFailure() {
+      return response.getEntityType() == Failure.class;
+    }
+
+    /**
+     * Returns the response's entity wrapped in {@code java.lang.Optional.of()} if it is of type {@code List<Item>}. Otherwise, returns {@code Optional.empty()}.
+     */
+    public Optional<List<Item>> getEntityIfListOfItem() {
+      return Optional.ofNullable(getEntityAsListOfItem());
+    }
+
+    /**
+     * Returns the response's entity if it is of type {@code List<Item>}. Otherwise, returns null.
      */
     @SuppressWarnings("unchecked")
-    public List<Item> getEntity() {
-      return (List<Item>) response.getEntity();
+    public List<Item> getEntityAsListOfItem() {
+      if (response.getEntityType() == LIST_OF_ITEM) {
+        return (List<Item>) response.getEntity();
+      } else {
+        return null;
+      }
+    }
+
+    /**
+     * Returns the response's entity wrapped in {@code java.lang.Optional.of()} if it is of type {@code Failure}. Otherwise, returns {@code Optional.empty()}.
+     */
+    public Optional<Failure> getEntityIfFailure() {
+      return Optional.ofNullable(getEntityAsFailure());
+    }
+
+    /**
+     * Returns the response's entity if it is of type {@code Failure}. Otherwise, returns null.
+     */
+    public Failure getEntityAsFailure() {
+      if (response.getEntityType() == Failure.class) {
+        return (Failure) response.getEntity();
+      } else {
+        return null;
+      }
     }
 
     @Override
     public boolean equals(Object other) {
       if (other == this) return true;
       if (other == null || getClass() != other.getClass()) return false;
-      FilterItemsSuccessfulResult o = (FilterItemsSuccessfulResult) other;
+      FilterItemsResult o = (FilterItemsResult) other;
       return Objects.equals(response, o.response);
     }
 
@@ -236,17 +242,17 @@ public class PayloadVariantsApiClient {
     public String toString() {
       StringBuilder builder = new StringBuilder();
       builder.append(", response=").append(response);
-      return builder.replace(0, 2, "FilterItemsSuccessfulResult{").append('}').toString();
+      return builder.replace(0, 2, "FilterItemsResult{").append('}').toString();
     }
   }
 
   /**
-   * Represents a successful response of operation uploadAndReturnBinary, i.e., the status code being in range 200 to 299.
+   * Represents the result of calling operation uploadAndReturnBinary.
    */
-  public static class UploadAndReturnBinarySuccessfulResult {
+  public static class UploadAndReturnBinaryResult {
     private final ApiResponse response;
 
-    public UploadAndReturnBinarySuccessfulResult(ApiResponse response) {
+    public UploadAndReturnBinaryResult(ApiResponse response) {
       this.response = response;
     }
 
@@ -255,6 +261,20 @@ public class PayloadVariantsApiClient {
      */
     public ApiResponse getResponse() {
       return response;
+    }
+
+    /**
+     * Returns the HTTP status code of the operation's response.
+     */
+    public int getStatus() {
+      return response.getStatusCode();
+    }
+
+    /**
+     * Returns whether the response has a status code in the range 200 to 299.
+     */
+    public boolean isSuccessful() {
+      return response.isSuccessful();
     }
 
     /**
@@ -265,17 +285,53 @@ public class PayloadVariantsApiClient {
     }
 
     /**
-     * Returns the response's entity of type {@code InputStream}.
+     * Returns whether the response's entity is of type {@code Failure}.
      */
-    public InputStream getEntity() {
-      return (InputStream) response.getEntity();
+    public boolean isReturningFailure() {
+      return response.getEntityType() == Failure.class;
+    }
+
+    /**
+     * Returns the response's entity wrapped in {@code java.lang.Optional.of()} if it is of type {@code InputStream}. Otherwise, returns {@code Optional.empty()}.
+     */
+    public Optional<InputStream> getEntityIfInputStream() {
+      return Optional.ofNullable(getEntityAsInputStream());
+    }
+
+    /**
+     * Returns the response's entity if it is of type {@code InputStream}. Otherwise, returns null.
+     */
+    public InputStream getEntityAsInputStream() {
+      if (response.getEntityType() == InputStream.class) {
+        return (InputStream) response.getEntity();
+      } else {
+        return null;
+      }
+    }
+
+    /**
+     * Returns the response's entity wrapped in {@code java.lang.Optional.of()} if it is of type {@code Failure}. Otherwise, returns {@code Optional.empty()}.
+     */
+    public Optional<Failure> getEntityIfFailure() {
+      return Optional.ofNullable(getEntityAsFailure());
+    }
+
+    /**
+     * Returns the response's entity if it is of type {@code Failure}. Otherwise, returns null.
+     */
+    public Failure getEntityAsFailure() {
+      if (response.getEntityType() == Failure.class) {
+        return (Failure) response.getEntity();
+      } else {
+        return null;
+      }
     }
 
     @Override
     public boolean equals(Object other) {
       if (other == this) return true;
       if (other == null || getClass() != other.getClass()) return false;
-      UploadAndReturnBinarySuccessfulResult o = (UploadAndReturnBinarySuccessfulResult) other;
+      UploadAndReturnBinaryResult o = (UploadAndReturnBinaryResult) other;
       return Objects.equals(response, o.response);
     }
 
@@ -288,17 +344,17 @@ public class PayloadVariantsApiClient {
     public String toString() {
       StringBuilder builder = new StringBuilder();
       builder.append(", response=").append(response);
-      return builder.replace(0, 2, "UploadAndReturnBinarySuccessfulResult{").append('}').toString();
+      return builder.replace(0, 2, "UploadAndReturnBinaryResult{").append('}').toString();
     }
   }
 
   /**
-   * Represents a successful response of operation changeItem, i.e., the status code being in range 200 to 299.
+   * Represents the result of calling operation changeItem.
    */
-  public static class ChangeItemSuccessfulResult {
+  public static class ChangeItemResult {
     private final ApiResponse response;
 
-    public ChangeItemSuccessfulResult(ApiResponse response) {
+    public ChangeItemResult(ApiResponse response) {
       this.response = response;
     }
 
@@ -310,17 +366,45 @@ public class PayloadVariantsApiClient {
     }
 
     /**
+     * Returns the HTTP status code of the operation's response.
+     */
+    public int getStatus() {
+      return response.getStatusCode();
+    }
+
+    /**
+     * Returns whether the response has a status code in the range 200 to 299.
+     */
+    public boolean isSuccessful() {
+      return response.isSuccessful();
+    }
+
+    /**
      * Returns whether the response's status code is 204, while the response has no entity.
      */
     public boolean isStatus204WithoutEntity() {
       return response.getStatusCode() == 204;
     }
 
+    /**
+     * Returns whether the response's entity is of type {@code Failure}.
+     */
+    public boolean isReturningFailure() {
+      return response.getEntityType() == Failure.class;
+    }
+
+    /**
+     * Returns the response's entity of type {@code Failure}.
+     */
+    public Failure getEntity() {
+      return (Failure) response.getEntity();
+    }
+
     @Override
     public boolean equals(Object other) {
       if (other == this) return true;
       if (other == null || getClass() != other.getClass()) return false;
-      ChangeItemSuccessfulResult o = (ChangeItemSuccessfulResult) other;
+      ChangeItemResult o = (ChangeItemResult) other;
       return Objects.equals(response, o.response);
     }
 
@@ -333,7 +417,7 @@ public class PayloadVariantsApiClient {
     public String toString() {
       StringBuilder builder = new StringBuilder();
       builder.append(", response=").append(response);
-      return builder.replace(0, 2, "ChangeItemSuccessfulResult{").append('}').toString();
+      return builder.replace(0, 2, "ChangeItemResult{").append('}').toString();
     }
   }
 }

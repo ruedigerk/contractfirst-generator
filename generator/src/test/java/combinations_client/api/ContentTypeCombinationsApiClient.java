@@ -20,28 +20,18 @@ import java.util.Optional;
 public class ContentTypeCombinationsApiClient {
   private final ApiRequestExecutor requestExecutor;
 
-  private final ReturningAnyResponse returningAnyResponse;
-
-  private final ReturningSuccessfulResult returningSuccessfulResult;
+  private final ReturningResult returningResult;
 
   public ContentTypeCombinationsApiClient(ApiRequestExecutor requestExecutor) {
     this.requestExecutor = requestExecutor;
-    this.returningAnyResponse = new ReturningAnyResponse();
-    this.returningSuccessfulResult = new ReturningSuccessfulResult();
+    this.returningResult = new ReturningResult();
   }
 
   /**
-   * Selects methods returning instances of ApiResponse and not throwing exceptions for unsuccessful status codes.
+   * Returns an API client with methods that return operation specific result classes, allowing inspection of the operations' responses.
    */
-  public ReturningAnyResponse returningAnyResponse() {
-    return returningAnyResponse;
-  }
-
-  /**
-   * Selects methods returning instances of operation specific success classes and throwing exceptions for unsuccessful status codes.
-   */
-  public ReturningSuccessfulResult returningSuccessfulResult() {
-    return returningSuccessfulResult;
+  public ReturningResult returningResult() {
+    return returningResult;
   }
 
   /**
@@ -51,9 +41,13 @@ public class ContentTypeCombinationsApiClient {
       ApiClientValidationException, ApiClientIncompatibleResponseException,
       ApiClientErrorWithBookEntityException {
 
-    GetDefaultOnlySuccessfulResult response = returningSuccessfulResult.getDefaultOnly(testCaseSelector);
+    GetDefaultOnlyResult result = returningResult.getDefaultOnly(testCaseSelector);
 
-    return response.getEntity();
+    if (!result.isSuccessful()) {
+      throw new ApiClientErrorWithBookEntityException(result.getResponse());
+    }
+
+    return result.getEntity();
   }
 
   /**
@@ -62,9 +56,9 @@ public class ContentTypeCombinationsApiClient {
   public Book getSuccessOnly() throws ApiClientIoException, ApiClientValidationException,
       ApiClientIncompatibleResponseException {
 
-    GetSuccessOnlySuccessfulResult response = returningSuccessfulResult.getSuccessOnly();
+    GetSuccessOnlyResult result = returningResult.getSuccessOnly();
 
-    return response.getEntity();
+    return result.getEntity();
   }
 
   /**
@@ -73,7 +67,11 @@ public class ContentTypeCombinationsApiClient {
   public void getFailureOnly() throws ApiClientIoException, ApiClientValidationException,
       ApiClientIncompatibleResponseException, ApiClientErrorWithCtcErrorEntityException {
 
-    GetFailureOnlySuccessfulResult response = returningSuccessfulResult.getFailureOnly();
+    GetFailureOnlyResult result = returningResult.getFailureOnly();
+
+    if (!result.isSuccessful()) {
+      throw new ApiClientErrorWithCtcErrorEntityException(result.getResponse());
+    }
   }
 
   /**
@@ -83,21 +81,24 @@ public class ContentTypeCombinationsApiClient {
       ApiClientValidationException, ApiClientIncompatibleResponseException,
       ApiClientErrorWithCtcErrorEntityException {
 
-    GetSuccessEntityAndErrorDefaultSuccessfulResult response = returningSuccessfulResult.getSuccessEntityAndErrorDefault(testCaseSelector);
+    GetSuccessEntityAndErrorDefaultResult result = returningResult.getSuccessEntityAndErrorDefault(testCaseSelector);
 
-    return response.getEntity();
+    if (!result.isSuccessful()) {
+      throw new ApiClientErrorWithCtcErrorEntityException(result.getResponse());
+    }
+
+    return result.getEntityAsBook();
   }
 
   /**
    * Test case for having multiple success entity types.
    */
-  public GetMultipleSuccessEntitiesSuccessfulResult getMultipleSuccessEntities(
-      String testCaseSelector) throws ApiClientIoException, ApiClientValidationException,
-      ApiClientIncompatibleResponseException {
+  public GetMultipleSuccessEntitiesResult getMultipleSuccessEntities(String testCaseSelector) throws
+      ApiClientIoException, ApiClientValidationException, ApiClientIncompatibleResponseException {
 
-    GetMultipleSuccessEntitiesSuccessfulResult response = returningSuccessfulResult.getMultipleSuccessEntities(testCaseSelector);
+    GetMultipleSuccessEntitiesResult result = returningResult.getMultipleSuccessEntities(testCaseSelector);
 
-    return response;
+    return result;
   }
 
   /**
@@ -106,7 +107,7 @@ public class ContentTypeCombinationsApiClient {
   public void getMultipleSuccessResponsesWithoutContent(String testCaseSelector) throws
       ApiClientIoException, ApiClientValidationException, ApiClientIncompatibleResponseException {
 
-    GetMultipleSuccessResponsesWithoutContentSuccessfulResult response = returningSuccessfulResult.getMultipleSuccessResponsesWithoutContent(testCaseSelector);
+    GetMultipleSuccessResponsesWithoutContentResult result = returningResult.getMultipleSuccessResponsesWithoutContent(testCaseSelector);
   }
 
   /**
@@ -116,9 +117,16 @@ public class ContentTypeCombinationsApiClient {
       ApiClientValidationException, ApiClientIncompatibleResponseException,
       ApiClientErrorWithCtcErrorEntityException, ApiClientErrorWithSevereCtcErrorEntityException {
 
-    GetMultipleErrorEntitiesSuccessfulResult response = returningSuccessfulResult.getMultipleErrorEntities(testCaseSelector);
+    GetMultipleErrorEntitiesResult result = returningResult.getMultipleErrorEntities(testCaseSelector);
 
-    return response.getEntity();
+    if (!result.isSuccessful()) {
+      if (result.getResponse().getEntityType() == CtcError.class) {
+        throw new ApiClientErrorWithCtcErrorEntityException(result.getResponse());
+      }
+      throw new ApiClientErrorWithSevereCtcErrorEntityException(result.getResponse());
+    }
+
+    return result.getEntityAsBook();
   }
 
   /**
@@ -127,136 +135,17 @@ public class ContentTypeCombinationsApiClient {
   public void getContentFor204() throws ApiClientIoException, ApiClientValidationException,
       ApiClientIncompatibleResponseException {
 
-    GetContentFor204SuccessfulResult response = returningSuccessfulResult.getContentFor204();
+    GetContentFor204Result result = returningResult.getContentFor204();
   }
 
   /**
-   * Contains methods for all operations returning instances of operation specific success classes and throwing exceptions for unsuccessful status codes.
+   * Contains methods returning operation specific result classes, allowing inspection of the operations' responses.
    */
-  public class ReturningSuccessfulResult {
+  public class ReturningResult {
     /**
      * Test case for only having a response with status code "default".
      */
-    public GetDefaultOnlySuccessfulResult getDefaultOnly(String testCaseSelector) throws
-        ApiClientIoException, ApiClientValidationException, ApiClientIncompatibleResponseException,
-        ApiClientErrorWithBookEntityException {
-
-      ApiResponse response = returningAnyResponse.getDefaultOnly(testCaseSelector);
-
-      if (!response.isSuccessful()) {
-        throw new ApiClientErrorWithBookEntityException(response);
-      }
-
-      return new GetDefaultOnlySuccessfulResult(response);
-    }
-
-    /**
-     * Test case for only having a single successful response.
-     */
-    public GetSuccessOnlySuccessfulResult getSuccessOnly() throws ApiClientIoException,
-        ApiClientValidationException, ApiClientIncompatibleResponseException {
-
-      ApiResponse response = returningAnyResponse.getSuccessOnly();
-
-      return new GetSuccessOnlySuccessfulResult(response);
-    }
-
-    /**
-     * Test case for only having a single failure response.
-     */
-    public GetFailureOnlySuccessfulResult getFailureOnly() throws ApiClientIoException,
-        ApiClientValidationException, ApiClientIncompatibleResponseException,
-        ApiClientErrorWithCtcErrorEntityException {
-
-      ApiResponse response = returningAnyResponse.getFailureOnly();
-
-      if (!response.isSuccessful()) {
-        throw new ApiClientErrorWithCtcErrorEntityException(response);
-      }
-
-      return new GetFailureOnlySuccessfulResult(response);
-    }
-
-    /**
-     * Test case for having one successful response with an entity and a default for all errors.
-     */
-    public GetSuccessEntityAndErrorDefaultSuccessfulResult getSuccessEntityAndErrorDefault(
-        String testCaseSelector) throws ApiClientIoException, ApiClientValidationException,
-        ApiClientIncompatibleResponseException, ApiClientErrorWithCtcErrorEntityException {
-
-      ApiResponse response = returningAnyResponse.getSuccessEntityAndErrorDefault(testCaseSelector);
-
-      if (!response.isSuccessful()) {
-        throw new ApiClientErrorWithCtcErrorEntityException(response);
-      }
-
-      return new GetSuccessEntityAndErrorDefaultSuccessfulResult(response);
-    }
-
-    /**
-     * Test case for having multiple success entity types.
-     */
-    public GetMultipleSuccessEntitiesSuccessfulResult getMultipleSuccessEntities(
-        String testCaseSelector) throws ApiClientIoException, ApiClientValidationException,
-        ApiClientIncompatibleResponseException {
-
-      ApiResponse response = returningAnyResponse.getMultipleSuccessEntities(testCaseSelector);
-
-      return new GetMultipleSuccessEntitiesSuccessfulResult(response);
-    }
-
-    /**
-     * Test case for having multiple successful responses without content.
-     */
-    public GetMultipleSuccessResponsesWithoutContentSuccessfulResult getMultipleSuccessResponsesWithoutContent(
-        String testCaseSelector) throws ApiClientIoException, ApiClientValidationException,
-        ApiClientIncompatibleResponseException {
-
-      ApiResponse response = returningAnyResponse.getMultipleSuccessResponsesWithoutContent(testCaseSelector);
-
-      return new GetMultipleSuccessResponsesWithoutContentSuccessfulResult(response);
-    }
-
-    /**
-     * Test case for having multiple error entity types.
-     */
-    public GetMultipleErrorEntitiesSuccessfulResult getMultipleErrorEntities(
-        String testCaseSelector) throws ApiClientIoException, ApiClientValidationException,
-        ApiClientIncompatibleResponseException, ApiClientErrorWithCtcErrorEntityException,
-        ApiClientErrorWithSevereCtcErrorEntityException {
-
-      ApiResponse response = returningAnyResponse.getMultipleErrorEntities(testCaseSelector);
-
-      if (!response.isSuccessful()) {
-        if (response.getEntityType() == CtcError.class) {
-          throw new ApiClientErrorWithCtcErrorEntityException(response);
-        }
-        throw new ApiClientErrorWithSevereCtcErrorEntityException(response);
-      }
-
-      return new GetMultipleErrorEntitiesSuccessfulResult(response);
-    }
-
-    /**
-     * Test case for returning content with status code 204.
-     */
-    public GetContentFor204SuccessfulResult getContentFor204() throws ApiClientIoException,
-        ApiClientValidationException, ApiClientIncompatibleResponseException {
-
-      ApiResponse response = returningAnyResponse.getContentFor204();
-
-      return new GetContentFor204SuccessfulResult(response);
-    }
-  }
-
-  /**
-   * Contains methods for all operations returning instances of ApiResponse and not throwing exceptions for unsuccessful status codes.
-   */
-  public class ReturningAnyResponse {
-    /**
-     * Test case for only having a response with status code "default".
-     */
-    public ApiResponse getDefaultOnly(String testCaseSelector) throws ApiClientIoException,
+    public GetDefaultOnlyResult getDefaultOnly(String testCaseSelector) throws ApiClientIoException,
         ApiClientValidationException, ApiClientIncompatibleResponseException {
 
       Operation.Builder builder = new Operation.Builder("/defaultOnly", "GET");
@@ -265,40 +154,47 @@ public class ContentTypeCombinationsApiClient {
 
       builder.response(StatusCode.DEFAULT, "application/json", Book.class);
 
-      return requestExecutor.executeRequest(builder.build());
+      ApiResponse response = requestExecutor.executeRequest(builder.build());
+
+      return new GetDefaultOnlyResult(response);
     }
 
     /**
      * Test case for only having a single successful response.
      */
-    public ApiResponse getSuccessOnly() throws ApiClientIoException, ApiClientValidationException,
-        ApiClientIncompatibleResponseException {
+    public GetSuccessOnlyResult getSuccessOnly() throws ApiClientIoException,
+        ApiClientValidationException, ApiClientIncompatibleResponseException {
 
       Operation.Builder builder = new Operation.Builder("/successOnly", "GET");
 
       builder.response(StatusCode.of(200), "application/json", Book.class);
 
-      return requestExecutor.executeRequest(builder.build());
+      ApiResponse response = requestExecutor.executeRequest(builder.build());
+
+      return new GetSuccessOnlyResult(response);
     }
 
     /**
      * Test case for only having a single failure response.
      */
-    public ApiResponse getFailureOnly() throws ApiClientIoException, ApiClientValidationException,
-        ApiClientIncompatibleResponseException {
+    public GetFailureOnlyResult getFailureOnly() throws ApiClientIoException,
+        ApiClientValidationException, ApiClientIncompatibleResponseException {
 
       Operation.Builder builder = new Operation.Builder("/failureOnly", "GET");
 
       builder.response(StatusCode.of(400), "application/json", CtcError.class);
 
-      return requestExecutor.executeRequest(builder.build());
+      ApiResponse response = requestExecutor.executeRequest(builder.build());
+
+      return new GetFailureOnlyResult(response);
     }
 
     /**
      * Test case for having one successful response with an entity and a default for all errors.
      */
-    public ApiResponse getSuccessEntityAndErrorDefault(String testCaseSelector) throws
-        ApiClientIoException, ApiClientValidationException, ApiClientIncompatibleResponseException {
+    public GetSuccessEntityAndErrorDefaultResult getSuccessEntityAndErrorDefault(
+        String testCaseSelector) throws ApiClientIoException, ApiClientValidationException,
+        ApiClientIncompatibleResponseException {
 
       Operation.Builder builder = new Operation.Builder("/successEntityAndErrorDefault", "GET");
 
@@ -307,14 +203,17 @@ public class ContentTypeCombinationsApiClient {
       builder.response(StatusCode.of(200), "application/json", Book.class);
       builder.response(StatusCode.DEFAULT, "application/json", CtcError.class);
 
-      return requestExecutor.executeRequest(builder.build());
+      ApiResponse response = requestExecutor.executeRequest(builder.build());
+
+      return new GetSuccessEntityAndErrorDefaultResult(response);
     }
 
     /**
      * Test case for having multiple success entity types.
      */
-    public ApiResponse getMultipleSuccessEntities(String testCaseSelector) throws
-        ApiClientIoException, ApiClientValidationException, ApiClientIncompatibleResponseException {
+    public GetMultipleSuccessEntitiesResult getMultipleSuccessEntities(String testCaseSelector)
+        throws ApiClientIoException, ApiClientValidationException,
+        ApiClientIncompatibleResponseException {
 
       Operation.Builder builder = new Operation.Builder("/multipleSuccessEntities", "GET");
 
@@ -323,14 +222,17 @@ public class ContentTypeCombinationsApiClient {
       builder.response(StatusCode.of(200), "application/json", Book.class);
       builder.response(StatusCode.of(201), "application/json", CtcError.class);
 
-      return requestExecutor.executeRequest(builder.build());
+      ApiResponse response = requestExecutor.executeRequest(builder.build());
+
+      return new GetMultipleSuccessEntitiesResult(response);
     }
 
     /**
      * Test case for having multiple successful responses without content.
      */
-    public ApiResponse getMultipleSuccessResponsesWithoutContent(String testCaseSelector) throws
-        ApiClientIoException, ApiClientValidationException, ApiClientIncompatibleResponseException {
+    public GetMultipleSuccessResponsesWithoutContentResult getMultipleSuccessResponsesWithoutContent(
+        String testCaseSelector) throws ApiClientIoException, ApiClientValidationException,
+        ApiClientIncompatibleResponseException {
 
       Operation.Builder builder = new Operation.Builder("/multipleSuccessResponsesWithoutContent", "GET");
 
@@ -339,13 +241,15 @@ public class ContentTypeCombinationsApiClient {
       builder.response(StatusCode.of(200));
       builder.response(StatusCode.of(204));
 
-      return requestExecutor.executeRequest(builder.build());
+      ApiResponse response = requestExecutor.executeRequest(builder.build());
+
+      return new GetMultipleSuccessResponsesWithoutContentResult(response);
     }
 
     /**
      * Test case for having multiple error entity types.
      */
-    public ApiResponse getMultipleErrorEntities(String testCaseSelector) throws
+    public GetMultipleErrorEntitiesResult getMultipleErrorEntities(String testCaseSelector) throws
         ApiClientIoException, ApiClientValidationException, ApiClientIncompatibleResponseException {
 
       Operation.Builder builder = new Operation.Builder("/multipleErrorEntities", "GET");
@@ -356,30 +260,34 @@ public class ContentTypeCombinationsApiClient {
       builder.response(StatusCode.of(400), "application/json", CtcError.class);
       builder.response(StatusCode.of(500), "application/json", SevereCtcError.class);
 
-      return requestExecutor.executeRequest(builder.build());
+      ApiResponse response = requestExecutor.executeRequest(builder.build());
+
+      return new GetMultipleErrorEntitiesResult(response);
     }
 
     /**
      * Test case for returning content with status code 204.
      */
-    public ApiResponse getContentFor204() throws ApiClientIoException, ApiClientValidationException,
-        ApiClientIncompatibleResponseException {
+    public GetContentFor204Result getContentFor204() throws ApiClientIoException,
+        ApiClientValidationException, ApiClientIncompatibleResponseException {
 
       Operation.Builder builder = new Operation.Builder("/contentFor204", "GET");
 
       builder.response(StatusCode.of(204));
 
-      return requestExecutor.executeRequest(builder.build());
+      ApiResponse response = requestExecutor.executeRequest(builder.build());
+
+      return new GetContentFor204Result(response);
     }
   }
 
   /**
-   * Represents a successful response of operation getDefaultOnly, i.e., the status code being in range 200 to 299.
+   * Represents the result of calling operation getDefaultOnly.
    */
-  public static class GetDefaultOnlySuccessfulResult {
+  public static class GetDefaultOnlyResult {
     private final ApiResponse response;
 
-    public GetDefaultOnlySuccessfulResult(ApiResponse response) {
+    public GetDefaultOnlyResult(ApiResponse response) {
       this.response = response;
     }
 
@@ -388,6 +296,20 @@ public class ContentTypeCombinationsApiClient {
      */
     public ApiResponse getResponse() {
       return response;
+    }
+
+    /**
+     * Returns the HTTP status code of the operation's response.
+     */
+    public int getStatus() {
+      return response.getStatusCode();
+    }
+
+    /**
+     * Returns whether the response has a status code in the range 200 to 299.
+     */
+    public boolean isSuccessful() {
+      return response.isSuccessful();
     }
 
     /**
@@ -408,7 +330,7 @@ public class ContentTypeCombinationsApiClient {
     public boolean equals(Object other) {
       if (other == this) return true;
       if (other == null || getClass() != other.getClass()) return false;
-      GetDefaultOnlySuccessfulResult o = (GetDefaultOnlySuccessfulResult) other;
+      GetDefaultOnlyResult o = (GetDefaultOnlyResult) other;
       return Objects.equals(response, o.response);
     }
 
@@ -421,17 +343,17 @@ public class ContentTypeCombinationsApiClient {
     public String toString() {
       StringBuilder builder = new StringBuilder();
       builder.append(", response=").append(response);
-      return builder.replace(0, 2, "GetDefaultOnlySuccessfulResult{").append('}').toString();
+      return builder.replace(0, 2, "GetDefaultOnlyResult{").append('}').toString();
     }
   }
 
   /**
-   * Represents a successful response of operation getSuccessOnly, i.e., the status code being in range 200 to 299.
+   * Represents the result of calling operation getSuccessOnly.
    */
-  public static class GetSuccessOnlySuccessfulResult {
+  public static class GetSuccessOnlyResult {
     private final ApiResponse response;
 
-    public GetSuccessOnlySuccessfulResult(ApiResponse response) {
+    public GetSuccessOnlyResult(ApiResponse response) {
       this.response = response;
     }
 
@@ -440,6 +362,20 @@ public class ContentTypeCombinationsApiClient {
      */
     public ApiResponse getResponse() {
       return response;
+    }
+
+    /**
+     * Returns the HTTP status code of the operation's response.
+     */
+    public int getStatus() {
+      return response.getStatusCode();
+    }
+
+    /**
+     * Returns whether the response has a status code in the range 200 to 299.
+     */
+    public boolean isSuccessful() {
+      return response.isSuccessful();
     }
 
     /**
@@ -460,7 +396,7 @@ public class ContentTypeCombinationsApiClient {
     public boolean equals(Object other) {
       if (other == this) return true;
       if (other == null || getClass() != other.getClass()) return false;
-      GetSuccessOnlySuccessfulResult o = (GetSuccessOnlySuccessfulResult) other;
+      GetSuccessOnlyResult o = (GetSuccessOnlyResult) other;
       return Objects.equals(response, o.response);
     }
 
@@ -473,17 +409,17 @@ public class ContentTypeCombinationsApiClient {
     public String toString() {
       StringBuilder builder = new StringBuilder();
       builder.append(", response=").append(response);
-      return builder.replace(0, 2, "GetSuccessOnlySuccessfulResult{").append('}').toString();
+      return builder.replace(0, 2, "GetSuccessOnlyResult{").append('}').toString();
     }
   }
 
   /**
-   * Represents a successful response of operation getFailureOnly, i.e., the status code being in range 200 to 299.
+   * Represents the result of calling operation getFailureOnly.
    */
-  public static class GetFailureOnlySuccessfulResult {
+  public static class GetFailureOnlyResult {
     private final ApiResponse response;
 
-    public GetFailureOnlySuccessfulResult(ApiResponse response) {
+    public GetFailureOnlyResult(ApiResponse response) {
       this.response = response;
     }
 
@@ -492,13 +428,41 @@ public class ContentTypeCombinationsApiClient {
      */
     public ApiResponse getResponse() {
       return response;
+    }
+
+    /**
+     * Returns the HTTP status code of the operation's response.
+     */
+    public int getStatus() {
+      return response.getStatusCode();
+    }
+
+    /**
+     * Returns whether the response has a status code in the range 200 to 299.
+     */
+    public boolean isSuccessful() {
+      return response.isSuccessful();
+    }
+
+    /**
+     * Returns whether the response's status code is 400, while the response's entity is of type {@code CtcError}.
+     */
+    public boolean isStatus400ReturningCtcError() {
+      return response.getStatusCode() == 400 && response.getEntityType() == CtcError.class;
+    }
+
+    /**
+     * Returns the response's entity of type {@code CtcError}.
+     */
+    public CtcError getEntity() {
+      return (CtcError) response.getEntity();
     }
 
     @Override
     public boolean equals(Object other) {
       if (other == this) return true;
       if (other == null || getClass() != other.getClass()) return false;
-      GetFailureOnlySuccessfulResult o = (GetFailureOnlySuccessfulResult) other;
+      GetFailureOnlyResult o = (GetFailureOnlyResult) other;
       return Objects.equals(response, o.response);
     }
 
@@ -511,17 +475,17 @@ public class ContentTypeCombinationsApiClient {
     public String toString() {
       StringBuilder builder = new StringBuilder();
       builder.append(", response=").append(response);
-      return builder.replace(0, 2, "GetFailureOnlySuccessfulResult{").append('}').toString();
+      return builder.replace(0, 2, "GetFailureOnlyResult{").append('}').toString();
     }
   }
 
   /**
-   * Represents a successful response of operation getSuccessEntityAndErrorDefault, i.e., the status code being in range 200 to 299.
+   * Represents the result of calling operation getSuccessEntityAndErrorDefault.
    */
-  public static class GetSuccessEntityAndErrorDefaultSuccessfulResult {
+  public static class GetSuccessEntityAndErrorDefaultResult {
     private final ApiResponse response;
 
-    public GetSuccessEntityAndErrorDefaultSuccessfulResult(ApiResponse response) {
+    public GetSuccessEntityAndErrorDefaultResult(ApiResponse response) {
       this.response = response;
     }
 
@@ -530,6 +494,20 @@ public class ContentTypeCombinationsApiClient {
      */
     public ApiResponse getResponse() {
       return response;
+    }
+
+    /**
+     * Returns the HTTP status code of the operation's response.
+     */
+    public int getStatus() {
+      return response.getStatusCode();
+    }
+
+    /**
+     * Returns whether the response has a status code in the range 200 to 299.
+     */
+    public boolean isSuccessful() {
+      return response.isSuccessful();
     }
 
     /**
@@ -540,17 +518,53 @@ public class ContentTypeCombinationsApiClient {
     }
 
     /**
-     * Returns the response's entity of type {@code Book}.
+     * Returns whether the response's entity is of type {@code CtcError}.
      */
-    public Book getEntity() {
-      return (Book) response.getEntity();
+    public boolean isReturningCtcError() {
+      return response.getEntityType() == CtcError.class;
+    }
+
+    /**
+     * Returns the response's entity wrapped in {@code java.lang.Optional.of()} if it is of type {@code Book}. Otherwise, returns {@code Optional.empty()}.
+     */
+    public Optional<Book> getEntityIfBook() {
+      return Optional.ofNullable(getEntityAsBook());
+    }
+
+    /**
+     * Returns the response's entity if it is of type {@code Book}. Otherwise, returns null.
+     */
+    public Book getEntityAsBook() {
+      if (response.getEntityType() == Book.class) {
+        return (Book) response.getEntity();
+      } else {
+        return null;
+      }
+    }
+
+    /**
+     * Returns the response's entity wrapped in {@code java.lang.Optional.of()} if it is of type {@code CtcError}. Otherwise, returns {@code Optional.empty()}.
+     */
+    public Optional<CtcError> getEntityIfCtcError() {
+      return Optional.ofNullable(getEntityAsCtcError());
+    }
+
+    /**
+     * Returns the response's entity if it is of type {@code CtcError}. Otherwise, returns null.
+     */
+    public CtcError getEntityAsCtcError() {
+      if (response.getEntityType() == CtcError.class) {
+        return (CtcError) response.getEntity();
+      } else {
+        return null;
+      }
     }
 
     @Override
     public boolean equals(Object other) {
       if (other == this) return true;
       if (other == null || getClass() != other.getClass()) return false;
-      GetSuccessEntityAndErrorDefaultSuccessfulResult o = (GetSuccessEntityAndErrorDefaultSuccessfulResult) other;
+      GetSuccessEntityAndErrorDefaultResult o = (GetSuccessEntityAndErrorDefaultResult) other;
       return Objects.equals(response, o.response);
     }
 
@@ -563,17 +577,17 @@ public class ContentTypeCombinationsApiClient {
     public String toString() {
       StringBuilder builder = new StringBuilder();
       builder.append(", response=").append(response);
-      return builder.replace(0, 2, "GetSuccessEntityAndErrorDefaultSuccessfulResult{").append('}').toString();
+      return builder.replace(0, 2, "GetSuccessEntityAndErrorDefaultResult{").append('}').toString();
     }
   }
 
   /**
-   * Represents a successful response of operation getMultipleSuccessEntities, i.e., the status code being in range 200 to 299.
+   * Represents the result of calling operation getMultipleSuccessEntities.
    */
-  public static class GetMultipleSuccessEntitiesSuccessfulResult {
+  public static class GetMultipleSuccessEntitiesResult {
     private final ApiResponse response;
 
-    public GetMultipleSuccessEntitiesSuccessfulResult(ApiResponse response) {
+    public GetMultipleSuccessEntitiesResult(ApiResponse response) {
       this.response = response;
     }
 
@@ -582,6 +596,20 @@ public class ContentTypeCombinationsApiClient {
      */
     public ApiResponse getResponse() {
       return response;
+    }
+
+    /**
+     * Returns the HTTP status code of the operation's response.
+     */
+    public int getStatus() {
+      return response.getStatusCode();
+    }
+
+    /**
+     * Returns whether the response has a status code in the range 200 to 299.
+     */
+    public boolean isSuccessful() {
+      return response.isSuccessful();
     }
 
     /**
@@ -638,7 +666,7 @@ public class ContentTypeCombinationsApiClient {
     public boolean equals(Object other) {
       if (other == this) return true;
       if (other == null || getClass() != other.getClass()) return false;
-      GetMultipleSuccessEntitiesSuccessfulResult o = (GetMultipleSuccessEntitiesSuccessfulResult) other;
+      GetMultipleSuccessEntitiesResult o = (GetMultipleSuccessEntitiesResult) other;
       return Objects.equals(response, o.response);
     }
 
@@ -651,17 +679,17 @@ public class ContentTypeCombinationsApiClient {
     public String toString() {
       StringBuilder builder = new StringBuilder();
       builder.append(", response=").append(response);
-      return builder.replace(0, 2, "GetMultipleSuccessEntitiesSuccessfulResult{").append('}').toString();
+      return builder.replace(0, 2, "GetMultipleSuccessEntitiesResult{").append('}').toString();
     }
   }
 
   /**
-   * Represents a successful response of operation getMultipleSuccessResponsesWithoutContent, i.e., the status code being in range 200 to 299.
+   * Represents the result of calling operation getMultipleSuccessResponsesWithoutContent.
    */
-  public static class GetMultipleSuccessResponsesWithoutContentSuccessfulResult {
+  public static class GetMultipleSuccessResponsesWithoutContentResult {
     private final ApiResponse response;
 
-    public GetMultipleSuccessResponsesWithoutContentSuccessfulResult(ApiResponse response) {
+    public GetMultipleSuccessResponsesWithoutContentResult(ApiResponse response) {
       this.response = response;
     }
 
@@ -670,6 +698,20 @@ public class ContentTypeCombinationsApiClient {
      */
     public ApiResponse getResponse() {
       return response;
+    }
+
+    /**
+     * Returns the HTTP status code of the operation's response.
+     */
+    public int getStatus() {
+      return response.getStatusCode();
+    }
+
+    /**
+     * Returns whether the response has a status code in the range 200 to 299.
+     */
+    public boolean isSuccessful() {
+      return response.isSuccessful();
     }
 
     /**
@@ -690,7 +732,7 @@ public class ContentTypeCombinationsApiClient {
     public boolean equals(Object other) {
       if (other == this) return true;
       if (other == null || getClass() != other.getClass()) return false;
-      GetMultipleSuccessResponsesWithoutContentSuccessfulResult o = (GetMultipleSuccessResponsesWithoutContentSuccessfulResult) other;
+      GetMultipleSuccessResponsesWithoutContentResult o = (GetMultipleSuccessResponsesWithoutContentResult) other;
       return Objects.equals(response, o.response);
     }
 
@@ -703,17 +745,17 @@ public class ContentTypeCombinationsApiClient {
     public String toString() {
       StringBuilder builder = new StringBuilder();
       builder.append(", response=").append(response);
-      return builder.replace(0, 2, "GetMultipleSuccessResponsesWithoutContentSuccessfulResult{").append('}').toString();
+      return builder.replace(0, 2, "GetMultipleSuccessResponsesWithoutContentResult{").append('}').toString();
     }
   }
 
   /**
-   * Represents a successful response of operation getMultipleErrorEntities, i.e., the status code being in range 200 to 299.
+   * Represents the result of calling operation getMultipleErrorEntities.
    */
-  public static class GetMultipleErrorEntitiesSuccessfulResult {
+  public static class GetMultipleErrorEntitiesResult {
     private final ApiResponse response;
 
-    public GetMultipleErrorEntitiesSuccessfulResult(ApiResponse response) {
+    public GetMultipleErrorEntitiesResult(ApiResponse response) {
       this.response = response;
     }
 
@@ -722,6 +764,20 @@ public class ContentTypeCombinationsApiClient {
      */
     public ApiResponse getResponse() {
       return response;
+    }
+
+    /**
+     * Returns the HTTP status code of the operation's response.
+     */
+    public int getStatus() {
+      return response.getStatusCode();
+    }
+
+    /**
+     * Returns whether the response has a status code in the range 200 to 299.
+     */
+    public boolean isSuccessful() {
+      return response.isSuccessful();
     }
 
     /**
@@ -732,17 +788,78 @@ public class ContentTypeCombinationsApiClient {
     }
 
     /**
-     * Returns the response's entity of type {@code Book}.
+     * Returns whether the response's status code is 400, while the response's entity is of type {@code CtcError}.
      */
-    public Book getEntity() {
-      return (Book) response.getEntity();
+    public boolean isStatus400ReturningCtcError() {
+      return response.getStatusCode() == 400 && response.getEntityType() == CtcError.class;
+    }
+
+    /**
+     * Returns whether the response's status code is 500, while the response's entity is of type {@code SevereCtcError}.
+     */
+    public boolean isStatus500ReturningSevereCtcError() {
+      return response.getStatusCode() == 500 && response.getEntityType() == SevereCtcError.class;
+    }
+
+    /**
+     * Returns the response's entity wrapped in {@code java.lang.Optional.of()} if it is of type {@code Book}. Otherwise, returns {@code Optional.empty()}.
+     */
+    public Optional<Book> getEntityIfBook() {
+      return Optional.ofNullable(getEntityAsBook());
+    }
+
+    /**
+     * Returns the response's entity if it is of type {@code Book}. Otherwise, returns null.
+     */
+    public Book getEntityAsBook() {
+      if (response.getEntityType() == Book.class) {
+        return (Book) response.getEntity();
+      } else {
+        return null;
+      }
+    }
+
+    /**
+     * Returns the response's entity wrapped in {@code java.lang.Optional.of()} if it is of type {@code CtcError}. Otherwise, returns {@code Optional.empty()}.
+     */
+    public Optional<CtcError> getEntityIfCtcError() {
+      return Optional.ofNullable(getEntityAsCtcError());
+    }
+
+    /**
+     * Returns the response's entity if it is of type {@code CtcError}. Otherwise, returns null.
+     */
+    public CtcError getEntityAsCtcError() {
+      if (response.getEntityType() == CtcError.class) {
+        return (CtcError) response.getEntity();
+      } else {
+        return null;
+      }
+    }
+
+    /**
+     * Returns the response's entity wrapped in {@code java.lang.Optional.of()} if it is of type {@code SevereCtcError}. Otherwise, returns {@code Optional.empty()}.
+     */
+    public Optional<SevereCtcError> getEntityIfSevereCtcError() {
+      return Optional.ofNullable(getEntityAsSevereCtcError());
+    }
+
+    /**
+     * Returns the response's entity if it is of type {@code SevereCtcError}. Otherwise, returns null.
+     */
+    public SevereCtcError getEntityAsSevereCtcError() {
+      if (response.getEntityType() == SevereCtcError.class) {
+        return (SevereCtcError) response.getEntity();
+      } else {
+        return null;
+      }
     }
 
     @Override
     public boolean equals(Object other) {
       if (other == this) return true;
       if (other == null || getClass() != other.getClass()) return false;
-      GetMultipleErrorEntitiesSuccessfulResult o = (GetMultipleErrorEntitiesSuccessfulResult) other;
+      GetMultipleErrorEntitiesResult o = (GetMultipleErrorEntitiesResult) other;
       return Objects.equals(response, o.response);
     }
 
@@ -755,17 +872,17 @@ public class ContentTypeCombinationsApiClient {
     public String toString() {
       StringBuilder builder = new StringBuilder();
       builder.append(", response=").append(response);
-      return builder.replace(0, 2, "GetMultipleErrorEntitiesSuccessfulResult{").append('}').toString();
+      return builder.replace(0, 2, "GetMultipleErrorEntitiesResult{").append('}').toString();
     }
   }
 
   /**
-   * Represents a successful response of operation getContentFor204, i.e., the status code being in range 200 to 299.
+   * Represents the result of calling operation getContentFor204.
    */
-  public static class GetContentFor204SuccessfulResult {
+  public static class GetContentFor204Result {
     private final ApiResponse response;
 
-    public GetContentFor204SuccessfulResult(ApiResponse response) {
+    public GetContentFor204Result(ApiResponse response) {
       this.response = response;
     }
 
@@ -774,6 +891,20 @@ public class ContentTypeCombinationsApiClient {
      */
     public ApiResponse getResponse() {
       return response;
+    }
+
+    /**
+     * Returns the HTTP status code of the operation's response.
+     */
+    public int getStatus() {
+      return response.getStatusCode();
+    }
+
+    /**
+     * Returns whether the response has a status code in the range 200 to 299.
+     */
+    public boolean isSuccessful() {
+      return response.isSuccessful();
     }
 
     /**
@@ -787,7 +918,7 @@ public class ContentTypeCombinationsApiClient {
     public boolean equals(Object other) {
       if (other == this) return true;
       if (other == null || getClass() != other.getClass()) return false;
-      GetContentFor204SuccessfulResult o = (GetContentFor204SuccessfulResult) other;
+      GetContentFor204Result o = (GetContentFor204Result) other;
       return Objects.equals(response, o.response);
     }
 
@@ -800,7 +931,7 @@ public class ContentTypeCombinationsApiClient {
     public String toString() {
       StringBuilder builder = new StringBuilder();
       builder.append(", response=").append(response);
-      return builder.replace(0, 2, "GetContentFor204SuccessfulResult{").append('}').toString();
+      return builder.replace(0, 2, "GetContentFor204Result{").append('}').toString();
     }
   }
 }

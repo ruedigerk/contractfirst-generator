@@ -31,10 +31,14 @@ class ResponseVariantsTest extends EmbeddedJaxRsServerSpecification {
 
   def "Server response with explicitly defined 200"() {
     when:
-    def result = apiClient.returningSuccessfulResult().createItem("systemId", true, 4711L, null, item)
+    def result = apiClient.returningResult().createItem("systemId", true, 4711L, null, item)
     def response = result.response
 
     then:
+    result.isStatus200ReturningCItem()
+    result.entityAsCItem == item
+    
+    and:
     response.request.url == "$BASE_URL/systemId/components?dryRun=true"
     response.request.method == "POST"
     response.request.headers == [
@@ -52,22 +56,18 @@ class ResponseVariantsTest extends EmbeddedJaxRsServerSpecification {
     response.contentType == "application/json"
     response.entityType == CItem.class
     response.entity == item
-
-    when:
-    def createdItem = apiClient.createItem("systemId", true, 4711L, null, item)
-    def apiResponse = apiClient.returningAnyResponse().createItem("systemId", true, 4711L, null, item)
-
-    then:
-    createdItem == item
-    apiResponse == response
   }
 
   def "Server response with explicitly defined 201"() {
     when:
-    def result = apiClient.returningSuccessfulResult().createItem("systemId", true, 4711L, "201", item)
+    def result = apiClient.returningResult().createItem("systemId", true, 4711L, "201", item)
     def response = result.response
 
     then:
+    result.isStatus201WithoutEntity()
+    result.entityAsCItem == null
+    
+    and:
     response.request.url == "$BASE_URL/systemId/components?dryRun=true"
     response.request.method == "POST"
     response.request.headers == [
@@ -86,20 +86,17 @@ class ResponseVariantsTest extends EmbeddedJaxRsServerSpecification {
     response.contentType == null
     response.entityType == Void.TYPE
     response.entity == null
-
-    when:
-    def responseEntity = apiClient.createItem("systemId", true, 4711L, "201", item)
-
-    then:
-    responseEntity == null
   }
 
   def "Server response with explicitly defined 204"() {
     when:
-    def result = apiClient.returningSuccessfulResult().createItem("systemId", true, 4711L, "204", item)
+    def result = apiClient.returningResult().createItem("systemId", true, 4711L, "204", item)
     def response = result.response
 
     then:
+    result.isStatus204WithoutEntity()
+    
+    and:
     response.request.url == "$BASE_URL/systemId/components?dryRun=true"
     response.request.method == "POST"
     response.request.headers == [
@@ -127,10 +124,19 @@ class ResponseVariantsTest extends EmbeddedJaxRsServerSpecification {
   }
 
   def "Server responds with explicitly defined 400"() {
+    given:
+    def expectedFailure = new CFailure(code: 400, message: "Unknown customer id: 23")
+    
     when:
-    def response = apiClient.returningAnyResponse().createItem("systemId", false, 23, "400", item)
+    def result = apiClient.returningResult().createItem("systemId", false, 23, "400", item)
+    def response = result.response
 
     then:
+    result.isStatus400ReturningCFailure()
+
+    result.entityAsCFailure == expectedFailure
+    
+    and:
     response.request.url == "$BASE_URL/systemId/components?dryRun=false"
     response.request.method == "POST"
     response.request.headers == [
@@ -148,7 +154,7 @@ class ResponseVariantsTest extends EmbeddedJaxRsServerSpecification {
     response.httpStatusMessage == "Bad Request"
     response.contentType == "application/json"
     response.entityType == CFailure.class
-    response.entity == new CFailure(code: 400, message: "Unknown customer id: 23")
+    response.entity == expectedFailure
 
     when:
     apiClient.createItem("systemId", false, 23, "400", item)
@@ -156,14 +162,23 @@ class ResponseVariantsTest extends EmbeddedJaxRsServerSpecification {
     then:
     def e = thrown ApiClientErrorWithCFailureEntityException
     e.statusCode == 400
-    e.entity == new CFailure(code: 400, message: "Unknown customer id: 23")
+    e.entity == expectedFailure
   }
 
   def "Server responds with 500, covered by default"() {
+    given:
+    def expectedFailure = new CFailure(code: 500, message: "Internal Server Error :(")
+    
     when:
-    def response = apiClient.returningAnyResponse().createItem("systemId", false, 42, "500", item)
+    def result = apiClient.returningResult().createItem("systemId", false, 42, "500", item)
+    def response = result.response
 
     then:
+    !result.isSuccessful()
+    result.status == 500
+    result.entityAsCFailure == expectedFailure
+    
+    and:
     response.request.url == "$BASE_URL/systemId/components?dryRun=false"
     response.request.method == "POST"
     response.request.headers == [
@@ -181,7 +196,7 @@ class ResponseVariantsTest extends EmbeddedJaxRsServerSpecification {
     response.httpStatusMessage == "Internal Server Error"
     response.contentType == "application/json"
     response.entityType == CFailure.class
-    response.entity == new CFailure(code: 500, message: "Internal Server Error :(")
+    response.entity == expectedFailure
 
     when:
     apiClient.createItem("systemId", false, 42, "500", item)
@@ -189,12 +204,12 @@ class ResponseVariantsTest extends EmbeddedJaxRsServerSpecification {
     then:
     def e = thrown ApiClientErrorWithCFailureEntityException
     e.statusCode == 500
-    e.entity == new CFailure(code: 500, message: "Internal Server Error :(")
+    e.entity == expectedFailure
   }
 
   def "Server responds with response not conforming to the contract"() {
     when:
-    apiClient.returningSuccessfulResult().createItem("systemId", false, 999, "undefined", item)
+    apiClient.createItem("systemId", false, 999, "undefined", item)
 
     then:
     def e = thrown ApiClientIncompatibleResponseException

@@ -16,28 +16,18 @@ import selfreferential.model.Model;
 public class V1ComponentsApiClient {
   private final ApiRequestExecutor requestExecutor;
 
-  private final ReturningAnyResponse returningAnyResponse;
-
-  private final ReturningSuccessfulResult returningSuccessfulResult;
+  private final ReturningResult returningResult;
 
   public V1ComponentsApiClient(ApiRequestExecutor requestExecutor) {
     this.requestExecutor = requestExecutor;
-    this.returningAnyResponse = new ReturningAnyResponse();
-    this.returningSuccessfulResult = new ReturningSuccessfulResult();
+    this.returningResult = new ReturningResult();
   }
 
   /**
-   * Selects methods returning instances of ApiResponse and not throwing exceptions for unsuccessful status codes.
+   * Returns an API client with methods that return operation specific result classes, allowing inspection of the operations' responses.
    */
-  public ReturningAnyResponse returningAnyResponse() {
-    return returningAnyResponse;
-  }
-
-  /**
-   * Selects methods returning instances of operation specific success classes and throwing exceptions for unsuccessful status codes.
-   */
-  public ReturningSuccessfulResult returningSuccessfulResult() {
-    return returningSuccessfulResult;
+  public ReturningResult returningResult() {
+    return returningResult;
   }
 
   /**
@@ -46,52 +36,38 @@ public class V1ComponentsApiClient {
   public Model getComponent() throws ApiClientIoException, ApiClientValidationException,
       ApiClientIncompatibleResponseException {
 
-    GetComponentSuccessfulResult response = returningSuccessfulResult.getComponent();
+    GetComponentResult result = returningResult.getComponent();
 
-    return response.getEntity();
+    return result.getEntity();
   }
 
   /**
-   * Contains methods for all operations returning instances of operation specific success classes and throwing exceptions for unsuccessful status codes.
+   * Contains methods returning operation specific result classes, allowing inspection of the operations' responses.
    */
-  public class ReturningSuccessfulResult {
+  public class ReturningResult {
     /**
      * Get component. Also, test escaping of JavaPoet placeholders: $L $1N $%.
      */
-    public GetComponentSuccessfulResult getComponent() throws ApiClientIoException,
+    public GetComponentResult getComponent() throws ApiClientIoException,
         ApiClientValidationException, ApiClientIncompatibleResponseException {
-
-      ApiResponse response = returningAnyResponse.getComponent();
-
-      return new GetComponentSuccessfulResult(response);
-    }
-  }
-
-  /**
-   * Contains methods for all operations returning instances of ApiResponse and not throwing exceptions for unsuccessful status codes.
-   */
-  public class ReturningAnyResponse {
-    /**
-     * Get component. Also, test escaping of JavaPoet placeholders: $L $1N $%.
-     */
-    public ApiResponse getComponent() throws ApiClientIoException, ApiClientValidationException,
-        ApiClientIncompatibleResponseException {
 
       Operation.Builder builder = new Operation.Builder("/v1/components", "GET");
 
       builder.response(StatusCode.of(200), "application/json", Model.class);
 
-      return requestExecutor.executeRequest(builder.build());
+      ApiResponse response = requestExecutor.executeRequest(builder.build());
+
+      return new GetComponentResult(response);
     }
   }
 
   /**
-   * Represents a successful response of operation getComponent, i.e., the status code being in range 200 to 299.
+   * Represents the result of calling operation getComponent.
    */
-  public static class GetComponentSuccessfulResult {
+  public static class GetComponentResult {
     private final ApiResponse response;
 
-    public GetComponentSuccessfulResult(ApiResponse response) {
+    public GetComponentResult(ApiResponse response) {
       this.response = response;
     }
 
@@ -100,6 +76,20 @@ public class V1ComponentsApiClient {
      */
     public ApiResponse getResponse() {
       return response;
+    }
+
+    /**
+     * Returns the HTTP status code of the operation's response.
+     */
+    public int getStatus() {
+      return response.getStatusCode();
+    }
+
+    /**
+     * Returns whether the response has a status code in the range 200 to 299.
+     */
+    public boolean isSuccessful() {
+      return response.isSuccessful();
     }
 
     /**
@@ -120,7 +110,7 @@ public class V1ComponentsApiClient {
     public boolean equals(Object other) {
       if (other == this) return true;
       if (other == null || getClass() != other.getClass()) return false;
-      GetComponentSuccessfulResult o = (GetComponentSuccessfulResult) other;
+      GetComponentResult o = (GetComponentResult) other;
       return Objects.equals(response, o.response);
     }
 
@@ -133,7 +123,7 @@ public class V1ComponentsApiClient {
     public String toString() {
       StringBuilder builder = new StringBuilder();
       builder.append(", response=").append(response);
-      return builder.replace(0, 2, "GetComponentSuccessfulResult{").append('}').toString();
+      return builder.replace(0, 2, "GetComponentResult{").append('}').toString();
     }
   }
 }

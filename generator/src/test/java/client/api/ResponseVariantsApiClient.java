@@ -11,6 +11,7 @@ import io.github.ruedigerk.contractfirst.generator.client.internal.Operation;
 import io.github.ruedigerk.contractfirst.generator.client.internal.ParameterLocation;
 import io.github.ruedigerk.contractfirst.generator.client.internal.StatusCode;
 import java.util.Objects;
+import java.util.Optional;
 
 /**
  * Contains methods for all API operations tagged "ResponseVariants".
@@ -18,28 +19,18 @@ import java.util.Objects;
 public class ResponseVariantsApiClient {
   private final ApiRequestExecutor requestExecutor;
 
-  private final ReturningAnyResponse returningAnyResponse;
-
-  private final ReturningSuccessfulResult returningSuccessfulResult;
+  private final ReturningResult returningResult;
 
   public ResponseVariantsApiClient(ApiRequestExecutor requestExecutor) {
     this.requestExecutor = requestExecutor;
-    this.returningAnyResponse = new ReturningAnyResponse();
-    this.returningSuccessfulResult = new ReturningSuccessfulResult();
+    this.returningResult = new ReturningResult();
   }
 
   /**
-   * Selects methods returning instances of ApiResponse and not throwing exceptions for unsuccessful status codes.
+   * Returns an API client with methods that return operation specific result classes, allowing inspection of the operations' responses.
    */
-  public ReturningAnyResponse returningAnyResponse() {
-    return returningAnyResponse;
-  }
-
-  /**
-   * Selects methods returning instances of operation specific success classes and throwing exceptions for unsuccessful status codes.
-   */
-  public ReturningSuccessfulResult returningSuccessfulResult() {
-    return returningSuccessfulResult;
+  public ReturningResult returningResult() {
+    return returningResult;
   }
 
   /**
@@ -54,42 +45,19 @@ public class ResponseVariantsApiClient {
       Item requestBody) throws ApiClientIoException, ApiClientValidationException,
       ApiClientIncompatibleResponseException, ApiClientErrorWithFailureEntityException {
 
-    CreateItemSuccessfulResult response = returningSuccessfulResult.createItem(systemId, dryRun, partNumber, testCaseSelector, requestBody);
+    CreateItemResult result = returningResult.createItem(systemId, dryRun, partNumber, testCaseSelector, requestBody);
 
-    return response.getEntity();
-  }
-
-  /**
-   * Contains methods for all operations returning instances of operation specific success classes and throwing exceptions for unsuccessful status codes.
-   */
-  public class ReturningSuccessfulResult {
-    /**
-     * Test for the various parameter locations and for serializing request and response body entities.
-     *
-     * @param systemId ID of the system to create the item in.
-     * @param dryRun Do a dry run?
-     * @param partNumber Optional part number
-     * @param testCaseSelector Used to select the desired behaviour of the server in the test.
-     */
-    public CreateItemSuccessfulResult createItem(String systemId, Boolean dryRun, Long partNumber,
-        String testCaseSelector, Item requestBody) throws ApiClientIoException,
-        ApiClientValidationException, ApiClientIncompatibleResponseException,
-        ApiClientErrorWithFailureEntityException {
-
-      ApiResponse response = returningAnyResponse.createItem(systemId, dryRun, partNumber, testCaseSelector, requestBody);
-
-      if (!response.isSuccessful()) {
-        throw new ApiClientErrorWithFailureEntityException(response);
-      }
-
-      return new CreateItemSuccessfulResult(response);
+    if (!result.isSuccessful()) {
+      throw new ApiClientErrorWithFailureEntityException(result.getResponse());
     }
+
+    return result.getEntityAsItem();
   }
 
   /**
-   * Contains methods for all operations returning instances of ApiResponse and not throwing exceptions for unsuccessful status codes.
+   * Contains methods returning operation specific result classes, allowing inspection of the operations' responses.
    */
-  public class ReturningAnyResponse {
+  public class ReturningResult {
     /**
      * Test for the various parameter locations and for serializing request and response body entities.
      *
@@ -98,7 +66,7 @@ public class ResponseVariantsApiClient {
      * @param partNumber Optional part number
      * @param testCaseSelector Used to select the desired behaviour of the server in the test.
      */
-    public ApiResponse createItem(String systemId, Boolean dryRun, Long partNumber,
+    public CreateItemResult createItem(String systemId, Boolean dryRun, Long partNumber,
         String testCaseSelector, Item requestBody) throws ApiClientIoException,
         ApiClientValidationException, ApiClientIncompatibleResponseException {
 
@@ -116,17 +84,19 @@ public class ResponseVariantsApiClient {
       builder.response(StatusCode.of(400), "application/json", Failure.class);
       builder.response(StatusCode.DEFAULT, "application/json", Failure.class);
 
-      return requestExecutor.executeRequest(builder.build());
+      ApiResponse response = requestExecutor.executeRequest(builder.build());
+
+      return new CreateItemResult(response);
     }
   }
 
   /**
-   * Represents a successful response of operation createItem, i.e., the status code being in range 200 to 299.
+   * Represents the result of calling operation createItem.
    */
-  public static class CreateItemSuccessfulResult {
+  public static class CreateItemResult {
     private final ApiResponse response;
 
-    public CreateItemSuccessfulResult(ApiResponse response) {
+    public CreateItemResult(ApiResponse response) {
       this.response = response;
     }
 
@@ -135,6 +105,20 @@ public class ResponseVariantsApiClient {
      */
     public ApiResponse getResponse() {
       return response;
+    }
+
+    /**
+     * Returns the HTTP status code of the operation's response.
+     */
+    public int getStatus() {
+      return response.getStatusCode();
+    }
+
+    /**
+     * Returns whether the response has a status code in the range 200 to 299.
+     */
+    public boolean isSuccessful() {
+      return response.isSuccessful();
     }
 
     /**
@@ -159,17 +143,60 @@ public class ResponseVariantsApiClient {
     }
 
     /**
-     * Returns the response's entity of type {@code Item}.
+     * Returns whether the response's status code is 400, while the response's entity is of type {@code Failure}.
      */
-    public Item getEntity() {
-      return (Item) response.getEntity();
+    public boolean isStatus400ReturningFailure() {
+      return response.getStatusCode() == 400 && response.getEntityType() == Failure.class;
+    }
+
+    /**
+     * Returns whether the response's entity is of type {@code Failure}.
+     */
+    public boolean isReturningFailure() {
+      return response.getEntityType() == Failure.class;
+    }
+
+    /**
+     * Returns the response's entity wrapped in {@code java.lang.Optional.of()} if it is of type {@code Item}. Otherwise, returns {@code Optional.empty()}.
+     */
+    public Optional<Item> getEntityIfItem() {
+      return Optional.ofNullable(getEntityAsItem());
+    }
+
+    /**
+     * Returns the response's entity if it is of type {@code Item}. Otherwise, returns null.
+     */
+    public Item getEntityAsItem() {
+      if (response.getEntityType() == Item.class) {
+        return (Item) response.getEntity();
+      } else {
+        return null;
+      }
+    }
+
+    /**
+     * Returns the response's entity wrapped in {@code java.lang.Optional.of()} if it is of type {@code Failure}. Otherwise, returns {@code Optional.empty()}.
+     */
+    public Optional<Failure> getEntityIfFailure() {
+      return Optional.ofNullable(getEntityAsFailure());
+    }
+
+    /**
+     * Returns the response's entity if it is of type {@code Failure}. Otherwise, returns null.
+     */
+    public Failure getEntityAsFailure() {
+      if (response.getEntityType() == Failure.class) {
+        return (Failure) response.getEntity();
+      } else {
+        return null;
+      }
     }
 
     @Override
     public boolean equals(Object other) {
       if (other == this) return true;
       if (other == null || getClass() != other.getClass()) return false;
-      CreateItemSuccessfulResult o = (CreateItemSuccessfulResult) other;
+      CreateItemResult o = (CreateItemResult) other;
       return Objects.equals(response, o.response);
     }
 
@@ -182,7 +209,7 @@ public class ResponseVariantsApiClient {
     public String toString() {
       StringBuilder builder = new StringBuilder();
       builder.append(", response=").append(response);
-      return builder.replace(0, 2, "CreateItemSuccessfulResult{").append('}').toString();
+      return builder.replace(0, 2, "CreateItemResult{").append('}').toString();
     }
   }
 }

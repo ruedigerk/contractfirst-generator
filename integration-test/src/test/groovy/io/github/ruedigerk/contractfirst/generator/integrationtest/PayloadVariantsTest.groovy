@@ -1,7 +1,6 @@
 package io.github.ruedigerk.contractfirst.generator.integrationtest
 
 import com.google.gson.reflect.TypeToken
-import io.github.ruedigerk.contractfirst.generator.client.ApiResponse
 import io.github.ruedigerk.contractfirst.generator.integrationtest.generated.client.api.PayloadVariantsApiClient
 import io.github.ruedigerk.contractfirst.generator.integrationtest.generated.client.model.CItem
 import io.github.ruedigerk.contractfirst.generator.integrationtest.generated.server.model.SItem
@@ -31,9 +30,14 @@ class PayloadVariantsTest extends EmbeddedJaxRsServerSpecification {
     noExceptionThrown()
 
     when:
-    ApiResponse response = apiClient.returningAnyResponse().changeItem(new CItem(id: 1L, name: "Buddy", tag: "new tag"))
+    def result = apiClient.returningResult().changeItem(new CItem(id: 1L, name: "Buddy", tag: "new tag"))
+    def response = result.response
 
     then:
+    result.isSuccessful()
+    result.isStatus204WithoutEntity()
+    
+    and:
     response.request.url == "$BASE_URL/itemBinaries"
     response.request.method == "POST"
     response.statusCode == 204
@@ -55,9 +59,14 @@ class PayloadVariantsTest extends EmbeddedJaxRsServerSpecification {
     responseItems == expectedOutput
 
     when:
-    ApiResponse response = apiClient.returningAnyResponse().filterItems(input)
+    def result = apiClient.returningResult().filterItems(input)
+    def response = result.response
 
     then:
+    result.isStatus200ReturningListOfCItem()
+    result.entityAsListOfCItem == expectedOutput
+    
+    and:
     response.request.url == "$BASE_URL/items"
     response.request.method == "POST"
     response.statusCode == 200
@@ -81,9 +90,13 @@ class PayloadVariantsTest extends EmbeddedJaxRsServerSpecification {
     responseBytes == pdfBytes
 
     when:
-    ApiResponse response = apiClient.returningAnyResponse().uploadAndReturnBinary(new ByteArrayInputStream(pdfBytes))
+    def result = apiClient.returningResult().uploadAndReturnBinary(new ByteArrayInputStream(pdfBytes))
+    def response = result.response
 
     then:
+    result.isStatus200ReturningInputStream()
+    
+    and:
     response.request.url == "$BASE_URL/itemBinaries"
     response.request.method == "PUT"
     response.statusCode == 200

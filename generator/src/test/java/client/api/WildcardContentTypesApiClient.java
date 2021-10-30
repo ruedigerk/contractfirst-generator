@@ -19,28 +19,18 @@ import java.util.Optional;
 public class WildcardContentTypesApiClient {
   private final ApiRequestExecutor requestExecutor;
 
-  private final ReturningAnyResponse returningAnyResponse;
-
-  private final ReturningSuccessfulResult returningSuccessfulResult;
+  private final ReturningResult returningResult;
 
   public WildcardContentTypesApiClient(ApiRequestExecutor requestExecutor) {
     this.requestExecutor = requestExecutor;
-    this.returningAnyResponse = new ReturningAnyResponse();
-    this.returningSuccessfulResult = new ReturningSuccessfulResult();
+    this.returningResult = new ReturningResult();
   }
 
   /**
-   * Selects methods returning instances of ApiResponse and not throwing exceptions for unsuccessful status codes.
+   * Returns an API client with methods that return operation specific result classes, allowing inspection of the operations' responses.
    */
-  public ReturningAnyResponse returningAnyResponse() {
-    return returningAnyResponse;
-  }
-
-  /**
-   * Selects methods returning instances of operation specific success classes and throwing exceptions for unsuccessful status codes.
-   */
-  public ReturningSuccessfulResult returningSuccessfulResult() {
-    return returningSuccessfulResult;
+  public ReturningResult returningResult() {
+    return returningResult;
   }
 
   /**
@@ -48,49 +38,30 @@ public class WildcardContentTypesApiClient {
    *
    * @param testCaseSelector Used to select the desired behaviour of the server in the test.
    */
-  public GetWildcardContentTypesSuccessfulResult getWildcardContentTypes(String testCaseSelector)
-      throws ApiClientIoException, ApiClientValidationException,
-      ApiClientIncompatibleResponseException, ApiClientErrorWithFailureEntityException {
+  public GetWildcardContentTypesResult getWildcardContentTypes(String testCaseSelector) throws
+      ApiClientIoException, ApiClientValidationException, ApiClientIncompatibleResponseException,
+      ApiClientErrorWithFailureEntityException {
 
-    GetWildcardContentTypesSuccessfulResult response = returningSuccessfulResult.getWildcardContentTypes(testCaseSelector);
+    GetWildcardContentTypesResult result = returningResult.getWildcardContentTypes(testCaseSelector);
 
-    return response;
-  }
-
-  /**
-   * Contains methods for all operations returning instances of operation specific success classes and throwing exceptions for unsuccessful status codes.
-   */
-  public class ReturningSuccessfulResult {
-    /**
-     * Test wildcard response content types.
-     *
-     * @param testCaseSelector Used to select the desired behaviour of the server in the test.
-     */
-    public GetWildcardContentTypesSuccessfulResult getWildcardContentTypes(String testCaseSelector)
-        throws ApiClientIoException, ApiClientValidationException,
-        ApiClientIncompatibleResponseException, ApiClientErrorWithFailureEntityException {
-
-      ApiResponse response = returningAnyResponse.getWildcardContentTypes(testCaseSelector);
-
-      if (!response.isSuccessful()) {
-        throw new ApiClientErrorWithFailureEntityException(response);
-      }
-
-      return new GetWildcardContentTypesSuccessfulResult(response);
+    if (!result.isSuccessful()) {
+      throw new ApiClientErrorWithFailureEntityException(result.getResponse());
     }
+
+    return result;
   }
 
   /**
-   * Contains methods for all operations returning instances of ApiResponse and not throwing exceptions for unsuccessful status codes.
+   * Contains methods returning operation specific result classes, allowing inspection of the operations' responses.
    */
-  public class ReturningAnyResponse {
+  public class ReturningResult {
     /**
      * Test wildcard response content types.
      *
      * @param testCaseSelector Used to select the desired behaviour of the server in the test.
      */
-    public ApiResponse getWildcardContentTypes(String testCaseSelector) throws ApiClientIoException,
-        ApiClientValidationException, ApiClientIncompatibleResponseException {
+    public GetWildcardContentTypesResult getWildcardContentTypes(String testCaseSelector) throws
+        ApiClientIoException, ApiClientValidationException, ApiClientIncompatibleResponseException {
 
       Operation.Builder builder = new Operation.Builder("/wildcardContentTypes", "GET");
 
@@ -100,17 +71,19 @@ public class WildcardContentTypesApiClient {
       builder.response(StatusCode.of(200), "application/*", InputStream.class);
       builder.response(StatusCode.DEFAULT, "application/json", Failure.class);
 
-      return requestExecutor.executeRequest(builder.build());
+      ApiResponse response = requestExecutor.executeRequest(builder.build());
+
+      return new GetWildcardContentTypesResult(response);
     }
   }
 
   /**
-   * Represents a successful response of operation getWildcardContentTypes, i.e., the status code being in range 200 to 299.
+   * Represents the result of calling operation getWildcardContentTypes.
    */
-  public static class GetWildcardContentTypesSuccessfulResult {
+  public static class GetWildcardContentTypesResult {
     private final ApiResponse response;
 
-    public GetWildcardContentTypesSuccessfulResult(ApiResponse response) {
+    public GetWildcardContentTypesResult(ApiResponse response) {
       this.response = response;
     }
 
@@ -119,6 +92,20 @@ public class WildcardContentTypesApiClient {
      */
     public ApiResponse getResponse() {
       return response;
+    }
+
+    /**
+     * Returns the HTTP status code of the operation's response.
+     */
+    public int getStatus() {
+      return response.getStatusCode();
+    }
+
+    /**
+     * Returns whether the response has a status code in the range 200 to 299.
+     */
+    public boolean isSuccessful() {
+      return response.isSuccessful();
     }
 
     /**
@@ -133,6 +120,13 @@ public class WildcardContentTypesApiClient {
      */
     public boolean isStatus200ReturningInputStream() {
       return response.getStatusCode() == 200 && response.getEntityType() == InputStream.class;
+    }
+
+    /**
+     * Returns whether the response's entity is of type {@code Failure}.
+     */
+    public boolean isReturningFailure() {
+      return response.getEntityType() == Failure.class;
     }
 
     /**
@@ -171,11 +165,29 @@ public class WildcardContentTypesApiClient {
       }
     }
 
+    /**
+     * Returns the response's entity wrapped in {@code java.lang.Optional.of()} if it is of type {@code Failure}. Otherwise, returns {@code Optional.empty()}.
+     */
+    public Optional<Failure> getEntityIfFailure() {
+      return Optional.ofNullable(getEntityAsFailure());
+    }
+
+    /**
+     * Returns the response's entity if it is of type {@code Failure}. Otherwise, returns null.
+     */
+    public Failure getEntityAsFailure() {
+      if (response.getEntityType() == Failure.class) {
+        return (Failure) response.getEntity();
+      } else {
+        return null;
+      }
+    }
+
     @Override
     public boolean equals(Object other) {
       if (other == this) return true;
       if (other == null || getClass() != other.getClass()) return false;
-      GetWildcardContentTypesSuccessfulResult o = (GetWildcardContentTypesSuccessfulResult) other;
+      GetWildcardContentTypesResult o = (GetWildcardContentTypesResult) other;
       return Objects.equals(response, o.response);
     }
 
@@ -188,7 +200,7 @@ public class WildcardContentTypesApiClient {
     public String toString() {
       StringBuilder builder = new StringBuilder();
       builder.append(", response=").append(response);
-      return builder.replace(0, 2, "GetWildcardContentTypesSuccessfulResult{").append('}').toString();
+      return builder.replace(0, 2, "GetWildcardContentTypesResult{").append('}').toString();
     }
   }
 }

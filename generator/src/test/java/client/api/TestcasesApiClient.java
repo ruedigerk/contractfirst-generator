@@ -13,6 +13,7 @@ import io.github.ruedigerk.contractfirst.generator.client.internal.StatusCode;
 import java.lang.reflect.Type;
 import java.util.List;
 import java.util.Objects;
+import java.util.Optional;
 
 /**
  * Contains methods for all API operations tagged "testcases".
@@ -22,28 +23,18 @@ public class TestcasesApiClient {
 
   private final ApiRequestExecutor requestExecutor;
 
-  private final ReturningAnyResponse returningAnyResponse;
-
-  private final ReturningSuccessfulResult returningSuccessfulResult;
+  private final ReturningResult returningResult;
 
   public TestcasesApiClient(ApiRequestExecutor requestExecutor) {
     this.requestExecutor = requestExecutor;
-    this.returningAnyResponse = new ReturningAnyResponse();
-    this.returningSuccessfulResult = new ReturningSuccessfulResult();
+    this.returningResult = new ReturningResult();
   }
 
   /**
-   * Selects methods returning instances of ApiResponse and not throwing exceptions for unsuccessful status codes.
+   * Returns an API client with methods that return operation specific result classes, allowing inspection of the operations' responses.
    */
-  public ReturningAnyResponse returningAnyResponse() {
-    return returningAnyResponse;
-  }
-
-  /**
-   * Selects methods returning instances of operation specific success classes and throwing exceptions for unsuccessful status codes.
-   */
-  public ReturningSuccessfulResult returningSuccessfulResult() {
-    return returningSuccessfulResult;
+  public ReturningResult returningResult() {
+    return returningResult;
   }
 
   /**
@@ -53,40 +44,23 @@ public class TestcasesApiClient {
       ApiClientValidationException, ApiClientIncompatibleResponseException,
       ApiClientErrorWithFailureEntityException {
 
-    GetInlineObjectInArraySuccessfulResult response = returningSuccessfulResult.getInlineObjectInArray();
+    GetInlineObjectInArrayResult result = returningResult.getInlineObjectInArray();
 
-    return response.getEntity();
-  }
-
-  /**
-   * Contains methods for all operations returning instances of operation specific success classes and throwing exceptions for unsuccessful status codes.
-   */
-  public class ReturningSuccessfulResult {
-    /**
-     * A test case for the SchemaToJavaTypeTransformer.
-     */
-    public GetInlineObjectInArraySuccessfulResult getInlineObjectInArray() throws
-        ApiClientIoException, ApiClientValidationException, ApiClientIncompatibleResponseException,
-        ApiClientErrorWithFailureEntityException {
-
-      ApiResponse response = returningAnyResponse.getInlineObjectInArray();
-
-      if (!response.isSuccessful()) {
-        throw new ApiClientErrorWithFailureEntityException(response);
-      }
-
-      return new GetInlineObjectInArraySuccessfulResult(response);
+    if (!result.isSuccessful()) {
+      throw new ApiClientErrorWithFailureEntityException(result.getResponse());
     }
+
+    return result.getEntityAsListOfGetInlineObjectInArray200();
   }
 
   /**
-   * Contains methods for all operations returning instances of ApiResponse and not throwing exceptions for unsuccessful status codes.
+   * Contains methods returning operation specific result classes, allowing inspection of the operations' responses.
    */
-  public class ReturningAnyResponse {
+  public class ReturningResult {
     /**
      * A test case for the SchemaToJavaTypeTransformer.
      */
-    public ApiResponse getInlineObjectInArray() throws ApiClientIoException,
+    public GetInlineObjectInArrayResult getInlineObjectInArray() throws ApiClientIoException,
         ApiClientValidationException, ApiClientIncompatibleResponseException {
 
       Operation.Builder builder = new Operation.Builder("/testcases", "GET");
@@ -94,17 +68,19 @@ public class TestcasesApiClient {
       builder.response(StatusCode.of(200), "application/json", LIST_OF_GET_INLINE_OBJECT_IN_ARRAY200);
       builder.response(StatusCode.DEFAULT, "application/json", Failure.class);
 
-      return requestExecutor.executeRequest(builder.build());
+      ApiResponse response = requestExecutor.executeRequest(builder.build());
+
+      return new GetInlineObjectInArrayResult(response);
     }
   }
 
   /**
-   * Represents a successful response of operation getInlineObjectInArray, i.e., the status code being in range 200 to 299.
+   * Represents the result of calling operation getInlineObjectInArray.
    */
-  public static class GetInlineObjectInArraySuccessfulResult {
+  public static class GetInlineObjectInArrayResult {
     private final ApiResponse response;
 
-    public GetInlineObjectInArraySuccessfulResult(ApiResponse response) {
+    public GetInlineObjectInArrayResult(ApiResponse response) {
       this.response = response;
     }
 
@@ -116,6 +92,20 @@ public class TestcasesApiClient {
     }
 
     /**
+     * Returns the HTTP status code of the operation's response.
+     */
+    public int getStatus() {
+      return response.getStatusCode();
+    }
+
+    /**
+     * Returns whether the response has a status code in the range 200 to 299.
+     */
+    public boolean isSuccessful() {
+      return response.isSuccessful();
+    }
+
+    /**
      * Returns whether the response's status code is 200, while the response's entity is of type {@code List<GetInlineObjectInArray200>}.
      */
     public boolean isStatus200ReturningListOfGetInlineObjectInArray200() {
@@ -123,18 +113,54 @@ public class TestcasesApiClient {
     }
 
     /**
-     * Returns the response's entity of type {@code List<GetInlineObjectInArray200>}.
+     * Returns whether the response's entity is of type {@code Failure}.
+     */
+    public boolean isReturningFailure() {
+      return response.getEntityType() == Failure.class;
+    }
+
+    /**
+     * Returns the response's entity wrapped in {@code java.lang.Optional.of()} if it is of type {@code List<GetInlineObjectInArray200>}. Otherwise, returns {@code Optional.empty()}.
+     */
+    public Optional<List<GetInlineObjectInArray200>> getEntityIfListOfGetInlineObjectInArray200() {
+      return Optional.ofNullable(getEntityAsListOfGetInlineObjectInArray200());
+    }
+
+    /**
+     * Returns the response's entity if it is of type {@code List<GetInlineObjectInArray200>}. Otherwise, returns null.
      */
     @SuppressWarnings("unchecked")
-    public List<GetInlineObjectInArray200> getEntity() {
-      return (List<GetInlineObjectInArray200>) response.getEntity();
+    public List<GetInlineObjectInArray200> getEntityAsListOfGetInlineObjectInArray200() {
+      if (response.getEntityType() == LIST_OF_GET_INLINE_OBJECT_IN_ARRAY200) {
+        return (List<GetInlineObjectInArray200>) response.getEntity();
+      } else {
+        return null;
+      }
+    }
+
+    /**
+     * Returns the response's entity wrapped in {@code java.lang.Optional.of()} if it is of type {@code Failure}. Otherwise, returns {@code Optional.empty()}.
+     */
+    public Optional<Failure> getEntityIfFailure() {
+      return Optional.ofNullable(getEntityAsFailure());
+    }
+
+    /**
+     * Returns the response's entity if it is of type {@code Failure}. Otherwise, returns null.
+     */
+    public Failure getEntityAsFailure() {
+      if (response.getEntityType() == Failure.class) {
+        return (Failure) response.getEntity();
+      } else {
+        return null;
+      }
     }
 
     @Override
     public boolean equals(Object other) {
       if (other == this) return true;
       if (other == null || getClass() != other.getClass()) return false;
-      GetInlineObjectInArraySuccessfulResult o = (GetInlineObjectInArraySuccessfulResult) other;
+      GetInlineObjectInArrayResult o = (GetInlineObjectInArrayResult) other;
       return Objects.equals(response, o.response);
     }
 
@@ -147,7 +173,7 @@ public class TestcasesApiClient {
     public String toString() {
       StringBuilder builder = new StringBuilder();
       builder.append(", response=").append(response);
-      return builder.replace(0, 2, "GetInlineObjectInArraySuccessfulResult{").append('}').toString();
+      return builder.replace(0, 2, "GetInlineObjectInArrayResult{").append('}').toString();
     }
   }
 }

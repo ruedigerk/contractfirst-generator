@@ -46,56 +46,39 @@ class ClientGenerator(configuration: Configuration) {
   private fun createApiClientClass(operationGroup: JavaOperationGroup): JavaFile {
     val genericTypeConstants = operationGroup.operations.flatMap { it.allReturnTypes }.filter { it.isGenericType }.map(::generateTypeTokenConstant)
 
-    val supportFieldSpec = FieldSpec.builder(SupportTypes.ApiRequestExecutor, "requestExecutor", Modifier.PRIVATE, Modifier.FINAL).build()
-    val returningAnyResponseFieldSpec = FieldSpec.builder("ReturningAnyResponse".toTypeName(), "returningAnyResponse", Modifier.PRIVATE, Modifier.FINAL).build()
-    val returningSuccessfulResultFieldSpec = FieldSpec.builder(
-        "ReturningSuccessfulResult".toTypeName(),
-        "returningSuccessfulResult",
-        Modifier.PRIVATE,
-        Modifier.FINAL
-    ).build()
+    val requestExecutorFieldSpec = FieldSpec.builder(SupportTypes.ApiRequestExecutor, "requestExecutor", Modifier.PRIVATE, Modifier.FINAL).build()
+    val returningResultFieldSpec = FieldSpec.builder("ReturningResult".toTypeName(), "returningResult", Modifier.PRIVATE, Modifier.FINAL).build()
 
     val constructorSpec = MethodSpec.constructorBuilder()
         .addModifiers(Modifier.PUBLIC)
         .addParameter(SupportTypes.ApiRequestExecutor, "requestExecutor")
         .addStatement("this.requestExecutor = requestExecutor")
-        .addStatement("this.returningAnyResponse = new ReturningAnyResponse()")
-        .addStatement("this.returningSuccessfulResult = new ReturningSuccessfulResult()")
+        .addStatement("this.returningResult = new ReturningResult()")
         .build()
 
-    val returningAnyResponseGetterMethodSpec = MethodSpec.methodBuilder("returningAnyResponse")
-        .addJavadoc("Selects methods returning instances of ApiResponse and not throwing exceptions for unsuccessful status codes.")
+    val returningSuccessfulResultGetterMethodSpec = MethodSpec.methodBuilder("returningResult")
+        .addJavadoc("Returns an API client with methods that return operation specific result classes, allowing inspection of the operations' responses.")
         .addModifiers(Modifier.PUBLIC)
-        .returns("ReturningAnyResponse".toTypeName())
-        .addStatement("return returningAnyResponse")
-        .build()
-    val returningSuccessfulResultGetterMethodSpec = MethodSpec.methodBuilder("returningSuccessfulResult")
-        .addJavadoc("Selects methods returning instances of operation specific success classes and throwing exceptions for unsuccessful status codes.")
-        .addModifiers(Modifier.PUBLIC)
-        .returns("ReturningSuccessfulResult".toTypeName())
-        .addStatement("return returningSuccessfulResult")
+        .returns("ReturningResult".toTypeName())
+        .addStatement("return returningResult")
         .build()
 
     val methodSpecs = operationGroup.operations.map(::createSimplifiedMethod)
 
-    val returningSuccessfulResultSubclass = createClassReturningSuccessfulResult(operationGroup)
-    val returningAnyResponseSubclass = createClassReturningAnyResponse(operationGroup)
-    val successfulResultClasses = operationGroup.operations.map(::createClassForOperationSpecificSuccessfulResult)
+    val returningResultSubclass = createClassReturningResult(operationGroup)
+    val operationSpecificResultClasses = operationGroup.operations.map(::createClassForOperationSpecificResult)
 
     val classSpec = TypeSpec.classBuilder(operationGroup.javaIdentifier + CLIENT_CLASS_NAME_SUFFIX)
         .addJavadoc("Contains methods for all API operations tagged \"${operationGroup.originalTag}\".")
         .addModifiers(Modifier.PUBLIC)
         .addFields(genericTypeConstants)
-        .addField(supportFieldSpec)
-        .addField(returningAnyResponseFieldSpec)
-        .addField(returningSuccessfulResultFieldSpec)
+        .addField(requestExecutorFieldSpec)
+        .addField(returningResultFieldSpec)
         .addMethod(constructorSpec)
-        .addMethod(returningAnyResponseGetterMethodSpec)
         .addMethod(returningSuccessfulResultGetterMethodSpec)
         .addMethods(methodSpecs)
-        .addType(returningSuccessfulResultSubclass)
-        .addType(returningAnyResponseSubclass)
-        .addTypes(successfulResultClasses)
+        .addType(returningResultSubclass)
+        .addTypes(operationSpecificResultClasses)
         .build()
 
     return JavaFile.builder(apiPackage, classSpec)
@@ -126,7 +109,7 @@ class ClientGenerator(configuration: Configuration) {
 
     val returnType = when {
       // There are multiple success entity types, so return the successful response object.  
-      operation.successTypes.size > 1 -> typeNameOfSuccessfulResult(operation)
+      operation.successTypes.size > 1 -> typeNameOfResultClass(operation)
       // There is a single entity type that all successful responses use or no entity at all.
       else -> operation.successTypes.firstOrNull()?.toTypeName()
     }
@@ -134,20 +117,20 @@ class ClientGenerator(configuration: Configuration) {
     return createMethodForOperation(operation, returnType, code, exceptions)
   }
 
-  private fun createClassReturningAnyResponse(operationGroup: JavaOperationGroup): TypeSpec {
-    val methodSpecs = operationGroup.operations.map { operation ->
-      val code = createCodeOfMethodReturningAnyResponse(operation)
-      createMethodForOperation(operation, SupportTypes.ApiResponse, code)
+  private fun createClassReturningResult(operationGroup: JavaOperationGroup): TypeSpec {
+    val methodSpecs = operationGroup.operations.map {
+      val code = createCodeOfMethodReturningResult(it)
+      createMethodForOperation(it, typeNameOfResultClass(it), code)
     }
 
-    return TypeSpec.classBuilder("ReturningAnyResponse")
-        .addJavadoc("Contains methods for all operations returning instances of ApiResponse and not throwing exceptions for unsuccessful status codes.")
+    return TypeSpec.classBuilder("ReturningResult")
+        .addJavadoc("Contains methods returning operation specific result classes, allowing inspection of the operations' responses.")
         .addModifiers(Modifier.PUBLIC)
         .addMethods(methodSpecs)
         .build()
   }
 
-  private fun createCodeOfMethodReturningAnyResponse(operation: JavaOperation): CodeBlock {
+  private fun createCodeOfMethodReturningResult(operation: JavaOperation): CodeBlock {
     val codeBuilder = CodeBlock.builder()
 
     codeBuilder.add("\n")
@@ -200,27 +183,15 @@ class ClientGenerator(configuration: Configuration) {
       codeBuilder.add("\n")
     }
 
-    codeBuilder.addStatement("return requestExecutor.executeRequest(builder.build())")
+    codeBuilder.addStatement("\$T response = requestExecutor.executeRequest(builder.build())", SupportTypes.ApiResponse)
+    codeBuilder.add("\n")
+    codeBuilder.addStatement("return new \$T(response)", typeNameOfResultClass(operation))
 
     return codeBuilder.build()
   }
 
-  private fun createClassReturningSuccessfulResult(operationGroup: JavaOperationGroup): TypeSpec {
-    val methodSpecs = operationGroup.operations.map {
-      val code = createCodeOfMethodReturningSuccessfulResult(it)
-      val exceptions = getAllErrorWithEntityExceptionsFor(it)
-      createMethodForOperation(it, typeNameOfSuccessfulResult(it), code, exceptions)
-    }
-
-    return TypeSpec.classBuilder("ReturningSuccessfulResult")
-        .addJavadoc("Contains methods for all operations returning instances of operation specific success classes and throwing exceptions for unsuccessful status codes.")
-        .addModifiers(Modifier.PUBLIC)
-        .addMethods(methodSpecs)
-        .build()
-  }
-
-  private fun typeNameOfSuccessfulResult(operation: JavaOperation): ClassName {
-    return (operation.javaMethodName.toJavaTypeIdentifier() + "SuccessfulResult").toTypeName()
+  private fun typeNameOfResultClass(operation: JavaOperation): ClassName {
+    return (operation.javaMethodName.toJavaTypeIdentifier() + "Result").toTypeName()
   }
 
   private fun getAllErrorWithEntityExceptionsFor(operation: JavaOperation): List<TypeName> =
@@ -247,50 +218,6 @@ class ClientGenerator(configuration: Configuration) {
         .build()
   }
 
-  private fun createCodeOfMethodReturningSuccessfulResult(operation: JavaOperation): CodeBlock {
-    val codeBuilder = CodeBlock.builder()
-
-    codeBuilder.add("\n")
-    codeBuilder.addStatement(
-        "\$T response = returningAnyResponse.\$N(\$L)",
-        SupportTypes.ApiResponse,
-        operation.javaMethodName,
-        operation.parameters.joinToString(", ") { it.javaParameterName })
-    codeBuilder.add("\n")
-
-    if (operation.failureTypes.isNotEmpty()) {
-      codeBuilder.add(createCodeForThrowingErrorWithEntityExceptions(operation.failureTypes.toList()))
-    }
-
-    codeBuilder.addStatement("return new \$T(response)", typeNameOfSuccessfulResult(operation))
-
-    return codeBuilder.build()
-  }
-
-  private fun createCodeForThrowingErrorWithEntityExceptions(failureTypes: List<JavaAnyType>): CodeBlock {
-    val codeBuilder = CodeBlock.builder()
-
-    fun addThrowsStatement(failureType: JavaAnyType) {
-      codeBuilder.addStatement("throw new \$T(response)", errorWithEntityExceptionClassName(failureType))
-    }
-
-    codeBuilder.beginControlFlow("if (!response.isSuccessful())")
-
-    if (failureTypes.size > 1) {
-      failureTypes.dropLast(1).forEach { failureType ->
-        codeBuilder.beginControlFlow("if (response.getEntityType() == \$L)", toTypeExpression(failureType))
-        addThrowsStatement(failureType)
-        codeBuilder.endControlFlow()
-      }
-    }
-
-    addThrowsStatement(failureTypes.last())
-    codeBuilder.endControlFlow()
-    codeBuilder.add("\n")
-
-    return codeBuilder.build()
-  }
-
   private fun toTypeExpression(javaType: JavaAnyType): CodeBlock = when {
     javaType.isGenericType -> CodeBlock.of("\$L", constantsNameForGenericType(javaType))
     else -> CodeBlock.of("\$T.class", javaType.toTypeName())
@@ -305,27 +232,63 @@ class ClientGenerator(configuration: Configuration) {
     codeBuilder.add("\n")
 
     codeBuilder.addStatement(
-        "\$T response = returningSuccessfulResult.\$N(\$L)",
-        typeNameOfSuccessfulResult(operation),
+        "\$T result = returningResult.\$N(\$L)",
+        typeNameOfResultClass(operation),
         operation.javaMethodName,
         operation.parameters.joinToString(", ") { it.javaParameterName }
     )
 
+    if (operation.failureTypes.isNotEmpty()) {
+      codeBuilder.add("\n")
+      codeBuilder.add(createCodeForThrowingErrorWithEntityExceptions(operation.failureTypes.toList()))
+    }
+
     when {
       operation.successTypes.size > 1 -> {
-        // There are multiple success entity types, so return the whole response object.
+        // There are multiple success entity types, so return the result instance itself.
         codeBuilder.add("\n")
-        codeBuilder.addStatement("return response")
+        codeBuilder.addStatement("return result")
       }
-      operation.successTypes.size == 1 -> {
+      operation.successTypes.size == 1 -> when (operation.allReturnTypes.size) {
         // Return the one entity type that all successful responses use.
-        codeBuilder.add("\n")
-        codeBuilder.addStatement("return response.getEntity()")
+        1 -> {
+          // There are no failure entity types, use getEntity method.
+          codeBuilder.add("\n")
+          codeBuilder.addStatement("return result.getEntity()")
+        }
+        else -> {
+          // There are success and failure types, so use type-specific entity accessor method. 
+          codeBuilder.add("\n")
+          codeBuilder.addStatement("return result.\$N()", nameForMethodGetEntityAs(operation.successTypes.first()))
+        }
       }
       else -> {
         // No operation success types -> successful responses all have no content, so method returns nothing.
       }
     }
+
+    return codeBuilder.build()
+  }
+
+  private fun createCodeForThrowingErrorWithEntityExceptions(failureTypes: List<JavaAnyType>): CodeBlock {
+    val codeBuilder = CodeBlock.builder()
+
+    fun addThrowsStatement(failureType: JavaAnyType) {
+      codeBuilder.addStatement("throw new \$T(result.getResponse())", errorWithEntityExceptionClassName(failureType))
+    }
+
+    codeBuilder.beginControlFlow("if (!result.isSuccessful())")
+
+    if (failureTypes.size > 1) {
+      failureTypes.dropLast(1).forEach { failureType ->
+        codeBuilder.beginControlFlow("if (result.getResponse().getEntityType() == \$L)", toTypeExpression(failureType))
+        addThrowsStatement(failureType)
+        codeBuilder.endControlFlow()
+      }
+    }
+
+    addThrowsStatement(failureTypes.last())
+    codeBuilder.endControlFlow()
 
     return codeBuilder.build()
   }
@@ -362,8 +325,8 @@ class ClientGenerator(configuration: Configuration) {
       "ApiClientErrorWith${entityType.name}EntityException"
   )
 
-  private fun createClassForOperationSpecificSuccessfulResult(operation: JavaOperation): TypeSpec {
-    val className = typeNameOfSuccessfulResult(operation)
+  private fun createClassForOperationSpecificResult(operation: JavaOperation): TypeSpec {
+    val className = typeNameOfResultClass(operation)
     val responseFieldSpec = FieldSpec.builder(SupportTypes.ApiResponse, "response", Modifier.PRIVATE, Modifier.FINAL).build()
 
     val constructorSpec = MethodSpec.constructorBuilder()
@@ -372,11 +335,25 @@ class ClientGenerator(configuration: Configuration) {
         .addStatement("this.response = response")
         .build()
 
-    val getApiResponseMethodSpec = MethodSpec.methodBuilder("getResponse")
+    val getResponseMethodSpec = MethodSpec.methodBuilder("getResponse")
         .addJavadoc("Returns the ApiResponse instance with the details of the operation's HTTP response.")
         .addModifiers(Modifier.PUBLIC)
         .returns(SupportTypes.ApiResponse)
         .addStatement("return response")
+        .build()
+
+    val getStatusMethodSpec = MethodSpec.methodBuilder("getStatus")
+        .addJavadoc("Returns the HTTP status code of the operation's response.")
+        .addModifiers(Modifier.PUBLIC)
+        .returns(TypeName.INT)
+        .addStatement("return response.getStatusCode()")
+        .build()
+
+    val isSuccessfulMethodSpec = MethodSpec.methodBuilder("isSuccessful")
+        .addJavadoc("Returns whether the response has a status code in the range 200 to 299.")
+        .addModifiers(Modifier.PUBLIC)
+        .returns(TypeName.BOOLEAN)
+        .addStatement("return response.isSuccessful()")
         .build()
 
     val statusQueryMethodSpecs = createStatusQueryMethods(operation)
@@ -385,10 +362,12 @@ class ClientGenerator(configuration: Configuration) {
 
     return TypeSpec.classBuilder(className)
         .addModifiers(Modifier.PUBLIC, Modifier.STATIC)
-        .addJavadoc("Represents a successful response of operation \$L, i.e., the status code being in range 200 to 299.", operation.javaMethodName)
+        .addJavadoc("Represents the result of calling operation \$L.", operation.javaMethodName)
         .addField(responseFieldSpec)
         .addMethod(constructorSpec)
-        .addMethod(getApiResponseMethodSpec)
+        .addMethod(getResponseMethodSpec)
+        .addMethod(getStatusMethodSpec)
+        .addMethod(isSuccessfulMethodSpec)
         .addMethods(statusQueryMethodSpecs)
         .addMethods(entityGetterMethodSpecs)
         .addMethods(equalsHashCodeAndToStringMethods)
@@ -396,9 +375,7 @@ class ClientGenerator(configuration: Configuration) {
   }
 
   private fun createStatusQueryMethods(operation: JavaOperation): List<MethodSpec> {
-    // The assumption is that all success responses are specified in the contract, if any is. Therefore, the default
-    // status code can only contain successful responses, when no successful responses are specified in the contract.
-    return operation.successResponses.flatMap { response ->
+    return operation.responses.flatMap { response ->
       when (val statusCode = response.statusCode) {
         // In case of the default status, allow querying for the entity types. If there are none, no method is needed and none is generated.
         DefaultStatusCode -> response.contents.map { it.javaType }.distinct().map(::createQueryMethodForDefaultStatus)
@@ -452,10 +429,11 @@ class ClientGenerator(configuration: Configuration) {
   }
 
   private fun createEntityGetterMethods(operation: JavaOperation): List<MethodSpec> {
+    val returnTypes = operation.allReturnTypes
     return when {
-      operation.successTypes.isEmpty() -> emptyList()
-      operation.successTypes.size == 1 -> listOf(createUnnamedEntityGetterMethod(operation.successTypes.first()))
-      else -> operation.successTypes.flatMap(::createNamedEntityGetterMethods)
+      returnTypes.isEmpty() -> emptyList()
+      returnTypes.size == 1 -> listOf(createUnnamedEntityGetterMethod(returnTypes.first()))
+      else -> returnTypes.flatMap(::createNamedEntityGetterMethods)
     }
   }
 

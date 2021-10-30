@@ -1,6 +1,5 @@
 package io.github.ruedigerk.contractfirst.generator.integrationtest
 
-import io.github.ruedigerk.contractfirst.generator.client.ApiResponse
 import io.github.ruedigerk.contractfirst.generator.integrationtest.generated.client.api.WildcardContentTypesApiClient
 import io.github.ruedigerk.contractfirst.generator.integrationtest.generated.server.resources.WildcardContentTypesApi
 import io.github.ruedigerk.contractfirst.generator.integrationtest.spec.EmbeddedJaxRsServerSpecification
@@ -25,7 +24,7 @@ class WildcardContentTypesTest extends EmbeddedJaxRsServerSpecification {
   def "Operation with multiple wildcard response content types"() {
     when:
     def result = apiClient.getWildcardContentTypes("text")
-    ApiResponse response = result.response
+    def response = result.response
 
     then:
     response.request.url == "$BASE_URL/wildcardContentTypes"

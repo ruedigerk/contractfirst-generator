@@ -30,7 +30,7 @@ class ContentTypeCombinationsTest extends EmbeddedJaxRsServerSpecification {
 
   def "getDefaultOnly"() {
     when:
-    def result = apiClient.returningSuccessfulResult().getDefaultOnly("success")
+    def result = apiClient.returningResult().getDefaultOnly("success")
     
     then:
     result.isReturningCBook()
@@ -38,7 +38,7 @@ class ContentTypeCombinationsTest extends EmbeddedJaxRsServerSpecification {
     result.response.statusCode == 200
 
     when:
-    apiClient.returningSuccessfulResult().getDefaultOnly("failure")
+    apiClient.getDefaultOnly("failure")
 
     then:
     def e = thrown ApiClientErrorWithCBookEntityException
@@ -48,7 +48,7 @@ class ContentTypeCombinationsTest extends EmbeddedJaxRsServerSpecification {
 
   def "getSuccessOnly"() {
     when:
-    def result = apiClient.returningSuccessfulResult().getSuccessOnly()
+    def result = apiClient.returningResult().getSuccessOnly()
     
     then:
     result.isStatus200ReturningCBook()
@@ -60,15 +60,14 @@ class ContentTypeCombinationsTest extends EmbeddedJaxRsServerSpecification {
     def expectedErrorEntity = new CCtcError(code: "FailureOnly")
     
     when:
-    def response = apiClient.returningAnyResponse().getFailureOnly()
+    def result = apiClient.returningResult().getFailureOnly()
     
     then:
-    response.statusCode == 400
-
-    response.entity == expectedErrorEntity
+    result.isStatus400ReturningCCtcError()
+    result.entity == expectedErrorEntity
 
     when:
-    apiClient.returningSuccessfulResult().getFailureOnly()
+    apiClient.getFailureOnly()
 
     then:
     def e = thrown ApiClientErrorWithCCtcErrorEntityException
@@ -78,14 +77,14 @@ class ContentTypeCombinationsTest extends EmbeddedJaxRsServerSpecification {
 
   def "getSuccessEntityAndErrorDefault"() {
     when:
-    def result = apiClient.returningSuccessfulResult().getSuccessEntityAndErrorDefault("success")
+    def result = apiClient.returningResult().getSuccessEntityAndErrorDefault("success")
 
     then:
     result.isStatus200ReturningCBook()
-    result.entity == CBOOK
+    result.entityAsCBook == CBOOK
 
     when:
-    apiClient.returningSuccessfulResult().getSuccessEntityAndErrorDefault("failure")
+    apiClient.getSuccessEntityAndErrorDefault("failure")
 
     then:
     def e = thrown ApiClientErrorWithCCtcErrorEntityException
@@ -94,7 +93,7 @@ class ContentTypeCombinationsTest extends EmbeddedJaxRsServerSpecification {
 
   def "getMultipleSuccessEntities"() {
     when:
-    def result = apiClient.returningSuccessfulResult().getMultipleSuccessEntities("book")
+    def result = apiClient.returningResult().getMultipleSuccessEntities("book")
 
     then:
     result.isStatus200ReturningCBook()
@@ -104,7 +103,7 @@ class ContentTypeCombinationsTest extends EmbeddedJaxRsServerSpecification {
     result.entityIfCCtcError == Optional.empty()
 
     when:
-    result = apiClient.returningSuccessfulResult().getMultipleSuccessEntities("error")
+    result = apiClient.returningResult().getMultipleSuccessEntities("error")
 
     then:
     result.isStatus201ReturningCCtcError()
@@ -116,13 +115,13 @@ class ContentTypeCombinationsTest extends EmbeddedJaxRsServerSpecification {
 
   def "getMultipleSuccessResponsesWithoutContent"() {
     when:
-    def result = apiClient.returningSuccessfulResult().getMultipleSuccessResponsesWithoutContent("200")
+    def result = apiClient.returningResult().getMultipleSuccessResponsesWithoutContent("200")
 
     then:
     result.isStatus200WithoutEntity()
 
     when:
-    result = apiClient.returningSuccessfulResult().getMultipleSuccessResponsesWithoutContent("204")
+    result = apiClient.returningResult().getMultipleSuccessResponsesWithoutContent("204")
 
     then:
     result.isStatus204WithoutEntity()
@@ -148,7 +147,7 @@ class ContentTypeCombinationsTest extends EmbeddedJaxRsServerSpecification {
 
   def "getContentFor204"() {
     when:
-    def result = apiClient.returningSuccessfulResult().getContentFor204()
+    def result = apiClient.returningResult().getContentFor204()
 
     then:
     result.isStatus204WithoutEntity()

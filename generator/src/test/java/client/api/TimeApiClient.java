@@ -14,6 +14,7 @@ import io.github.ruedigerk.contractfirst.generator.client.internal.StatusCode;
 import java.time.LocalDate;
 import java.time.OffsetDateTime;
 import java.util.Objects;
+import java.util.Optional;
 
 /**
  * Contains methods for all API operations tagged "time".
@@ -21,28 +22,18 @@ import java.util.Objects;
 public class TimeApiClient {
   private final ApiRequestExecutor requestExecutor;
 
-  private final ReturningAnyResponse returningAnyResponse;
-
-  private final ReturningSuccessfulResult returningSuccessfulResult;
+  private final ReturningResult returningResult;
 
   public TimeApiClient(ApiRequestExecutor requestExecutor) {
     this.requestExecutor = requestExecutor;
-    this.returningAnyResponse = new ReturningAnyResponse();
-    this.returningSuccessfulResult = new ReturningSuccessfulResult();
+    this.returningResult = new ReturningResult();
   }
 
   /**
-   * Selects methods returning instances of ApiResponse and not throwing exceptions for unsuccessful status codes.
+   * Returns an API client with methods that return operation specific result classes, allowing inspection of the operations' responses.
    */
-  public ReturningAnyResponse returningAnyResponse() {
-    return returningAnyResponse;
-  }
-
-  /**
-   * Selects methods returning instances of operation specific success classes and throwing exceptions for unsuccessful status codes.
-   */
-  public ReturningSuccessfulResult returningSuccessfulResult() {
-    return returningSuccessfulResult;
+  public ReturningResult returningResult() {
+    return returningResult;
   }
 
   /**
@@ -53,43 +44,26 @@ public class TimeApiClient {
       ApiClientIoException, ApiClientValidationException, ApiClientIncompatibleResponseException,
       ApiClientErrorWithFailureEntityException {
 
-    UpdateTimeSuccessfulResult response = returningSuccessfulResult.updateTime(timeId, queryTimeA, queryTimeB, headerTimeA, headerTimeB, requestBody);
+    UpdateTimeResult result = returningResult.updateTime(timeId, queryTimeA, queryTimeB, headerTimeA, headerTimeB, requestBody);
 
-    return response.getEntity();
+    if (!result.isSuccessful()) {
+      throw new ApiClientErrorWithFailureEntityException(result.getResponse());
+    }
+
+    return result.getEntityAsClockResponse();
   }
 
   /**
-   * Contains methods for all operations returning instances of operation specific success classes and throwing exceptions for unsuccessful status codes.
+   * Contains methods returning operation specific result classes, allowing inspection of the operations' responses.
    */
-  public class ReturningSuccessfulResult {
+  public class ReturningResult {
     /**
      * For testing handling of date and date-time formats.
      */
-    public UpdateTimeSuccessfulResult updateTime(LocalDate timeId, LocalDate queryTimeA,
+    public UpdateTimeResult updateTime(LocalDate timeId, LocalDate queryTimeA,
         OffsetDateTime queryTimeB, LocalDate headerTimeA, OffsetDateTime headerTimeB,
         Clock requestBody) throws ApiClientIoException, ApiClientValidationException,
-        ApiClientIncompatibleResponseException, ApiClientErrorWithFailureEntityException {
-
-      ApiResponse response = returningAnyResponse.updateTime(timeId, queryTimeA, queryTimeB, headerTimeA, headerTimeB, requestBody);
-
-      if (!response.isSuccessful()) {
-        throw new ApiClientErrorWithFailureEntityException(response);
-      }
-
-      return new UpdateTimeSuccessfulResult(response);
-    }
-  }
-
-  /**
-   * Contains methods for all operations returning instances of ApiResponse and not throwing exceptions for unsuccessful status codes.
-   */
-  public class ReturningAnyResponse {
-    /**
-     * For testing handling of date and date-time formats.
-     */
-    public ApiResponse updateTime(LocalDate timeId, LocalDate queryTimeA, OffsetDateTime queryTimeB,
-        LocalDate headerTimeA, OffsetDateTime headerTimeB, Clock requestBody) throws
-        ApiClientIoException, ApiClientValidationException, ApiClientIncompatibleResponseException {
+        ApiClientIncompatibleResponseException {
 
       Operation.Builder builder = new Operation.Builder("/time/{timeId}", "POST");
 
@@ -103,17 +77,19 @@ public class TimeApiClient {
       builder.response(StatusCode.of(200), "application/json", ClockResponse.class);
       builder.response(StatusCode.DEFAULT, "application/json", Failure.class);
 
-      return requestExecutor.executeRequest(builder.build());
+      ApiResponse response = requestExecutor.executeRequest(builder.build());
+
+      return new UpdateTimeResult(response);
     }
   }
 
   /**
-   * Represents a successful response of operation updateTime, i.e., the status code being in range 200 to 299.
+   * Represents the result of calling operation updateTime.
    */
-  public static class UpdateTimeSuccessfulResult {
+  public static class UpdateTimeResult {
     private final ApiResponse response;
 
-    public UpdateTimeSuccessfulResult(ApiResponse response) {
+    public UpdateTimeResult(ApiResponse response) {
       this.response = response;
     }
 
@@ -125,6 +101,20 @@ public class TimeApiClient {
     }
 
     /**
+     * Returns the HTTP status code of the operation's response.
+     */
+    public int getStatus() {
+      return response.getStatusCode();
+    }
+
+    /**
+     * Returns whether the response has a status code in the range 200 to 299.
+     */
+    public boolean isSuccessful() {
+      return response.isSuccessful();
+    }
+
+    /**
      * Returns whether the response's status code is 200, while the response's entity is of type {@code ClockResponse}.
      */
     public boolean isStatus200ReturningClockResponse() {
@@ -132,17 +122,53 @@ public class TimeApiClient {
     }
 
     /**
-     * Returns the response's entity of type {@code ClockResponse}.
+     * Returns whether the response's entity is of type {@code Failure}.
      */
-    public ClockResponse getEntity() {
-      return (ClockResponse) response.getEntity();
+    public boolean isReturningFailure() {
+      return response.getEntityType() == Failure.class;
+    }
+
+    /**
+     * Returns the response's entity wrapped in {@code java.lang.Optional.of()} if it is of type {@code ClockResponse}. Otherwise, returns {@code Optional.empty()}.
+     */
+    public Optional<ClockResponse> getEntityIfClockResponse() {
+      return Optional.ofNullable(getEntityAsClockResponse());
+    }
+
+    /**
+     * Returns the response's entity if it is of type {@code ClockResponse}. Otherwise, returns null.
+     */
+    public ClockResponse getEntityAsClockResponse() {
+      if (response.getEntityType() == ClockResponse.class) {
+        return (ClockResponse) response.getEntity();
+      } else {
+        return null;
+      }
+    }
+
+    /**
+     * Returns the response's entity wrapped in {@code java.lang.Optional.of()} if it is of type {@code Failure}. Otherwise, returns {@code Optional.empty()}.
+     */
+    public Optional<Failure> getEntityIfFailure() {
+      return Optional.ofNullable(getEntityAsFailure());
+    }
+
+    /**
+     * Returns the response's entity if it is of type {@code Failure}. Otherwise, returns null.
+     */
+    public Failure getEntityAsFailure() {
+      if (response.getEntityType() == Failure.class) {
+        return (Failure) response.getEntity();
+      } else {
+        return null;
+      }
     }
 
     @Override
     public boolean equals(Object other) {
       if (other == this) return true;
       if (other == null || getClass() != other.getClass()) return false;
-      UpdateTimeSuccessfulResult o = (UpdateTimeSuccessfulResult) other;
+      UpdateTimeResult o = (UpdateTimeResult) other;
       return Objects.equals(response, o.response);
     }
 
@@ -155,7 +181,7 @@ public class TimeApiClient {
     public String toString() {
       StringBuilder builder = new StringBuilder();
       builder.append(", response=").append(response);
-      return builder.replace(0, 2, "UpdateTimeSuccessfulResult{").append('}').toString();
+      return builder.replace(0, 2, "UpdateTimeResult{").append('}').toString();
     }
   }
 }
