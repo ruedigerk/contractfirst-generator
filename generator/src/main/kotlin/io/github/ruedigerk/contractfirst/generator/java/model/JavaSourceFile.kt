@@ -18,8 +18,16 @@ data class JavaClassFile(
  * Represents the a property of a Java class, i.e. a field with its getters and setters.
  */
 data class JavaProperty(
+    
+    /**
+     * The name for the property to use in Java code. May not equal the original property name.
+     */
     val javaName: String,
     val javadoc: String?,
+
+    /**
+     * The original name of the property in the contract. May not be a valid Java identifier.
+     */
     val originalName: String,
     val required: Boolean,
     val type: JavaAnyType,
@@ -39,6 +47,14 @@ data class JavaEnumFile(
  * Represents an enum constant.
  */
 data class EnumConstant(
+
+    /**
+     * The name for the enum constant to use in Java code. May not equal the original enum constant name.
+     */
     val javaName: String,
-    val value: String
+
+    /**
+     * The original name of the enum constant in the contract. May not be a valid Java identifier.
+     */
+    val originalName: String
 )

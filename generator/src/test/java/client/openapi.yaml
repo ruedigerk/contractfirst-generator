@@ -340,6 +340,58 @@ paths:
           description: "Some other error, like 500."
       tags:
       - testcases
+  /postWithoutBody/post:
+    post:
+      description: Testing HTTP method POST without a request body.
+      operationId: postWithoutBody
+      responses:
+        "204":
+          description: Ok.
+      tags:
+      - PostWithoutBody
+  /postWithoutBody/put:
+    put:
+      description: Testing HTTP method PUT without a request body.
+      operationId: putWithoutBody
+      responses:
+        "204":
+          description: Ok.
+      tags:
+      - PostWithoutBody
+  /postWithoutBody/patch:
+    post:
+      description: Testing HTTP method PATCH without a request body.
+      operationId: patchWithoutBody
+      responses:
+        "204":
+          description: Ok.
+      tags:
+      - PostWithoutBody
+  /nonJavaPropertyNames:
+    post:
+      description: A test case for a JSON model with properties that are not legal Java identifiers.
+      operationId: postNonJavaPropertyNames
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/ProblematicName'
+        required: true
+      responses:
+        "200":
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ProblematicName'
+          description: Return object as received.
+        default:
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Failure'
+          description: "Some other error, like 500."
+      tags:
+      - NonJavaPropertyNames
 components:
   responses:
     DefaultFailures:
@@ -452,3 +504,15 @@ components:
       required:
       - code
       - message
+    ProblematicName:
+      properties:
+        "2name":
+          type: string
+        name-and-value:
+          type: string
+        problemat%c:
+          enum:
+          - "1"
+          - two-point-zero
+          - three?
+          type: string

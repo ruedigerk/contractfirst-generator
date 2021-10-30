@@ -97,6 +97,7 @@ class ModelGenerator(configuration: Configuration) {
     return FieldSpec.builder(property.type.toTypeName(), property.javaName, PRIVATE)
         .doIfNotNull(property.javadoc) { addJavadoc("\$L", it) }
         .doIf(property.required) { addAnnotation(NOT_NULL_ANNOTATION) }
+        .doIf(property.javaName != property.originalName) { addAnnotation(serializedNameAnnotation(property.originalName)) }
         .addAnnotations(typeValidationAnnotations)
         .doIfNotNull(property.initializerType) { initializer("new \$T<>()", it.toTypeName()) }
         .build()
@@ -108,16 +109,15 @@ class ModelGenerator(configuration: Configuration) {
         .addModifiers(PUBLIC)
 
     enumFile.constants.forEach { enumConstant ->
-      val constantBuilder = TypeSpec.anonymousClassBuilder("")
+      val constant = TypeSpec.anonymousClassBuilder("")
+          .doIf(enumConstant.javaName != enumConstant.originalName) { addAnnotation(serializedNameAnnotation(enumConstant.originalName)) }
+          .build()
 
-      if (enumConstant.javaName != enumConstant.value) {
-        val serializedNameAnnotation = toAnnotation("com.google.gson.annotations.SerializedName", enumConstant.value)
-        constantBuilder.addAnnotation(serializedNameAnnotation)
-      }
-
-      builder.addEnumConstant(enumConstant.javaName, constantBuilder.build())
+      builder.addEnumConstant(enumConstant.javaName, constant)
     }
 
     return builder.build()
   }
+
+  private fun serializedNameAnnotation(originalName: String) = toAnnotation("com.google.gson.annotations.SerializedName", originalName)
 }

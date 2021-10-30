@@ -292,7 +292,59 @@ paths:
                       type: string
         default:
           $ref: "#/components/responses/DefaultFailures"
-                      
+
+  /postWithoutBody/post:
+    post:
+      description: Testing HTTP method POST without a request body.
+      operationId: postWithoutBody
+      tags:
+        - PostWithoutBody
+      responses:
+        204:
+          description: Ok.
+
+  /postWithoutBody/put:
+    put:
+      description: Testing HTTP method PUT without a request body.
+      operationId: putWithoutBody
+      tags:
+        - PostWithoutBody
+      responses:
+        204:
+          description: Ok.
+
+  /postWithoutBody/patch:
+    post:
+      description: Testing HTTP method PATCH without a request body.
+      operationId: patchWithoutBody
+      tags:
+        - PostWithoutBody
+      responses:
+        204:
+          description: Ok.
+
+  /nonJavaPropertyNames:
+    post:
+      description: A test case for a JSON model with properties that are not legal Java identifiers.
+      tags:
+        - NonJavaPropertyNames
+      operationId: postNonJavaPropertyNames
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/ProblematicName"
+      responses:
+        200:
+          description: Return object as received.
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ProblematicName"
+        default:
+          $ref: "#/components/responses/DefaultFailures"
+
 components:
   schemas:
     Item:
@@ -398,6 +450,18 @@ components:
           format: int32
         message:
           type: string
+    ProblematicName:
+      properties:
+        2name:
+          type: string
+        name-and-value:
+          type: string
+        problemat%c:
+          type: string
+          enum:
+            - 1
+            - two-point-zero
+            - three?
   responses:
     DefaultFailures:
       description: Some other error, like 500.
