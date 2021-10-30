@@ -1,4 +1,4 @@
-package io.github.ruedigerk.contractfirst.generator.parser
+package io.github.ruedigerk.contractfirst.generator
 
 /**
  * Thrown when the parsed contract is invalid according to the OpenAPI specification.

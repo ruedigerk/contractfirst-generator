@@ -11,13 +11,11 @@ data class JavaOperation(
     val javadoc: String?,
     val path: String,
     val httpMethod: String,
-    val requestBodyMediaTypes: List<String>,
+    val requestBodyMediaType: String?,
     val parameters: List<JavaParameter>,
     val responses: List<JavaResponse>
 ) {
 
-  val successResponses: List<JavaResponse>
-  val failureResponses: List<JavaResponse>
   val successTypes: Set<JavaAnyType>
   val failureTypes: Set<JavaAnyType>
   val allReturnTypes: Set<JavaAnyType>
@@ -32,8 +30,8 @@ data class JavaOperation(
 
     // The assumption is that all success responses are specified in the contract, if any is. Therefore, the default
     // status code can only contain successful responses, when no successful responses are specified in the contract.
-    successResponses = directSuccessResponses.ifEmpty { defaultResponses }
-    failureResponses = directFailureResponses + defaultResponses
+    val successResponses = directSuccessResponses.ifEmpty { defaultResponses }
+    val failureResponses = directFailureResponses + defaultResponses
 
     successTypes = successResponses.getJavaTypes()
     failureTypes = failureResponses.getJavaTypes()

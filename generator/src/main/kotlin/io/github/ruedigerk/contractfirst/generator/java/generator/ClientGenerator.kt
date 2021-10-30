@@ -140,23 +140,30 @@ class ClientGenerator(configuration: Configuration) {
     // Add parameters (and request body) to operation builder.
     operation.parameters.forEach { param ->
       when (param) {
-        is JavaRegularParameter ->
-          codeBuilder.addStatement(
-              "builder.parameter(\$S, \$T.\$L, \$L, \$N)",
-              param.name,
-              SupportTypes.ParameterLocation,
-              param.location.name,
-              param.required,
-              param.javaParameterName
-          )
-        is JavaBodyParameter ->
-          codeBuilder.addStatement(
-              "builder.requestBody(\$S, \$L, \$N)",
-              param.mediaType,
-              param.required,
-              param.javaParameterName
-          )
+        is JavaRegularParameter -> codeBuilder.addStatement(
+            "builder.parameter(\$S, \$T.\$L, \$L, \$N)",
+            param.originalName,
+            SupportTypes.ParameterLocation,
+            param.location.name,
+            param.required,
+            param.javaParameterName
+        )
+        is JavaBodyParameter -> codeBuilder.addStatement(
+            "builder.requestBody(\$S, \$L, \$N)",
+            param.mediaType,
+            param.required,
+            param.javaParameterName
+        )
+        is JavaMultipartBodyParameter -> codeBuilder.addStatement(
+            "builder.requestBodyPart(\$S, \$N)",
+            param.originalName,
+            param.javaParameterName
+        )
       }
+    }
+    
+    if (operation.parameters.any { it is JavaMultipartBodyParameter }) {
+      codeBuilder.addStatement("builder.multipartRequestBody(\$S)", operation.requestBodyMediaType)
     }
 
     if (operation.parameters.isNotEmpty()) {

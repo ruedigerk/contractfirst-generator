@@ -392,6 +392,26 @@ paths:
           description: "Some other error, like 500."
       tags:
       - NonJavaPropertyNames
+  /formEncodedRequestBody:
+    post:
+      description: A test case for an x-www-form-urlencoded encoded request body.
+      operationId: formEncodedRequestBody
+      requestBody:
+        content:
+          application/x-www-form-urlencoded:
+            schema:
+              properties:
+                fieldA:
+                  type: string
+                fieldB:
+                  type: string
+              type: object
+        required: true
+      responses:
+        "204":
+          description: Ok.
+      tags:
+      - FormEncodedRequestBody
 components:
   responses:
     DefaultFailures:

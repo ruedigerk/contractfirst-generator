@@ -1,0 +1,27 @@
+openapi: "3.0.0"
+info:
+  version: 1.0.0
+  title: Test for multipart request bodies.
+servers:
+  - url: https://example.com/multipart-request-body
+paths:
+  /multipartRequestBody:
+    post:
+      description: A test case for a multipart/form-data encoded request body.
+      tags:
+        - FormAndMultipartEncodedRequestBody
+      operationId: multipartRequestBody
+      requestBody:
+        required: true
+        content:
+          multipart/form-data:
+            schema:
+              type: object
+              properties: 
+                partOne:
+                  type: string
+                partTwo:
+                  type: string
+      responses:
+        204:
+          description: Ok.

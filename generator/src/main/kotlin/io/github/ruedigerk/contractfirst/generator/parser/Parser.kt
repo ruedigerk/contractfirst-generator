@@ -1,6 +1,7 @@
 package io.github.ruedigerk.contractfirst.generator.parser
 
 import io.github.ruedigerk.contractfirst.generator.NotSupportedException
+import io.github.ruedigerk.contractfirst.generator.ParserException
 import io.github.ruedigerk.contractfirst.generator.logging.Log
 import io.github.ruedigerk.contractfirst.generator.model.*
 import io.github.ruedigerk.contractfirst.generator.parser.ParserHelper.normalize
@@ -43,7 +44,7 @@ class Parser(private val log: Log) {
   }
 
   private fun toContract(openApi: OpenAPI): Specification {
-    schemaResolver = SchemaResolver(log, openApi.components.schemas)
+    schemaResolver = SchemaResolver(log, openApi.components?.schemas ?: emptyMap())
 
     val operations = toOperations(openApi.paths)
     val schemas = schemaResolver.findAllUsedSchemas()
@@ -102,6 +103,7 @@ class Parser(private val log: Log) {
       toContents(requestBody.content, nameHint).map { it as? Content ?: throw ParserException("Request body without content, at $nameHint") }
   )
 
+  // TODO: only name + location must be unique according to spec, group parameters by name + location
   private fun joinParameters(operationParameters: List<SwaggerParameter>, pathParameters: List<Parameter>, nameHint: NameHint): List<Parameter> {
     val operationParametersAsMap = operationParameters.map { toParameter(it, nameHint) }.associateBy { it.name }
     val pathParametersAsMap = pathParameters.associateBy { it.name }

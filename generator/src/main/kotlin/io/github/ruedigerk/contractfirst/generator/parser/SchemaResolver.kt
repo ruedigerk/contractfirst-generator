@@ -1,6 +1,7 @@
 package io.github.ruedigerk.contractfirst.generator.parser
 
 import io.github.ruedigerk.contractfirst.generator.NotSupportedException
+import io.github.ruedigerk.contractfirst.generator.ParserException
 import io.github.ruedigerk.contractfirst.generator.logging.Log
 import io.github.ruedigerk.contractfirst.generator.model.*
 import io.swagger.v3.oas.models.media.Schema as SwaggerSchema

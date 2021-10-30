@@ -3,7 +3,10 @@ Ideas and Todos
 
 ## General / in the parser
 
-- Support type "string", format "byte" (Base64 encoded binary data). 
+- Support parameters with the same name if they have different locations.
+- Support type "string", format "byte" (Base64 encoded binary data).
+- HTTP methods GET and HEAD do not allow a request body -> adjust parser accordingly.
+- Support parameters defined with content instead of schema.
 - Add a usage description with examples to the help Mojo of the Maven plugin and to the project Readme file.
 - Add support for $refs with description, e.g., in object schema properties (this is not supported by the JSON schema specification)???
 - Array or object type schemas in request parameters

@@ -13,6 +13,7 @@ class CompareGeneratedCodeToReferenceTest extends Specification {
   static def combinationsServerHarness = new GeneratorHarness("src/test/contract/content-type-combinations.yaml", "combinations_server", true)
   static def combinationsClientHarness = new GeneratorHarness("src/test/contract/content-type-combinations.yaml", "combinations_client", false)
   static def selfReferentialHarness = new GeneratorHarness("src/test/contract/self-referential-model.yaml", "selfreferential", false)
+  static def multipartHarness = new GeneratorHarness("src/test/contract/multipart-request-body.yaml", "multipart", false)
 
   @Unroll
   def "Test testsuite server: #fileName"() {
@@ -97,5 +98,22 @@ class CompareGeneratedCodeToReferenceTest extends Specification {
     fileName << selfReferentialHarness.relativePathNames
     referenceFile << selfReferentialHarness.referenceFiles
     generatedFile << selfReferentialHarness.generatedFiles
+  }
+
+  @Unroll
+  def "Test multipart request body: #fileName"() {
+    when:
+    multipartHarness.runGenerator()
+
+    then:
+    generatedFile.exists()
+
+    and:
+    generatedFile.text == referenceFile.text
+
+    where:
+    fileName << multipartHarness.relativePathNames
+    referenceFile << multipartHarness.referenceFiles
+    generatedFile << multipartHarness.generatedFiles
   }
 }

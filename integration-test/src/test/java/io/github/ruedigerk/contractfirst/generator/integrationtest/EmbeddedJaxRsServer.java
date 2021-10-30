@@ -1,11 +1,11 @@
 package io.github.ruedigerk.contractfirst.generator.integrationtest;
 
+import io.github.ruedigerk.contractfirst.generator.server.DateFormatsParamConverterProvider;
+import io.github.ruedigerk.contractfirst.generator.server.GsonMessageBodyHandler;
 import java.net.URI;
 import java.util.List;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
-import io.github.ruedigerk.contractfirst.generator.server.DateFormatsParamConverterProvider;
-import io.github.ruedigerk.contractfirst.generator.server.GsonMessageBodyHandler;
 import org.glassfish.grizzly.http.server.HttpServer;
 import org.glassfish.jersey.grizzly2.httpserver.GrizzlyHttpServerFactory;
 import org.glassfish.jersey.server.ResourceConfig;

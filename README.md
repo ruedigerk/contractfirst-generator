@@ -117,6 +117,10 @@ Changelog
 
 ### 1.4.0
 
+**Added**
+- Implemented basic support for multipart and form-encoded request bodies in the client generator.
+- Implemented basic support for form-encoded request bodies in the server generator.
+
 **Fixed**
 - Fixed IllegalArgumentException when trying to send a request without request body for the HTTP methods POST, PUT and PATCH with the generated client.
 - JSON representation of model classes is now correct when property names are not valid Java identifiers. 

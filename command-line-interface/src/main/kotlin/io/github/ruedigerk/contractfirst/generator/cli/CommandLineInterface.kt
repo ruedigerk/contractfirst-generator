@@ -2,13 +2,9 @@ package io.github.ruedigerk.contractfirst.generator.cli
 
 import com.xenomachina.argparser.ArgParser
 import com.xenomachina.argparser.default
-import io.github.ruedigerk.contractfirst.generator.Configuration
-import io.github.ruedigerk.contractfirst.generator.ContractfirstGenerator
-import io.github.ruedigerk.contractfirst.generator.GeneratorType
-import io.github.ruedigerk.contractfirst.generator.NotSupportedException
+import io.github.ruedigerk.contractfirst.generator.*
 import io.github.ruedigerk.contractfirst.generator.logging.Log
 import io.github.ruedigerk.contractfirst.generator.logging.Slf4jLogAdapter
-import io.github.ruedigerk.contractfirst.generator.parser.ParserException
 import org.slf4j.LoggerFactory
 import kotlin.system.exitProcess
 

@@ -22,7 +22,7 @@ data class JavaRegularParameter(
     override val required: Boolean,
     override val javaType: JavaAnyType,
     val location: ParameterLocation,
-    val name: String
+    val originalName: String
 ) : JavaParameter
 
 /**
@@ -34,4 +34,15 @@ data class JavaBodyParameter(
     override val required: Boolean,
     override val javaType: JavaAnyType,
     val mediaType: String
+) : JavaParameter
+
+/**
+ * Represents a form field or multipart part of a form or multipart request body.
+ */
+data class JavaMultipartBodyParameter(
+    override val javaParameterName: String,
+    override val javadoc: String?,
+    override val required: Boolean,
+    override val javaType: JavaAnyType,
+    val originalName: String,
 ) : JavaParameter

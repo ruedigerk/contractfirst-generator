@@ -2,6 +2,7 @@ package io.github.ruedigerk.contractfirst.generator.java.generator
 
 import com.squareup.javapoet.*
 import io.github.ruedigerk.contractfirst.generator.Configuration
+import io.github.ruedigerk.contractfirst.generator.NotSupportedException
 import io.github.ruedigerk.contractfirst.generator.java.Identifiers.capitalize
 import io.github.ruedigerk.contractfirst.generator.java.Identifiers.mediaTypeToJavaIdentifier
 import io.github.ruedigerk.contractfirst.generator.java.generator.GeneratorCommon.NOT_NULL_ANNOTATION
@@ -50,13 +51,17 @@ class ServerStubGenerator(private val configuration: Configuration) {
   }
 
   private fun toOperationMethod(operation: JavaOperation, typesafeResponseClass: TypeSpec): MethodSpec {
+    if (operation.requestBodyMediaType?.startsWith("multipart/") == true) {
+      throw NotSupportedException("Request body media type ${operation.requestBodyMediaType} is not supported in the server generator")
+    }
+
     val parameters = operation.parameters.map(::toParameterSpec)
 
     return MethodSpec.methodBuilder(operation.javaMethodName)
         .doIfNotNull(operation.javadoc) { addJavadoc("\$L", it) }
         .addAnnotation(httpMethodAnnotation(operation.httpMethod))
         .addAnnotation(pathAnnotation(operation.path))
-        .doIf(operation.requestBodyMediaTypes.isNotEmpty()) { addAnnotation(consumesAnnotation(operation.requestBodyMediaTypes)) }
+        .doIfNotNull(operation.requestBodyMediaType) { addAnnotation(consumesAnnotation(it)) }
         .addAnnotation(producesAnnotation(operation.responses))
         .addModifiers(PUBLIC, ABSTRACT)
         .returns(typesafeResponseClass.name.toTypeName())
@@ -69,6 +74,7 @@ class ServerStubGenerator(private val configuration: Configuration) {
 
     return ParameterSpec.builder(parameter.javaType.toTypeName(), parameter.javaParameterName)
         .doIfNotNull(parameter as? JavaRegularParameter) { addAnnotation(paramAnnotation(it)) }
+        .doIfNotNull(parameter as? JavaMultipartBodyParameter) { addAnnotation(paramAnnotation(it)) }
         .doIf(parameter.required) { addAnnotation(NOT_NULL_ANNOTATION) }
         .addAnnotations(typeValidationAnnotations)
         .build()
@@ -82,8 +88,10 @@ class ServerStubGenerator(private val configuration: Configuration) {
       COOKIE -> "CookieParam"
     }
 
-    return toAnnotation("javax.ws.rs.$annotationName", parameter.name)
+    return toAnnotation("javax.ws.rs.$annotationName", parameter.originalName)
   }
+
+  private fun paramAnnotation(parameter: JavaMultipartBodyParameter): AnnotationSpec = toAnnotation("javax.ws.rs.FormParam", parameter.originalName)
 
   private fun pathAnnotation(path: String) = toAnnotation("javax.ws.rs.Path", path)
 
@@ -97,8 +105,8 @@ class ServerStubGenerator(private val configuration: Configuration) {
     return toAnnotation("javax.ws.rs.Produces", mediaTypes)
   }
 
-  private fun consumesAnnotation(mediaTypes: List<String>): AnnotationSpec {
-    return toAnnotation("javax.ws.rs.Consumes", mediaTypes.sorted())
+  private fun consumesAnnotation(mediaType: String): AnnotationSpec {
+    return toAnnotation("javax.ws.rs.Consumes", mediaType)
   }
 
   private fun toTypesafeResponseClass(operation: JavaOperation): TypeSpec {

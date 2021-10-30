@@ -8,7 +8,6 @@ import io.github.ruedigerk.contractfirst.generator.java.transform.JavaTransforme
 import io.github.ruedigerk.contractfirst.generator.logging.Log
 import io.github.ruedigerk.contractfirst.generator.logging.LogAdapter
 import io.github.ruedigerk.contractfirst.generator.parser.Parser
-import io.github.ruedigerk.contractfirst.generator.parser.ParserException
 import io.github.ruedigerk.contractfirst.generator.serializer.SerializerException
 import io.github.ruedigerk.contractfirst.generator.serializer.YamlSerializer
 import io.swagger.v3.oas.models.OpenAPI

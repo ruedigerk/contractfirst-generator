@@ -93,6 +93,7 @@ public class Operation {
 
     private final List<Parameter> parameters = new ArrayList<>();
     private final List<ResponseDefinition> responseDefinitions = new ArrayList<>();
+    private final List<BodyPart> bodyParts = new ArrayList<>();
 
     private final String path;
     private final String method;
@@ -117,6 +118,20 @@ public class Operation {
      */
     public void requestBody(String contentType, boolean required, Object entity) {
       requestBody = new OperationRequestBody(contentType, required, entity);
+    }
+
+    /**
+     * Defines a form field or part of the request body for this operation.
+     */
+    public void requestBodyPart(String name, Object value) {
+      bodyParts.add(new BodyPart(name, value));
+    }
+
+    /**
+     * Defines the request body as a multipart, or an application/x-www-form-urlencoded body.
+     */
+    public void multipartRequestBody(String contentType) {
+      requestBody = new OperationRequestBody(contentType, false, new MultipartRequestBody(bodyParts));
     }
 
     /**

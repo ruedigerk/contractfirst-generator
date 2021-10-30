@@ -3,6 +3,8 @@ package io.github.ruedigerk.contractfirst.generator.client;
 import com.google.gson.Gson;
 import com.google.gson.GsonBuilder;
 import com.google.gson.JsonParseException;
+import io.github.ruedigerk.contractfirst.generator.client.internal.BodyPart;
+import io.github.ruedigerk.contractfirst.generator.client.internal.MultipartRequestBody;
 import io.github.ruedigerk.contractfirst.generator.client.internal.Operation;
 import io.github.ruedigerk.contractfirst.generator.client.internal.OperationRequestBody;
 import io.github.ruedigerk.contractfirst.generator.client.internal.Parameter;
@@ -21,11 +23,13 @@ import java.util.Objects;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
 import java.util.stream.StreamSupport;
+import okhttp3.FormBody;
 import okhttp3.Headers;
 import okhttp3.HttpUrl;
 import okhttp3.HttpUrl.Builder;
 import okhttp3.Interceptor;
 import okhttp3.MediaType;
+import okhttp3.MultipartBody;
 import okhttp3.OkHttpClient;
 import okhttp3.Request;
 import okhttp3.RequestBody;
@@ -251,8 +255,53 @@ public class ApiRequestExecutor {
       } else {
         return null;
       }
+    } else if (requestBody.getEntity() instanceof MultipartRequestBody) {
+      List<BodyPart> bodyParts = ((MultipartRequestBody) requestBody.getEntity()).getBodyParts();
+
+      if (requestBody.getContentType().equals("application/x-www-form-urlencoded")) {
+        return createFormRequestBody(bodyParts);
+      } else {
+        return createMultipartRequestBody(bodyParts);
+      }
+    } else {
+      return createEntityRequestBody(requestBody);
+    }
+  }
+
+  private RequestBody createEmptyRequestBody() {
+    return RequestBody.create(new byte[0], null);
+  }
+
+  private RequestBody createFormRequestBody(List<BodyPart> bodyParts) {
+    FormBody.Builder builder = new FormBody.Builder();
+
+    for (BodyPart part : bodyParts) {
+      builder.add(part.getName(), serializeParameter(part.getValue()));
     }
 
+    return builder.build();
+  }
+
+  private RequestBody createMultipartRequestBody(List<BodyPart> bodyParts) throws IOException {
+    MultipartBody.Builder builder = new MultipartBody.Builder().setType(MultipartBody.FORM);
+
+    for (BodyPart part : bodyParts) {
+      Headers headers = new Headers.Builder().add("Content-Disposition", "form-data; name=\"" + part.getName() + "\"").build();
+
+      if (part.getValue() instanceof byte[]) {
+        builder.addPart(headers, RequestBody.create((byte[]) part.getValue(), null));
+      } else if (part.getValue() instanceof InputStream) {
+        byte[] bytes = readBytes((InputStream) part.getValue());
+        builder.addPart(headers, RequestBody.create(bytes, null));
+      } else {
+        builder.addPart(headers, RequestBody.create(serializeParameter(part.getValue()), null));
+      }
+    }
+
+    return builder.build();
+  }
+
+  private RequestBody createEntityRequestBody(OperationRequestBody requestBody) throws IOException {
     Object entity = requestBody.getEntity();
     MediaType mediaType = MediaType.get(requestBody.getContentType());
 
@@ -269,10 +318,6 @@ public class ApiRequestExecutor {
       String content = requestBody.toString();
       return RequestBody.create(content, mediaType);
     }
-  }
-
-  private RequestBody createEmptyRequestBody() {
-    return RequestBody.create(new byte[0], null);
   }
 
   private byte[] readBytes(InputStream inputStream) throws IOException {

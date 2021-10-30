@@ -345,6 +345,27 @@ paths:
         default:
           $ref: "#/components/responses/DefaultFailures"
 
+  /formEncodedRequestBody:
+    post:
+      description: A test case for an x-www-form-urlencoded encoded request body.
+      tags:
+        - FormEncodedRequestBody
+      operationId: formEncodedRequestBody
+      requestBody:
+        required: true
+        content:
+          application/x-www-form-urlencoded:
+            schema:
+              type: object
+              properties: 
+                fieldA:
+                  type: string
+                fieldB:
+                  type: string
+      responses:
+        204:
+          description: Ok.
+
 components:
   schemas:
     Item:

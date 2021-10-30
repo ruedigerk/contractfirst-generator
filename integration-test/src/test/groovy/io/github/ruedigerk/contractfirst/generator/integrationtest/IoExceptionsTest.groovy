@@ -18,23 +18,9 @@ class IoExceptionsTest extends EmbeddedJaxRsServerSpecification {
     EmbeddedServerResource
   }
 
-  def "IOException for callTimeout"() {
+  def "IOException for timeout"() {
     given:
     def clientSupport = new ApiRequestExecutor(okHttpClient.newBuilder().callTimeout(Duration.ofMillis(1)).build(), BASE_URL)
-    MultipleContentTypesApiClient apiClient = new MultipleContentTypesApiClient(clientSupport)
-
-    when:
-    apiClient.getManual(null)
-
-    then:
-    def e = thrown ApiClientIoException
-    e.message.contains("timeout")
-    e.message.contains("GET http://localhost:17249/manuals")
-  }
-
-  def "IOException for readTimeout"() {
-    given:
-    def clientSupport = new ApiRequestExecutor(okHttpClient.newBuilder().readTimeout(Duration.ofMillis(1)).build(), BASE_URL)
     MultipleContentTypesApiClient apiClient = new MultipleContentTypesApiClient(clientSupport)
 
     when:
@@ -53,7 +39,7 @@ class IoExceptionsTest extends EmbeddedJaxRsServerSpecification {
 
     @Override
     GetManualResponse getManual(String testCaseSelector) {
-      Thread.sleep(1000)
+      Thread.sleep(50)
       GetManualResponse.with204()
     }
   }
