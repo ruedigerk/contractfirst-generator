@@ -151,7 +151,7 @@ class ClientGenerator(configuration: Configuration) {
     val codeBuilder = CodeBlock.builder()
 
     codeBuilder.add("\n")
-    codeBuilder.addStatement("\$1T builder = new \$1T(\$2S, \$3S)", SupportTypes.OperationBuilder, operation.path, operation.httpMethod.uppercase())
+    codeBuilder.addStatement("\$1T builder = new \$1T(\$2S, \$3S)", SupportTypes.OperationBuilder, operation.path, operation.httpMethod)
     codeBuilder.add("\n")
 
     // Add parameters (and request body) to operation builder.

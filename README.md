@@ -49,7 +49,7 @@ The generated server code needs the following dependencies:
         <!-- Contains a JAX-RS ParamConverterProvider and a Gson MessageBodyHandler to support LocalDate and OffsetDateTime -->
         <groupId>io.github.ruedigerk.contractfirst.generator</groupId>
         <artifactId>contractfirst-generator-server-support</artifactId>
-        <version>${project.version}</version>
+        <version>1.3.1</version>
     </dependency>
     <dependency>
         <!-- BeanValidation API for the generated data model -->
@@ -97,7 +97,7 @@ The generated client code needs the following dependencies:
         <!-- Support module for the generated client code -->
         <groupId>io.github.ruedigerk.contractfirst.generator</groupId>
         <artifactId>contractfirst-generator-client-support</artifactId>
-        <version>${project.version}</version>
+        <version>1.3.1</version>
     </dependency>
     <dependency>
         <!-- BeanValidation API for the generated data model -->
@@ -114,6 +114,11 @@ The generated client code needs the following dependencies:
 
 Changelog
 ---------
+
+### 1.3.2
+
+**Fixed**
+- Fixed IllegalArgumentException when trying to send a request without request body for the HTTP methods POST, PUT and PATCH with the generated client.
 
 ### 1.3.1
 

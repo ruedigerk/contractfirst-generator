@@ -31,6 +31,7 @@ import okhttp3.Request;
 import okhttp3.RequestBody;
 import okhttp3.Response;
 import okhttp3.ResponseBody;
+import okhttp3.internal.http.HttpMethod;
 
 /**
  * Performs HTTP requests as defined by generated client code.
@@ -54,6 +55,27 @@ public class RequestExecutor {
     this.baseUrl = removeTrailingSlash(baseUrl);
 
     gson = createGson();
+  }
+
+  /**
+   * Returns the Gson instance used to serialize and deserialize JSON entities.
+   */
+  public Gson getGson() {
+    return gson;
+  }
+
+  /**
+   * Returns the OkHttpClient instance used to send requests.
+   */
+  public OkHttpClient getHttpClient() {
+    return httpClient;
+  }
+
+  /**
+   * Returns the base URL used to send requests.
+   */
+  public String getBaseUrl() {
+    return baseUrl;
   }
 
   private static <T> T firstNonNull(T first, T second) {
@@ -131,7 +153,7 @@ public class RequestExecutor {
     Headers headers = determineRequestHeaders(operation);
 
     try {
-      RequestBody requestBody = serializeRequestBody(operation.getRequestBody());
+      RequestBody requestBody = serializeRequestBody(operation);
 
       return new Request.Builder()
           .url(url)
@@ -220,9 +242,15 @@ public class RequestExecutor {
     }
   }
 
-  private RequestBody serializeRequestBody(OperationRequestBody requestBody) throws IOException {
+  private RequestBody serializeRequestBody(Operation operation) throws IOException {
+    OperationRequestBody requestBody = operation.getRequestBody();
+
     if (requestBody.getEntity() == null) {
-      return null;
+      if (HttpMethod.requiresRequestBody(operation.getMethod())) {
+        return createEmptyRequestBody();
+      } else {
+        return null;
+      }
     }
 
     Object entity = requestBody.getEntity();
@@ -241,6 +269,10 @@ public class RequestExecutor {
       String content = requestBody.toString();
       return RequestBody.create(content, mediaType);
     }
+  }
+
+  private RequestBody createEmptyRequestBody() {
+    return RequestBody.create(new byte[0], null);
   }
 
   private byte[] readBytes(InputStream inputStream) throws IOException {

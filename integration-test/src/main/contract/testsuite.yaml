@@ -292,7 +292,37 @@ paths:
                       type: string
         default:
           $ref: "#/components/responses/DefaultFailures"
-                      
+
+  /postWithoutBody/post:
+    post:
+      description: Testing HTTP method POST without a request body.
+      operationId: postWithoutBody
+      tags:
+        - PostWithoutBody
+      responses:
+        204:
+          description: Ok.
+
+  /postWithoutBody/put:
+    put:
+      description: Testing HTTP method PUT without a request body.
+      operationId: putWithoutBody
+      tags:
+        - PostWithoutBody
+      responses:
+        204:
+          description: Ok.
+
+  /postWithoutBody/patch:
+    post:
+      description: Testing HTTP method PATCH without a request body.
+      operationId: patchWithoutBody
+      tags:
+        - PostWithoutBody
+      responses:
+        204:
+          description: Ok.
+
 components:
   schemas:
     Item:

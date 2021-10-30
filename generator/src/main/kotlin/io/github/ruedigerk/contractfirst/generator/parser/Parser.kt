@@ -85,7 +85,7 @@ class Parser(private val log: Log) {
     val nameHint = NameHint(operation.operationId)
     return Operation(
         path,
-        method,
+        method.uppercase(),
         operation.tags.nullToEmpty(),
         operation.summary.normalize(),
         operation.description.normalize(),

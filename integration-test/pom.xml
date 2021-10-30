@@ -76,6 +76,7 @@
                      <outputJavaModelNamePrefix>C</outputJavaModelNamePrefix>
                   </configuration>
                </execution>
+
                <execution>
                   <id>generate-content-type-combinations-server-code</id>
                   <goals>
@@ -102,6 +103,7 @@
                      <outputJavaModelNamePrefix>C</outputJavaModelNamePrefix>
                   </configuration>
                </execution>
+
                <execution>
                   <id>test-plugin-parameter-defaults</id>
                   <goals>

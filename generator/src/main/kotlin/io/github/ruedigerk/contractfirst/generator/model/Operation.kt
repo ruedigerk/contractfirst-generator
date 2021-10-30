@@ -5,6 +5,10 @@ package io.github.ruedigerk.contractfirst.generator.model
  */
 data class Operation(
     val path: String,
+
+    /**
+     * The HTTP method of the operation in upper case (ensured by the parser).
+     */
     val method: String,
     val tags: List<String>,
     val summary: String?,
