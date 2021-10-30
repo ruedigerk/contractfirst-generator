@@ -36,7 +36,7 @@ import okhttp3.internal.http.HttpMethod;
 /**
  * Performs HTTP requests as defined by generated client code.
  */
-public class RequestExecutor {
+public class ApiRequestExecutor {
 
   private static final String CONTENT_TYPE_HEADER = "Content-Type";
 
@@ -50,7 +50,7 @@ public class RequestExecutor {
    * @param httpClient the OkHttp-Client instance to use for sending HTTP requests.
    * @param baseUrl    the base URL to send requests to.
    */
-  public RequestExecutor(OkHttpClient httpClient, String baseUrl) {
+  public ApiRequestExecutor(OkHttpClient httpClient, String baseUrl) {
     this.httpClient = addInternalInterceptors(httpClient);
     this.baseUrl = removeTrailingSlash(baseUrl);
 

@@ -24,33 +24,33 @@ class WildcardContentTypesTest extends EmbeddedJaxRsServerSpecification {
 
   def "Operation with multiple wildcard response content types"() {
     when:
-    def successfulResponse = apiClient.getWildcardContentTypes("text")
-    ApiResponse apiResponse = successfulResponse.apiResponse
+    def result = apiClient.getWildcardContentTypes("text")
+    ApiResponse response = result.response
 
     then:
-    apiResponse.request.url == "$BASE_URL/wildcardContentTypes"
-    apiResponse.request.method == "GET"
-    apiResponse.statusCode == 200
-    apiResponse.httpStatusMessage == "OK"
-    apiResponse.contentType == "text/plain"
-    apiResponse.entityType == String.class
-    apiResponse.entity == "Some Text"
+    response.request.url == "$BASE_URL/wildcardContentTypes"
+    response.request.method == "GET"
+    response.statusCode == 200
+    response.httpStatusMessage == "OK"
+    response.contentType == "text/plain"
+    response.entityType == String.class
+    response.entity == "Some Text"
 
     when:
     // Disable logging of request body
     setLoggingInterceptorLevel(HttpLoggingInterceptor.Level.HEADERS)
 
-    successfulResponse = apiClient.getWildcardContentTypes("pdf")
-    apiResponse = successfulResponse.apiResponse
+    result = apiClient.getWildcardContentTypes("pdf")
+    response = result.response
 
     then:
-    apiResponse.request.url == "$BASE_URL/wildcardContentTypes"
-    apiResponse.request.method == "GET"
-    apiResponse.statusCode == 200
-    apiResponse.httpStatusMessage == "OK"
-    apiResponse.contentType == "application/pdf"
-    apiResponse.entityType == InputStream.class
-    (apiResponse.entity as InputStream).bytes == getClass().getResourceAsStream("/sample.pdf").bytes
+    response.request.url == "$BASE_URL/wildcardContentTypes"
+    response.request.method == "GET"
+    response.statusCode == 200
+    response.httpStatusMessage == "OK"
+    response.contentType == "application/pdf"
+    response.entityType == InputStream.class
+    (response.entity as InputStream).bytes == getClass().getResourceAsStream("/sample.pdf").bytes
   }
 
   /**

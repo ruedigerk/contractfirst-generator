@@ -20,26 +20,26 @@ class PostWithoutBodyTest extends EmbeddedJaxRsServerSpecification {
 
   def "Test post without body"() {
     when:
-    def response = apiClient.returningSuccessfulResponse().postWithoutBody()
+    def result = apiClient.returningSuccessfulResult().postWithoutBody()
 
     then:
-    response.isStatus204WithoutEntity()
+    result.isStatus204WithoutEntity()
   }
 
   def "Test put without body"() {
     when:
-    def response = apiClient.returningSuccessfulResponse().putWithoutBody()
+    def result = apiClient.returningSuccessfulResult().putWithoutBody()
 
     then:
-    response.isStatus204WithoutEntity()
+    result.isStatus204WithoutEntity()
   }
 
   def "Test patch without body"() {
     when:
-    def response = apiClient.returningSuccessfulResponse().patchWithoutBody()
+    def result = apiClient.returningSuccessfulResult().patchWithoutBody()
 
     then:
-    response.isStatus204WithoutEntity()
+    result.isStatus204WithoutEntity()
   }
 
   /**

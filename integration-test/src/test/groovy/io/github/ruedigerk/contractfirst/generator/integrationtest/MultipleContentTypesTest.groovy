@@ -26,24 +26,24 @@ class MultipleContentTypesTest extends EmbeddedJaxRsServerSpecification {
     def expectedManual = new CManual(title: "The Title", content: "Content")
 
     when:
-    def response = apiClient.getManual("application/json")
+    def result = apiClient.getManual("application/json")
 
     then:
-    response.isStatus200ReturningCManual()
-    !response.isStatus200ReturningInputStream()
-    !response.isStatus202ReturningString()
-    response.getEntityIfCManual() == Optional.of(expectedManual)
-    response.getEntityAsCManual() == expectedManual
-    response.getEntityIfInputStream() == Optional.empty()
-    response.getEntityAsInputStream() == null
-    response.getEntityIfString() == Optional.empty()
-    response.getEntityAsString() == null
+    result.isStatus200ReturningCManual()
+    !result.isStatus200ReturningInputStream()
+    !result.isStatus202ReturningString()
+    result.getEntityIfCManual() == Optional.of(expectedManual)
+    result.getEntityAsCManual() == expectedManual
+    result.getEntityIfInputStream() == Optional.empty()
+    result.getEntityAsInputStream() == null
+    result.getEntityIfString() == Optional.empty()
+    result.getEntityAsString() == null
 
     and:
-    ApiResponse apiResponse = response.apiResponse
-    apiResponse.request.url == "$BASE_URL/manuals"
-    apiResponse.request.method == "GET"
-    apiResponse.request.headers == [
+    ApiResponse response = result.response
+    response.request.url == "$BASE_URL/manuals"
+    response.request.method == "GET"
+    response.request.headers == [
         new Header("testCaseSelector", "application/json"),
         new Header("Accept", "application/json, application/pdf; q=0.5, text/plain; q=0.5"),
         new Header("Host", HOST),
@@ -51,36 +51,36 @@ class MultipleContentTypesTest extends EmbeddedJaxRsServerSpecification {
         new Header("Accept-Encoding", "gzip"),
         new Header("User-Agent", "okhttp/4.9.1"),
     ]
-    apiResponse.headers == [
+    response.headers == [
         new Header("Content-Type", "application/json"),
         new Header("Content-Length", "41"),
     ]
-    apiResponse.statusCode == 200
-    apiResponse.httpStatusMessage == "OK"
-    apiResponse.contentType == "application/json"
-    apiResponse.entityType == CManual.class
-    apiResponse.entity == expectedManual
+    response.statusCode == 200
+    response.httpStatusMessage == "OK"
+    response.contentType == "application/json"
+    response.entityType == CManual.class
+    response.entity == expectedManual
 
     when:
-    response = apiClient.getManual("application/pdf")
-    apiResponse = response.apiResponse
+    result = apiClient.getManual("application/pdf")
+    response = result.response
 
     then:
-    !response.isStatus200ReturningCManual()
-    response.isStatus200ReturningInputStream()
-    !response.isStatus202ReturningString()
-    response.getEntityIfCManual() == Optional.empty()
-    response.getEntityAsCManual() == null
-    response.getEntityIfInputStream().isPresent()
-    response.getEntityIfInputStream().get() == response.getEntityAsInputStream()
-    response.getEntityAsInputStream().bytes == getClass().getResourceAsStream("/sample.pdf").bytes
-    response.getEntityIfString() == Optional.empty()
-    response.getEntityAsString() == null
+    !result.isStatus200ReturningCManual()
+    result.isStatus200ReturningInputStream()
+    !result.isStatus202ReturningString()
+    result.getEntityIfCManual() == Optional.empty()
+    result.getEntityAsCManual() == null
+    result.getEntityIfInputStream().isPresent()
+    result.getEntityIfInputStream().get() == result.getEntityAsInputStream()
+    result.getEntityAsInputStream().bytes == getClass().getResourceAsStream("/sample.pdf").bytes
+    result.getEntityIfString() == Optional.empty()
+    result.getEntityAsString() == null
 
     and:
-    apiResponse.request.url == "$BASE_URL/manuals"
-    apiResponse.request.method == "GET"
-    apiResponse.request.headers == [
+    response.request.url == "$BASE_URL/manuals"
+    response.request.method == "GET"
+    response.request.headers == [
         new Header("testCaseSelector", "application/pdf"),
         new Header("Accept", "application/json, application/pdf; q=0.5, text/plain; q=0.5"),
         new Header("Host", HOST),
@@ -88,35 +88,35 @@ class MultipleContentTypesTest extends EmbeddedJaxRsServerSpecification {
         new Header("Accept-Encoding", "gzip"),
         new Header("User-Agent", "okhttp/4.9.1"),
     ]
-    apiResponse.headers == [
+    response.headers == [
         new Header("Content-Type", "application/pdf"),
         new Header("Transfer-Encoding", "chunked"),
     ]
-    apiResponse.statusCode == 200
-    apiResponse.httpStatusMessage == "OK"
-    apiResponse.contentType == "application/pdf"
-    apiResponse.entityType == InputStream
-    apiResponse.entity instanceof InputStream
+    response.statusCode == 200
+    response.httpStatusMessage == "OK"
+    response.contentType == "application/pdf"
+    response.entityType == InputStream
+    response.entity instanceof InputStream
 
     when:
-    response = apiClient.getManual("text/plain")
-    apiResponse = response.apiResponse
+    result = apiClient.getManual("text/plain")
+    response = result.response
 
     then:
-    !response.isStatus200ReturningCManual()
-    !response.isStatus200ReturningInputStream()
-    response.isStatus202ReturningString()
-    response.getEntityIfCManual() == Optional.empty()
-    response.getEntityAsCManual() == null
-    response.getEntityIfInputStream() == Optional.empty()
-    response.getEntityAsInputStream() == null
-    response.getEntityIfString() == Optional.of("Just plain text")
-    response.getEntityAsString() == "Just plain text"
+    !result.isStatus200ReturningCManual()
+    !result.isStatus200ReturningInputStream()
+    result.isStatus202ReturningString()
+    result.getEntityIfCManual() == Optional.empty()
+    result.getEntityAsCManual() == null
+    result.getEntityIfInputStream() == Optional.empty()
+    result.getEntityAsInputStream() == null
+    result.getEntityIfString() == Optional.of("Just plain text")
+    result.getEntityAsString() == "Just plain text"
 
     and:
-    apiResponse.request.url == "$BASE_URL/manuals"
-    apiResponse.request.method == "GET"
-    apiResponse.request.headers == [
+    response.request.url == "$BASE_URL/manuals"
+    response.request.method == "GET"
+    response.request.headers == [
         new Header("testCaseSelector", "text/plain"),
         new Header("Accept", "application/json, application/pdf; q=0.5, text/plain; q=0.5"),
         new Header("Host", HOST),
@@ -124,15 +124,15 @@ class MultipleContentTypesTest extends EmbeddedJaxRsServerSpecification {
         new Header("Accept-Encoding", "gzip"),
         new Header("User-Agent", "okhttp/4.9.1"),
     ]
-    apiResponse.headers == [
+    response.headers == [
         new Header("Content-Type", "text/plain"),
         new Header("Content-Length", "15"),
     ]
-    apiResponse.statusCode == 202
-    apiResponse.httpStatusMessage == "Accepted"
-    apiResponse.contentType == "text/plain"
-    apiResponse.entityType == String.class
-    apiResponse.entity == "Just plain text"
+    response.statusCode == 202
+    response.httpStatusMessage == "Accepted"
+    response.contentType == "text/plain"
+    response.entityType == String.class
+    response.entity == "Just plain text"
   }
 
   /**

@@ -21,6 +21,13 @@ public abstract class ApiClientErrorWithEntityException extends ApiClientExcepti
   }
 
   /**
+   * Returns the request for this response. 
+   */
+  public ApiRequest getRequest() {
+    return response.getRequest();
+  }
+
+  /**
    * The response sent by the server. 
    */
   public ApiResponse getResponse() {

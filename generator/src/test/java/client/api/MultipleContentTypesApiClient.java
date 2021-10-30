@@ -5,8 +5,8 @@ import client.model.Manual;
 import io.github.ruedigerk.contractfirst.generator.client.ApiClientIncompatibleResponseException;
 import io.github.ruedigerk.contractfirst.generator.client.ApiClientIoException;
 import io.github.ruedigerk.contractfirst.generator.client.ApiClientValidationException;
+import io.github.ruedigerk.contractfirst.generator.client.ApiRequestExecutor;
 import io.github.ruedigerk.contractfirst.generator.client.ApiResponse;
-import io.github.ruedigerk.contractfirst.generator.client.RequestExecutor;
 import io.github.ruedigerk.contractfirst.generator.client.internal.Operation;
 import io.github.ruedigerk.contractfirst.generator.client.internal.ParameterLocation;
 import io.github.ruedigerk.contractfirst.generator.client.internal.StatusCode;
@@ -18,16 +18,16 @@ import java.util.Optional;
  * Contains methods for all API operations tagged "MultipleContentTypes".
  */
 public class MultipleContentTypesApiClient {
-  private final RequestExecutor requestExecutor;
+  private final ApiRequestExecutor requestExecutor;
 
   private final ReturningAnyResponse returningAnyResponse;
 
-  private final ReturningSuccessfulResponse returningSuccessfulResponse;
+  private final ReturningSuccessfulResult returningSuccessfulResult;
 
-  public MultipleContentTypesApiClient(RequestExecutor requestExecutor) {
+  public MultipleContentTypesApiClient(ApiRequestExecutor requestExecutor) {
     this.requestExecutor = requestExecutor;
     this.returningAnyResponse = new ReturningAnyResponse();
-    this.returningSuccessfulResponse = new ReturningSuccessfulResponse();
+    this.returningSuccessfulResult = new ReturningSuccessfulResult();
   }
 
   /**
@@ -40,8 +40,8 @@ public class MultipleContentTypesApiClient {
   /**
    * Selects methods returning instances of operation specific success classes and throwing exceptions for unsuccessful status codes.
    */
-  public ReturningSuccessfulResponse returningSuccessfulResponse() {
-    return returningSuccessfulResponse;
+  public ReturningSuccessfulResult returningSuccessfulResult() {
+    return returningSuccessfulResult;
   }
 
   /**
@@ -49,11 +49,11 @@ public class MultipleContentTypesApiClient {
    *
    * @param testCaseSelector Used to select the desired behaviour of the server in the test.
    */
-  public GetManualSuccessfulResponse getManual(String testCaseSelector) throws ApiClientIoException,
+  public GetManualSuccessfulResult getManual(String testCaseSelector) throws ApiClientIoException,
       ApiClientValidationException, ApiClientIncompatibleResponseException,
       ApiClientErrorWithFailureEntityException {
 
-    GetManualSuccessfulResponse response = returningSuccessfulResponse.getManual(testCaseSelector);
+    GetManualSuccessfulResult response = returningSuccessfulResult.getManual(testCaseSelector);
 
     return response;
   }
@@ -61,14 +61,14 @@ public class MultipleContentTypesApiClient {
   /**
    * Contains methods for all operations returning instances of operation specific success classes and throwing exceptions for unsuccessful status codes.
    */
-  public class ReturningSuccessfulResponse {
+  public class ReturningSuccessfulResult {
     /**
      * Test case for multiple response content types with different schemas.
      *
      * @param testCaseSelector Used to select the desired behaviour of the server in the test.
      */
-    public GetManualSuccessfulResponse getManual(String testCaseSelector) throws
-        ApiClientIoException, ApiClientValidationException, ApiClientIncompatibleResponseException,
+    public GetManualSuccessfulResult getManual(String testCaseSelector) throws ApiClientIoException,
+        ApiClientValidationException, ApiClientIncompatibleResponseException,
         ApiClientErrorWithFailureEntityException {
 
       ApiResponse response = returningAnyResponse.getManual(testCaseSelector);
@@ -77,7 +77,7 @@ public class MultipleContentTypesApiClient {
         throw new ApiClientErrorWithFailureEntityException(response);
       }
 
-      return new GetManualSuccessfulResponse(response);
+      return new GetManualSuccessfulResult(response);
     }
   }
 
@@ -110,17 +110,17 @@ public class MultipleContentTypesApiClient {
   /**
    * Represents a successful response of operation getManual, i.e., the status code being in range 200 to 299.
    */
-  public static class GetManualSuccessfulResponse {
+  public static class GetManualSuccessfulResult {
     private final ApiResponse response;
 
-    public GetManualSuccessfulResponse(ApiResponse response) {
+    public GetManualSuccessfulResult(ApiResponse response) {
       this.response = response;
     }
 
     /**
      * Returns the ApiResponse instance with the details of the operation's HTTP response.
      */
-    public ApiResponse getApiResponse() {
+    public ApiResponse getResponse() {
       return response;
     }
 
@@ -210,7 +210,7 @@ public class MultipleContentTypesApiClient {
     public boolean equals(Object other) {
       if (other == this) return true;
       if (other == null || getClass() != other.getClass()) return false;
-      GetManualSuccessfulResponse o = (GetManualSuccessfulResponse) other;
+      GetManualSuccessfulResult o = (GetManualSuccessfulResult) other;
       return Objects.equals(response, o.response);
     }
 
@@ -223,7 +223,7 @@ public class MultipleContentTypesApiClient {
     public String toString() {
       StringBuilder builder = new StringBuilder();
       builder.append(", response=").append(response);
-      return builder.replace(0, 2, "GetManualSuccessfulResponse{").append('}').toString();
+      return builder.replace(0, 2, "GetManualSuccessfulResult{").append('}').toString();
     }
   }
 }

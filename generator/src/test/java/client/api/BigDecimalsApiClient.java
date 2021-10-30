@@ -4,8 +4,8 @@ import client.model.Failure;
 import io.github.ruedigerk.contractfirst.generator.client.ApiClientIncompatibleResponseException;
 import io.github.ruedigerk.contractfirst.generator.client.ApiClientIoException;
 import io.github.ruedigerk.contractfirst.generator.client.ApiClientValidationException;
+import io.github.ruedigerk.contractfirst.generator.client.ApiRequestExecutor;
 import io.github.ruedigerk.contractfirst.generator.client.ApiResponse;
-import io.github.ruedigerk.contractfirst.generator.client.RequestExecutor;
 import io.github.ruedigerk.contractfirst.generator.client.internal.Operation;
 import io.github.ruedigerk.contractfirst.generator.client.internal.ParameterLocation;
 import io.github.ruedigerk.contractfirst.generator.client.internal.StatusCode;
@@ -16,16 +16,16 @@ import java.util.Objects;
  * Contains methods for all API operations tagged "BigDecimals".
  */
 public class BigDecimalsApiClient {
-  private final RequestExecutor requestExecutor;
+  private final ApiRequestExecutor requestExecutor;
 
   private final ReturningAnyResponse returningAnyResponse;
 
-  private final ReturningSuccessfulResponse returningSuccessfulResponse;
+  private final ReturningSuccessfulResult returningSuccessfulResult;
 
-  public BigDecimalsApiClient(RequestExecutor requestExecutor) {
+  public BigDecimalsApiClient(ApiRequestExecutor requestExecutor) {
     this.requestExecutor = requestExecutor;
     this.returningAnyResponse = new ReturningAnyResponse();
-    this.returningSuccessfulResponse = new ReturningSuccessfulResponse();
+    this.returningSuccessfulResult = new ReturningSuccessfulResult();
   }
 
   /**
@@ -38,8 +38,8 @@ public class BigDecimalsApiClient {
   /**
    * Selects methods returning instances of operation specific success classes and throwing exceptions for unsuccessful status codes.
    */
-  public ReturningSuccessfulResponse returningSuccessfulResponse() {
-    return returningSuccessfulResponse;
+  public ReturningSuccessfulResult returningSuccessfulResult() {
+    return returningSuccessfulResult;
   }
 
   /**
@@ -51,7 +51,7 @@ public class BigDecimalsApiClient {
       ApiClientValidationException, ApiClientIncompatibleResponseException,
       ApiClientErrorWithFailureEntityException {
 
-    GetNumberSuccessfulResponse response = returningSuccessfulResponse.getNumber(decimalNumber);
+    GetNumberSuccessfulResult response = returningSuccessfulResult.getNumber(decimalNumber);
 
     return response.getEntity();
   }
@@ -59,13 +59,13 @@ public class BigDecimalsApiClient {
   /**
    * Contains methods for all operations returning instances of operation specific success classes and throwing exceptions for unsuccessful status codes.
    */
-  public class ReturningSuccessfulResponse {
+  public class ReturningSuccessfulResult {
     /**
      * Test serialization of schema type number as BigDecimal.
      *
      * @param decimalNumber Test BigDecimal
      */
-    public GetNumberSuccessfulResponse getNumber(BigDecimal decimalNumber) throws
+    public GetNumberSuccessfulResult getNumber(BigDecimal decimalNumber) throws
         ApiClientIoException, ApiClientValidationException, ApiClientIncompatibleResponseException,
         ApiClientErrorWithFailureEntityException {
 
@@ -75,7 +75,7 @@ public class BigDecimalsApiClient {
         throw new ApiClientErrorWithFailureEntityException(response);
       }
 
-      return new GetNumberSuccessfulResponse(response);
+      return new GetNumberSuccessfulResult(response);
     }
   }
 
@@ -105,17 +105,17 @@ public class BigDecimalsApiClient {
   /**
    * Represents a successful response of operation getNumber, i.e., the status code being in range 200 to 299.
    */
-  public static class GetNumberSuccessfulResponse {
+  public static class GetNumberSuccessfulResult {
     private final ApiResponse response;
 
-    public GetNumberSuccessfulResponse(ApiResponse response) {
+    public GetNumberSuccessfulResult(ApiResponse response) {
       this.response = response;
     }
 
     /**
      * Returns the ApiResponse instance with the details of the operation's HTTP response.
      */
-    public ApiResponse getApiResponse() {
+    public ApiResponse getResponse() {
       return response;
     }
 
@@ -137,7 +137,7 @@ public class BigDecimalsApiClient {
     public boolean equals(Object other) {
       if (other == this) return true;
       if (other == null || getClass() != other.getClass()) return false;
-      GetNumberSuccessfulResponse o = (GetNumberSuccessfulResponse) other;
+      GetNumberSuccessfulResult o = (GetNumberSuccessfulResult) other;
       return Objects.equals(response, o.response);
     }
 
@@ -150,7 +150,7 @@ public class BigDecimalsApiClient {
     public String toString() {
       StringBuilder builder = new StringBuilder();
       builder.append(", response=").append(response);
-      return builder.replace(0, 2, "GetNumberSuccessfulResponse{").append('}').toString();
+      return builder.replace(0, 2, "GetNumberSuccessfulResult{").append('}').toString();
     }
   }
 }

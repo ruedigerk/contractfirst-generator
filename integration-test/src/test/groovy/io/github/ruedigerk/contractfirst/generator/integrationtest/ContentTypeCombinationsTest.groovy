@@ -30,15 +30,15 @@ class ContentTypeCombinationsTest extends EmbeddedJaxRsServerSpecification {
 
   def "getDefaultOnly"() {
     when:
-    def response = apiClient.returningSuccessfulResponse().getDefaultOnly("success")
+    def result = apiClient.returningSuccessfulResult().getDefaultOnly("success")
     
     then:
-    response.isReturningCBook()
-    response.entity == CBOOK
-    response.apiResponse.statusCode == 200
+    result.isReturningCBook()
+    result.entity == CBOOK
+    result.response.statusCode == 200
 
     when:
-    apiClient.returningSuccessfulResponse().getDefaultOnly("failure")
+    apiClient.returningSuccessfulResult().getDefaultOnly("failure")
 
     then:
     def e = thrown ApiClientErrorWithCBookEntityException
@@ -48,11 +48,11 @@ class ContentTypeCombinationsTest extends EmbeddedJaxRsServerSpecification {
 
   def "getSuccessOnly"() {
     when:
-    def response = apiClient.returningSuccessfulResponse().getSuccessOnly()
+    def result = apiClient.returningSuccessfulResult().getSuccessOnly()
     
     then:
-    response.isStatus200ReturningCBook()
-    response.entity == CBOOK
+    result.isStatus200ReturningCBook()
+    result.entity == CBOOK
   }
 
   def "getFailureOnly"() {
@@ -68,7 +68,7 @@ class ContentTypeCombinationsTest extends EmbeddedJaxRsServerSpecification {
     response.entity == expectedErrorEntity
 
     when:
-    apiClient.returningSuccessfulResponse().getFailureOnly()
+    apiClient.returningSuccessfulResult().getFailureOnly()
 
     then:
     def e = thrown ApiClientErrorWithCCtcErrorEntityException
@@ -78,14 +78,14 @@ class ContentTypeCombinationsTest extends EmbeddedJaxRsServerSpecification {
 
   def "getSuccessEntityAndErrorDefault"() {
     when:
-    def response = apiClient.returningSuccessfulResponse().getSuccessEntityAndErrorDefault("success")
+    def result = apiClient.returningSuccessfulResult().getSuccessEntityAndErrorDefault("success")
 
     then:
-    response.isStatus200ReturningCBook()
-    response.entity == CBOOK
+    result.isStatus200ReturningCBook()
+    result.entity == CBOOK
 
     when:
-    apiClient.returningSuccessfulResponse().getSuccessEntityAndErrorDefault("failure")
+    apiClient.returningSuccessfulResult().getSuccessEntityAndErrorDefault("failure")
 
     then:
     def e = thrown ApiClientErrorWithCCtcErrorEntityException
@@ -94,38 +94,38 @@ class ContentTypeCombinationsTest extends EmbeddedJaxRsServerSpecification {
 
   def "getMultipleSuccessEntities"() {
     when:
-    def response = apiClient.returningSuccessfulResponse().getMultipleSuccessEntities("book")
+    def result = apiClient.returningSuccessfulResult().getMultipleSuccessEntities("book")
 
     then:
-    response.isStatus200ReturningCBook()
-    response.entityAsCBook == CBOOK
-    response.entityIfCBook == Optional.of(CBOOK)
-    response.entityAsCCtcError == null
-    response.entityIfCCtcError == Optional.empty()
+    result.isStatus200ReturningCBook()
+    result.entityAsCBook == CBOOK
+    result.entityIfCBook == Optional.of(CBOOK)
+    result.entityAsCCtcError == null
+    result.entityIfCCtcError == Optional.empty()
 
     when:
-    response = apiClient.returningSuccessfulResponse().getMultipleSuccessEntities("error")
+    result = apiClient.returningSuccessfulResult().getMultipleSuccessEntities("error")
 
     then:
-    response.isStatus201ReturningCCtcError()
-    response.entityAsCBook == null
-    response.entityIfCBook == Optional.empty()
-    response.entityAsCCtcError == CCTCERROR
-    response.entityIfCCtcError == Optional.of(CCTCERROR)
+    result.isStatus201ReturningCCtcError()
+    result.entityAsCBook == null
+    result.entityIfCBook == Optional.empty()
+    result.entityAsCCtcError == CCTCERROR
+    result.entityIfCCtcError == Optional.of(CCTCERROR)
   }
 
   def "getMultipleSuccessResponsesWithoutContent"() {
     when:
-    def response = apiClient.returningSuccessfulResponse().getMultipleSuccessResponsesWithoutContent("200")
+    def result = apiClient.returningSuccessfulResult().getMultipleSuccessResponsesWithoutContent("200")
 
     then:
-    response.isStatus200WithoutEntity()
+    result.isStatus200WithoutEntity()
 
     when:
-    response = apiClient.returningSuccessfulResponse().getMultipleSuccessResponsesWithoutContent("204")
+    result = apiClient.returningSuccessfulResult().getMultipleSuccessResponsesWithoutContent("204")
 
     then:
-    response.isStatus204WithoutEntity()
+    result.isStatus204WithoutEntity()
   }
 
   def "getMultipleErrorEntities"() {
@@ -148,10 +148,10 @@ class ContentTypeCombinationsTest extends EmbeddedJaxRsServerSpecification {
 
   def "getContentFor204"() {
     when:
-    def response = apiClient.returningSuccessfulResponse().getContentFor204()
+    def result = apiClient.returningSuccessfulResult().getContentFor204()
 
     then:
-    response.isStatus204WithoutEntity()
+    result.isStatus204WithoutEntity()
   }
 
   /**

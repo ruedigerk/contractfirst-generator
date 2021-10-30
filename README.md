@@ -120,6 +120,9 @@ Changelog
 **Fixed**
 - Fixed IllegalArgumentException when trying to send a request without request body for the HTTP methods POST, PUT and PATCH with the generated client.
 
+**Changed**
+- Changed some naming in the generated client. `RequestExecutor` is now called `ApiRequestExecutor`.
+
 ### 1.3.1
 
 **Fixed**

@@ -3,8 +3,8 @@ package selfreferential.api;
 import io.github.ruedigerk.contractfirst.generator.client.ApiClientIncompatibleResponseException;
 import io.github.ruedigerk.contractfirst.generator.client.ApiClientIoException;
 import io.github.ruedigerk.contractfirst.generator.client.ApiClientValidationException;
+import io.github.ruedigerk.contractfirst.generator.client.ApiRequestExecutor;
 import io.github.ruedigerk.contractfirst.generator.client.ApiResponse;
-import io.github.ruedigerk.contractfirst.generator.client.RequestExecutor;
 import io.github.ruedigerk.contractfirst.generator.client.internal.Operation;
 import io.github.ruedigerk.contractfirst.generator.client.internal.StatusCode;
 import java.util.Objects;
@@ -14,16 +14,16 @@ import selfreferential.model.Model;
  * Contains methods for all API operations tagged "V1Components".
  */
 public class V1ComponentsApiClient {
-  private final RequestExecutor requestExecutor;
+  private final ApiRequestExecutor requestExecutor;
 
   private final ReturningAnyResponse returningAnyResponse;
 
-  private final ReturningSuccessfulResponse returningSuccessfulResponse;
+  private final ReturningSuccessfulResult returningSuccessfulResult;
 
-  public V1ComponentsApiClient(RequestExecutor requestExecutor) {
+  public V1ComponentsApiClient(ApiRequestExecutor requestExecutor) {
     this.requestExecutor = requestExecutor;
     this.returningAnyResponse = new ReturningAnyResponse();
-    this.returningSuccessfulResponse = new ReturningSuccessfulResponse();
+    this.returningSuccessfulResult = new ReturningSuccessfulResult();
   }
 
   /**
@@ -36,8 +36,8 @@ public class V1ComponentsApiClient {
   /**
    * Selects methods returning instances of operation specific success classes and throwing exceptions for unsuccessful status codes.
    */
-  public ReturningSuccessfulResponse returningSuccessfulResponse() {
-    return returningSuccessfulResponse;
+  public ReturningSuccessfulResult returningSuccessfulResult() {
+    return returningSuccessfulResult;
   }
 
   /**
@@ -46,7 +46,7 @@ public class V1ComponentsApiClient {
   public Model getComponent() throws ApiClientIoException, ApiClientValidationException,
       ApiClientIncompatibleResponseException {
 
-    GetComponentSuccessfulResponse response = returningSuccessfulResponse.getComponent();
+    GetComponentSuccessfulResult response = returningSuccessfulResult.getComponent();
 
     return response.getEntity();
   }
@@ -54,16 +54,16 @@ public class V1ComponentsApiClient {
   /**
    * Contains methods for all operations returning instances of operation specific success classes and throwing exceptions for unsuccessful status codes.
    */
-  public class ReturningSuccessfulResponse {
+  public class ReturningSuccessfulResult {
     /**
      * Get component. Also, test escaping of JavaPoet placeholders: $L $1N $%.
      */
-    public GetComponentSuccessfulResponse getComponent() throws ApiClientIoException,
+    public GetComponentSuccessfulResult getComponent() throws ApiClientIoException,
         ApiClientValidationException, ApiClientIncompatibleResponseException {
 
       ApiResponse response = returningAnyResponse.getComponent();
 
-      return new GetComponentSuccessfulResponse(response);
+      return new GetComponentSuccessfulResult(response);
     }
   }
 
@@ -88,17 +88,17 @@ public class V1ComponentsApiClient {
   /**
    * Represents a successful response of operation getComponent, i.e., the status code being in range 200 to 299.
    */
-  public static class GetComponentSuccessfulResponse {
+  public static class GetComponentSuccessfulResult {
     private final ApiResponse response;
 
-    public GetComponentSuccessfulResponse(ApiResponse response) {
+    public GetComponentSuccessfulResult(ApiResponse response) {
       this.response = response;
     }
 
     /**
      * Returns the ApiResponse instance with the details of the operation's HTTP response.
      */
-    public ApiResponse getApiResponse() {
+    public ApiResponse getResponse() {
       return response;
     }
 
@@ -120,7 +120,7 @@ public class V1ComponentsApiClient {
     public boolean equals(Object other) {
       if (other == this) return true;
       if (other == null || getClass() != other.getClass()) return false;
-      GetComponentSuccessfulResponse o = (GetComponentSuccessfulResponse) other;
+      GetComponentSuccessfulResult o = (GetComponentSuccessfulResult) other;
       return Objects.equals(response, o.response);
     }
 
@@ -133,7 +133,7 @@ public class V1ComponentsApiClient {
     public String toString() {
       StringBuilder builder = new StringBuilder();
       builder.append(", response=").append(response);
-      return builder.replace(0, 2, "GetComponentSuccessfulResponse{").append('}').toString();
+      return builder.replace(0, 2, "GetComponentSuccessfulResult{").append('}').toString();
     }
   }
 }

@@ -6,8 +6,8 @@ import client.model.Failure;
 import io.github.ruedigerk.contractfirst.generator.client.ApiClientIncompatibleResponseException;
 import io.github.ruedigerk.contractfirst.generator.client.ApiClientIoException;
 import io.github.ruedigerk.contractfirst.generator.client.ApiClientValidationException;
+import io.github.ruedigerk.contractfirst.generator.client.ApiRequestExecutor;
 import io.github.ruedigerk.contractfirst.generator.client.ApiResponse;
-import io.github.ruedigerk.contractfirst.generator.client.RequestExecutor;
 import io.github.ruedigerk.contractfirst.generator.client.internal.Operation;
 import io.github.ruedigerk.contractfirst.generator.client.internal.ParameterLocation;
 import io.github.ruedigerk.contractfirst.generator.client.internal.StatusCode;
@@ -19,16 +19,16 @@ import java.util.Objects;
  * Contains methods for all API operations tagged "time".
  */
 public class TimeApiClient {
-  private final RequestExecutor requestExecutor;
+  private final ApiRequestExecutor requestExecutor;
 
   private final ReturningAnyResponse returningAnyResponse;
 
-  private final ReturningSuccessfulResponse returningSuccessfulResponse;
+  private final ReturningSuccessfulResult returningSuccessfulResult;
 
-  public TimeApiClient(RequestExecutor requestExecutor) {
+  public TimeApiClient(ApiRequestExecutor requestExecutor) {
     this.requestExecutor = requestExecutor;
     this.returningAnyResponse = new ReturningAnyResponse();
-    this.returningSuccessfulResponse = new ReturningSuccessfulResponse();
+    this.returningSuccessfulResult = new ReturningSuccessfulResult();
   }
 
   /**
@@ -41,8 +41,8 @@ public class TimeApiClient {
   /**
    * Selects methods returning instances of operation specific success classes and throwing exceptions for unsuccessful status codes.
    */
-  public ReturningSuccessfulResponse returningSuccessfulResponse() {
-    return returningSuccessfulResponse;
+  public ReturningSuccessfulResult returningSuccessfulResult() {
+    return returningSuccessfulResult;
   }
 
   /**
@@ -53,7 +53,7 @@ public class TimeApiClient {
       ApiClientIoException, ApiClientValidationException, ApiClientIncompatibleResponseException,
       ApiClientErrorWithFailureEntityException {
 
-    UpdateTimeSuccessfulResponse response = returningSuccessfulResponse.updateTime(timeId, queryTimeA, queryTimeB, headerTimeA, headerTimeB, requestBody);
+    UpdateTimeSuccessfulResult response = returningSuccessfulResult.updateTime(timeId, queryTimeA, queryTimeB, headerTimeA, headerTimeB, requestBody);
 
     return response.getEntity();
   }
@@ -61,11 +61,11 @@ public class TimeApiClient {
   /**
    * Contains methods for all operations returning instances of operation specific success classes and throwing exceptions for unsuccessful status codes.
    */
-  public class ReturningSuccessfulResponse {
+  public class ReturningSuccessfulResult {
     /**
      * For testing handling of date and date-time formats.
      */
-    public UpdateTimeSuccessfulResponse updateTime(LocalDate timeId, LocalDate queryTimeA,
+    public UpdateTimeSuccessfulResult updateTime(LocalDate timeId, LocalDate queryTimeA,
         OffsetDateTime queryTimeB, LocalDate headerTimeA, OffsetDateTime headerTimeB,
         Clock requestBody) throws ApiClientIoException, ApiClientValidationException,
         ApiClientIncompatibleResponseException, ApiClientErrorWithFailureEntityException {
@@ -76,7 +76,7 @@ public class TimeApiClient {
         throw new ApiClientErrorWithFailureEntityException(response);
       }
 
-      return new UpdateTimeSuccessfulResponse(response);
+      return new UpdateTimeSuccessfulResult(response);
     }
   }
 
@@ -110,17 +110,17 @@ public class TimeApiClient {
   /**
    * Represents a successful response of operation updateTime, i.e., the status code being in range 200 to 299.
    */
-  public static class UpdateTimeSuccessfulResponse {
+  public static class UpdateTimeSuccessfulResult {
     private final ApiResponse response;
 
-    public UpdateTimeSuccessfulResponse(ApiResponse response) {
+    public UpdateTimeSuccessfulResult(ApiResponse response) {
       this.response = response;
     }
 
     /**
      * Returns the ApiResponse instance with the details of the operation's HTTP response.
      */
-    public ApiResponse getApiResponse() {
+    public ApiResponse getResponse() {
       return response;
     }
 
@@ -142,7 +142,7 @@ public class TimeApiClient {
     public boolean equals(Object other) {
       if (other == this) return true;
       if (other == null || getClass() != other.getClass()) return false;
-      UpdateTimeSuccessfulResponse o = (UpdateTimeSuccessfulResponse) other;
+      UpdateTimeSuccessfulResult o = (UpdateTimeSuccessfulResult) other;
       return Objects.equals(response, o.response);
     }
 
@@ -155,7 +155,7 @@ public class TimeApiClient {
     public String toString() {
       StringBuilder builder = new StringBuilder();
       builder.append(", response=").append(response);
-      return builder.replace(0, 2, "UpdateTimeSuccessfulResponse{").append('}').toString();
+      return builder.replace(0, 2, "UpdateTimeSuccessfulResult{").append('}').toString();
     }
   }
 }
