@@ -16,7 +16,7 @@ import javax.ws.rs.Produces
 /**
  * Tests serialization of models with properties that are not valid Java identifiers.
  */
-class NonJavaPropertyNamesTest extends EmbeddedJaxRsServerSpecification {
+class NonJavaPropertyNamesClientTest extends EmbeddedJaxRsServerSpecification {
 
   @Subject
   NonJavaPropertyNamesApiClient apiClient = new NonJavaPropertyNamesApiClient(apiClientSupport)

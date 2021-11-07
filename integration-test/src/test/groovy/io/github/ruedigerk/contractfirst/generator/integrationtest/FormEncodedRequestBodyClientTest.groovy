@@ -10,7 +10,7 @@ import javax.ws.rs.*
 /**
  * Tests serialization of form encoded request bodies.
  */
-class FormEncodedRequestBodyTest extends EmbeddedJaxRsServerSpecification {
+class FormEncodedRequestBodyClientTest extends EmbeddedJaxRsServerSpecification {
 
   @Subject
   FormEncodedRequestBodyApiClient apiClient = new FormEncodedRequestBodyApiClient(apiClientSupport)

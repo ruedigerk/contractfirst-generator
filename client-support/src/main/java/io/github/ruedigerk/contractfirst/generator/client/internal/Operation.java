@@ -68,6 +68,10 @@ public class Operation {
   public Type determineMatchingResponseType(int statusCode, String contentType) {
     List<ResponseDefinition> responseDefinitions = selectResponseDefinitionsByStatusCode(statusCode);
 
+    if (responseDefinitions.stream().allMatch(ResponseDefinition::hasNoContent)) {
+      return Void.TYPE;
+    }
+
     if (contentType == null) {
       if (responseDefinitions.stream().anyMatch(ResponseDefinition::hasNoContent)) {
         return Void.TYPE;
@@ -82,6 +86,13 @@ public class Operation {
       if (definition.getContentType() != null && isCompatibleMediaType(mediaType, MediaTypes.parseNullable(definition.getContentType()))) {
         return definition.getJavaType();
       }
+    }
+
+    // No matching definition found. As a special case, if the server sends a JSON content type and there is only a single response definition for this status
+    // code in the contract, try to deserialize the response as a JSON entity. This quirk is added, because there seem to be a lot of contracts in the wild that
+    // erroneously declare some none-JSON content type in the contract but actually send JSON encoded response entities.
+    if (MediaTypes.isJsonMediaType(mediaType) && responseDefinitions.size() == 1) {
+      return responseDefinitions.get(0).getJavaType();
     }
 
     return null;

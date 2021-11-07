@@ -371,6 +371,20 @@ paths:
         204:
           description: Ok.
 
+  /nonJsonEntityAsJson:
+    get:
+      summary: Test case for an operation that declares a non-JSON entity and the server nevertheless sending the entity as JSON.
+      operationId: getNonJsonEntityAsJson
+      tags:
+        - NonJsonEntityAsJson
+      responses:
+        200:
+          description: Response defined with content type XML, but server sends JSON anyway.
+          content:
+            application/xml:
+              schema:
+                $ref: "#/components/schemas/Item"
+
 components:
   schemas:
     Item:

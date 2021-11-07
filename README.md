@@ -27,7 +27,7 @@ Here is an example for using the Maven plugin to generate server stubs:
     <plugin>
        <artifactId>contractfirst-generator-maven-plugin</artifactId>
        <groupId>io.github.ruedigerk.contractfirst.generator</groupId>
-       <version>1.4.0</version>
+       <version>1.4.1</version>
        <executions>
           <execution>
              <id>generate-server</id>
@@ -49,7 +49,7 @@ The generated server code needs the following dependencies:
         <!-- Contains a JAX-RS ParamConverterProvider and a Gson MessageBodyHandler to support LocalDate and OffsetDateTime -->
         <groupId>io.github.ruedigerk.contractfirst.generator</groupId>
         <artifactId>contractfirst-generator-server-support</artifactId>
-        <version>1.4.0</version>
+        <version>1.4.1</version>
     </dependency>
     <dependency>
         <!-- BeanValidation API for the generated data model -->
@@ -75,7 +75,7 @@ Here is an example for using the Maven plugin to generate an API client:
     <plugin>
        <artifactId>contractfirst-generator-maven-plugin</artifactId>
        <groupId>io.github.ruedigerk.contractfirst.generator</groupId>
-       <version>1.4.0</version>
+       <version>1.4.1</version>
        <executions>
           <execution>
              <id>generate-client</id>
@@ -97,7 +97,7 @@ The generated client code needs the following dependencies:
         <!-- Support module for the generated client code -->
         <groupId>io.github.ruedigerk.contractfirst.generator</groupId>
         <artifactId>contractfirst-generator-client-support</artifactId>
-        <version>1.4.0</version>
+        <version>1.4.1</version>
     </dependency>
     <dependency>
         <!-- BeanValidation API for the generated data model -->
@@ -121,6 +121,11 @@ Changelog
 - Made the client more resilient to unusual combinations of content-types and invalid content-types.
 - Implemented support for enums in x-www-form-urlencoded request bodies, where the Java names of the constants do not match the original names.
 
+**Added**
+- Added fallback to the client generator, to try to deserialize response entities sent with a JSON content type, even if the contract does not define this. 
+  This quirk is added, because there seem to be a lot of contracts in the wild that erroneously declare some none-JSON content type in the contract but actually
+  send JSON encoded response entities.
+ 
 ### 1.4.0
 
 **Added**

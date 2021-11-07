@@ -17,7 +17,7 @@ class OperationTest extends Specification {
   def "determineAcceptHeaderValue with simple responses"() {
     given:
     Operation.Builder builder = new Operation.Builder("/path", "GET")
-    builder.response(StatusCode.of(200), "application/json", Model)
+    builder.response(StatusCode.of(1), "application/json", Model)
     def operation = builder.build()
 
     expect:
@@ -27,14 +27,14 @@ class OperationTest extends Specification {
   def "determineAcceptHeaderValue with complex responses"() {
     given:
     Operation.Builder builder = new Operation.Builder("/path", "GET")
-    builder.response(StatusCode.of(200), "application/json", Model)
-    builder.response(StatusCode.of(200), "application/pdf", InputStream)
-    builder.response(StatusCode.of(201), "application/json", Model)
-    builder.response(StatusCode.of(201), "text/plain", String)
-    builder.response(StatusCode.of(202), "application/*", Model)
-    builder.response(StatusCode.of(203), "*/*", Model)
-    builder.response(StatusCode.of(204))
-    builder.response(StatusCode.DEFAULT, "application/json", DefaultError)
+    builder.response(StatusCode.of(1), "application/json", Model)
+    builder.response(StatusCode.of(1), "application/pdf", InputStream)
+    builder.response(StatusCode.of(2), "application/json", Model)
+    builder.response(StatusCode.of(2), "text/plain", String)
+    builder.response(StatusCode.of(3), "application/*", Model)
+    builder.response(StatusCode.of(4), "*/*", Model)
+    builder.response(StatusCode.of(5))
+    builder.response(StatusCode.DEFAULT, "application/json", DefaultModel)
     def operation = builder.build()
 
     expect:
@@ -45,13 +45,14 @@ class OperationTest extends Specification {
   def "determineTypeOfContent #statusCode #contentType"() {
     given:
     Operation.Builder builder = new Operation.Builder("/path", "GET")
-    builder.response(StatusCode.of(200), "application/json", Model)
-    builder.response(StatusCode.of(200), "application/pdf", InputStream)
-    builder.response(StatusCode.of(201), "text/plain", String)
-    builder.response(StatusCode.of(202), "application/*", Model)
-    builder.response(StatusCode.of(203), "*/*", Model)
-    builder.response(StatusCode.of(204))
-    builder.response(StatusCode.DEFAULT, "application/json", DefaultError)
+    builder.response(StatusCode.of(0))
+    builder.response(StatusCode.of(1), "application/json", Model)
+    builder.response(StatusCode.of(1), "application/pdf", InputStream)
+    builder.response(StatusCode.of(2), "text/plain", String)
+    builder.response(StatusCode.of(3), "application/*", Model)
+    builder.response(StatusCode.of(4), "*/*", Model)
+    builder.response(StatusCode.of(5), "application/xml", Model)
+    builder.response(StatusCode.DEFAULT, "application/json", DefaultModel)
     def operation = builder.build()
 
     expect:
@@ -59,44 +60,55 @@ class OperationTest extends Specification {
 
     where:
     statusCode | contentType                                               | expectedType
-    200        | "application/json"                                        | Model
-    200        | "application/json; charset=UTF-8"                         | Model
-    200        | "application/json;Charset=UTF-8; whatever=\"some value\"" | Model
-    200        | "application/pdf"                                         | InputStream
-    200        | "text/plain"                                              | null
-    200        | "nonsense"                                                | null
-    200        | null                                                      | null
-    201        | "text/plain"                                              | String
-    201        | "application/json"                                        | null
-    201        | "nonsense"                                                | null
-    201        | null                                                      | null
-    202        | "application/json"                                        | Model
-    202        | "application/json; charset=UTF-8"                         | Model
-    202        | "application/json;Charset=UTF-8; whatever=\"some value\"" | Model
-    202        | "application/pdf"                                         | Model
-    202        | "text/plain"                                              | null
-    202        | "nonsense"                                                | null
-    202        | null                                                      | null
-    203        | "application/json"                                        | Model
-    203        | "application/json; charset=UTF-8"                         | Model
-    203        | "application/json;Charset=UTF-8; whatever=\"some value\"" | Model
-    203        | "application/pdf"                                         | Model
-    203        | "text/plain"                                              | Model
-    203        | "nonsense"                                                | Model
-    203        | null                                                      | null
-    204        | "application/json"                                        | null
-    204        | null                                                      | Void.TYPE
-    500        | "application/json"                                        | DefaultError
-    500        | "text/plain"                                              | null
-    500        | null                                                      | null
+    0          | "application/json"                                        | Void.TYPE
+    0          | "text/plain"                                              | Void.TYPE
+    0          | "nonsense"                                                | Void.TYPE
+    0          | null                                                      | Void.TYPE
+    1          | "application/json"                                        | Model
+    1          | "application/json; charset=UTF-8"                         | Model
+    1          | "application/json;Charset=UTF-8; whatever=\"some value\"" | Model
+    1          | "application/pdf"                                         | InputStream
+    1          | "text/plain"                                              | null
+    1          | "nonsense"                                                | null
+    1          | null                                                      | null
+    2          | "text/plain"                                              | String
+    2          | "application/json"                                        | String
+    2          | "nonsense"                                                | null
+    2          | null                                                      | null
+    3          | "application/json"                                        | Model
+    3          | "application/json; charset=UTF-8"                         | Model
+    3          | "application/json;Charset=UTF-8; whatever=\"some value\"" | Model
+    3          | "application/pdf"                                         | Model
+    3          | "text/plain"                                              | null
+    3          | "nonsense"                                                | null
+    3          | null                                                      | null
+    4          | "application/json"                                        | Model
+    4          | "application/json; charset=UTF-8"                         | Model
+    4          | "application/json;Charset=UTF-8; whatever=\"some value\"" | Model
+    4          | "application/pdf"                                         | Model
+    4          | "text/plain"                                              | Model
+    4          | "nonsense"                                                | Model
+    4          | null                                                      | null
+    5          | "application/xml"                                         | Model
+    5          | "application/json"                                        | Model
+    5          | "application/json; charset=UTF-8"                         | Model
+    5          | "application/json;Charset=UTF-8; whatever=\"some value\"" | Model
+    5          | "application/vnd.custom+json"                             | Model
+    5          | "application/pdf"                                         | null
+    5          | "text/plain"                                              | null
+    5          | "nonsense"                                                | null
+    5          | null                                                      | null
+    99         | "application/json"                                        | DefaultModel
+    99         | "text/plain"                                              | null
+    99         | null                                                      | null
   }
 
   @Unroll
   def "determineTypeOfContent with invalid content type in definition #statusCode #contentType"() {
     given:
     Operation.Builder builder = new Operation.Builder("/path", "GET")
-    builder.response(StatusCode.of(200), "nonsense", Model)
-    builder.response(StatusCode.DEFAULT, "application/json", DefaultError)
+    builder.response(StatusCode.of(1), "nonsense", Model)
+    builder.response(StatusCode.DEFAULT, "application/json", DefaultModel)
     def operation = builder.build()
 
     expect:
@@ -104,19 +116,19 @@ class OperationTest extends Specification {
 
     where:
     statusCode | contentType        | expectedType
-    200        | "application/json" | null
-    200        | "text/plain"       | null
-    200        | "nonsense"         | null
-    200        | null               | null
-    500        | "application/json" | DefaultError
-    500        | "text/plain"       | null
-    500        | "nonsense"         | null
-    500        | null               | null
+    1          | "application/json" | Model
+    1          | "text/plain"       | null
+    1          | "nonsense"         | null
+    1          | null               | null
+    99         | "application/json" | DefaultModel
+    99         | "text/plain"       | null
+    99         | "nonsense"         | null
+    99         | null               | null
   }
 
   static class Model {
   }
 
-  static class DefaultError {
+  static class DefaultModel {
   }
 }

@@ -417,6 +417,19 @@ paths:
           description: Ok.
       tags:
       - FormEncodedRequestBody
+  /nonJsonEntityAsJson:
+    get:
+      operationId: getNonJsonEntityAsJson
+      responses:
+        "200":
+          content:
+            application/xml:
+              schema:
+                $ref: '#/components/schemas/Item'
+          description: "Response defined with content type XML, but server sends JSON anyway."
+      summary: Test case for an operation that declares a non-JSON entity and the server nevertheless sending the entity as JSON.
+      tags:
+      - NonJsonEntityAsJson
 components:
   responses:
     DefaultFailures:
