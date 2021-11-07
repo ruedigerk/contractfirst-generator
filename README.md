@@ -115,6 +115,11 @@ The generated client code needs the following dependencies:
 Changelog
 ---------
 
+### 1.4.1
+
+**Fixed**
+- Made the client more resilient to unusual combinations of content-types and invalid content-types.
+
 ### 1.4.0
 
 **Added**

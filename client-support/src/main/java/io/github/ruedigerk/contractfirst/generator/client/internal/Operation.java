@@ -9,6 +9,8 @@ import java.util.Objects;
 import java.util.Optional;
 import java.util.function.Function;
 import java.util.stream.Collectors;
+import java.util.stream.Stream;
+import okhttp3.MediaType;
 
 /**
  * Represents the definition of an API operation, and the data that is transferred within it.
@@ -29,7 +31,63 @@ public class Operation {
     responseDefinitions = builder.responseDefinitions.stream().collect(Collectors.groupingBy(ResponseDefinition::getStatusCode));
   }
 
-  public List<ResponseDefinition> selectResponseDefinitionsByStatusCode(int statusCode) {
+  /**
+   * Determines the accept-header value for this operation. All JSON-compatible mime types are sent with a q-factor of 1 and all other mime types with a
+   * q-factor of 0.5.
+   */
+  // See: https://developer.mozilla.org/en-US/docs/Glossary/Quality_values
+  // See: https://developer.mozilla.org/en-US/docs/Web/HTTP/Headers/Accept
+  // See: https://developer.mozilla.org/en-US/docs/Web/HTTP/Content_negotiation
+  public String determineAcceptHeaderValue() {
+    Map<Boolean, List<String>> partitionedMediaTypes = getAllAcceptedMediaTypes()
+        .stream()
+        .collect(Collectors.partitioningBy(MediaTypes::isJsonMediaType));
+
+    List<String> jsonMediaTypes = partitionedMediaTypes.get(true);
+    List<String> nonJsonMediaTypes = partitionedMediaTypes.get(false);
+
+    return Stream.concat(
+        jsonMediaTypes.stream(),
+        nonJsonMediaTypes.stream().map(mediaType -> mediaType + "; q=0.5")
+    ).collect(Collectors.joining(", "));
+  }
+
+  private List<String> getAllAcceptedMediaTypes() {
+    return responseDefinitions.values()
+        .stream()
+        .flatMap(list -> list.stream().map(ResponseDefinition::getContentType))
+        .filter(Objects::nonNull)
+        .distinct()
+        .collect(Collectors.toList());
+  }
+
+  /**
+   * Returns the Java type of the response definition that matches the servers returned status code and content type. If no response definition is matching,
+   * null is returned. If the matching response is defined to have no content, type {@link Void#TYPE} is returned.
+   */
+  public Type determineMatchingResponseType(int statusCode, String contentType) {
+    List<ResponseDefinition> responseDefinitions = selectResponseDefinitionsByStatusCode(statusCode);
+
+    if (contentType == null) {
+      if (responseDefinitions.stream().anyMatch(ResponseDefinition::hasNoContent)) {
+        return Void.TYPE;
+      } else {
+        return null;
+      }
+    }
+
+    MediaType mediaType = MediaTypes.parseNullable(contentType);
+
+    for (ResponseDefinition definition : responseDefinitions) {
+      if (definition.getContentType() != null && isCompatibleMediaType(mediaType, MediaTypes.parseNullable(definition.getContentType()))) {
+        return definition.getJavaType();
+      }
+    }
+
+    return null;
+  }
+
+  private List<ResponseDefinition> selectResponseDefinitionsByStatusCode(int statusCode) {
     List<ResponseDefinition> responses = responseDefinitions.get(StatusCode.of(statusCode));
 
     if (responses != null) {
@@ -37,6 +95,21 @@ public class Operation {
     } else {
       return Optional.ofNullable(responseDefinitions.get(StatusCode.DEFAULT)).orElse(Collections.emptyList());
     }
+  }
+
+  private boolean isCompatibleMediaType(MediaType testedMediaType, MediaType mediaTypeToMatchAgainst) {
+    if (mediaTypeToMatchAgainst == null) {
+      return false;
+    }
+    if (mediaTypeToMatchAgainst.type().equals("*")) {
+      return true;
+    }
+    if (testedMediaType == null) {
+      return false;
+    }
+
+    boolean sameType = mediaTypeToMatchAgainst.type().equals(testedMediaType.type());
+    return sameType && (mediaTypeToMatchAgainst.subtype().equals("*") || mediaTypeToMatchAgainst.subtype().equals(testedMediaType.subtype()));
   }
 
   public Map<String, Parameter> getPathParameters() {
@@ -57,15 +130,6 @@ public class Operation {
         .collect(Collectors.toMap(Parameter::getName, Function.identity()));
   }
 
-  public List<String> getAllAcceptedMediaTypes() {
-    return responseDefinitions.values()
-        .stream()
-        .flatMap(list -> list.stream().map(ResponseDefinition::getContentType))
-        .filter(Objects::nonNull)
-        .distinct()
-        .collect(Collectors.toList());
-  }
-
   public String getPath() {
     return path;
   }
@@ -80,10 +144,6 @@ public class Operation {
 
   public OperationRequestBody getRequestBody() {
     return requestBody;
-  }
-
-  public Map<StatusCode, List<ResponseDefinition>> getResponseDefinitions() {
-    return responseDefinitions;
   }
 
   /**

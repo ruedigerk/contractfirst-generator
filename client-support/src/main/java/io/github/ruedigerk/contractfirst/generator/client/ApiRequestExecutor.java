@@ -4,11 +4,11 @@ import com.google.gson.Gson;
 import com.google.gson.GsonBuilder;
 import com.google.gson.JsonParseException;
 import io.github.ruedigerk.contractfirst.generator.client.internal.BodyPart;
+import io.github.ruedigerk.contractfirst.generator.client.internal.MediaTypes;
 import io.github.ruedigerk.contractfirst.generator.client.internal.MultipartRequestBody;
 import io.github.ruedigerk.contractfirst.generator.client.internal.Operation;
 import io.github.ruedigerk.contractfirst.generator.client.internal.OperationRequestBody;
 import io.github.ruedigerk.contractfirst.generator.client.internal.Parameter;
-import io.github.ruedigerk.contractfirst.generator.client.internal.ResponseDefinition;
 import io.github.ruedigerk.contractfirst.generator.support.gson.LocalDateGsonTypeAdapter;
 import io.github.ruedigerk.contractfirst.generator.support.gson.OffsetDateTimeGsonTypeAdapter;
 import java.io.ByteArrayOutputStream;
@@ -18,10 +18,8 @@ import java.lang.reflect.Type;
 import java.time.LocalDate;
 import java.time.OffsetDateTime;
 import java.util.List;
-import java.util.Map;
 import java.util.Objects;
 import java.util.stream.Collectors;
-import java.util.stream.Stream;
 import java.util.stream.StreamSupport;
 import okhttp3.FormBody;
 import okhttp3.Headers;
@@ -208,33 +206,12 @@ public class ApiRequestExecutor {
       }
     });
 
-    String acceptHeaderValue = determineAcceptHeaderValue(operation);
+    String acceptHeaderValue = operation.determineAcceptHeaderValue();
     if (!acceptHeaderValue.isEmpty()) {
       builder.add("Accept", acceptHeaderValue);
     }
 
     return builder.build();
-  }
-
-  /**
-   * All JSON-compatible mime types are sent with a q-factor of 1 and all other mime types with a q-factor of 0.5.
-   */
-  // See: https://developer.mozilla.org/en-US/docs/Glossary/Quality_values
-  // See: https://developer.mozilla.org/en-US/docs/Web/HTTP/Headers/Accept
-  // See: https://developer.mozilla.org/en-US/docs/Web/HTTP/Content_negotiation
-  // TODO: Write unit test
-  private String determineAcceptHeaderValue(Operation operation) {
-    Map<Boolean, List<String>> partitionedMediaTypes = operation.getAllAcceptedMediaTypes()
-        .stream()
-        .collect(Collectors.partitioningBy(this::isJsonMediaType));
-
-    List<String> jsonMediaTypes = partitionedMediaTypes.get(true);
-    List<String> nonJsonMediaTypes = partitionedMediaTypes.get(false);
-
-    return Stream.concat(
-        jsonMediaTypes.stream(),
-        nonJsonMediaTypes.stream().map(mediaType -> mediaType + "; q=0.5")
-    ).collect(Collectors.joining(", "));
   }
 
   private String serializeParameter(Object value) {
@@ -305,7 +282,7 @@ public class ApiRequestExecutor {
     Object entity = requestBody.getEntity();
     MediaType mediaType = MediaType.get(requestBody.getContentType());
 
-    if (isJsonMediaType(mediaType)) {
+    if (MediaTypes.isJsonMediaType(mediaType)) {
       String content = gson.toJson(entity);
       return RequestBody.create(content, mediaType);
     } else if (entity instanceof byte[]) {
@@ -357,8 +334,7 @@ public class ApiRequestExecutor {
     ResponseBuilder responseBuilder = new ResponseBuilder(apiRequest, statusCode, response.message(), mediaType, response.headers());
 
     try {
-      boolean isEmptyBody = responseBody.source().exhausted();
-      Type javaType = determineTypeOfContent(statusCode, mediaType, isEmptyBody, operation);
+      Type javaType = operation.determineMatchingResponseType(statusCode, mediaType);
 
       if (javaType == null) {
         // The response is not described in the contract, return an unexpected response.
@@ -367,14 +343,14 @@ public class ApiRequestExecutor {
         IncompatibleResponse incompatibleResponse = responseBuilder.incompatibleResponse(bodyContent);
         throw new ApiClientIncompatibleResponseException("The combination of the response's status code and content type is unknown", incompatibleResponse);
       } else if (javaType.equals(Void.TYPE)) {
-        // The response should be empty according to the contract. Ignore body if exists.
+        // The response should be empty according to the contract. Ignore body if it exists.
         response.close();
         return responseBuilder.apiResponse(javaType, null);
       } else if (javaType.equals(InputStream.class)) {
         // The contract says to return the body unprocessed, i.e., as type InputStream.
         // In this case, the application is responsible for closing the InputStream!
         return responseBuilder.apiResponse(javaType, responseBody.byteStream());
-      } else if (isJsonMediaType(mediaType)) {
+      } else if (MediaTypes.isJsonMediaType(mediaType)) {
         // The contract defines the response to be a JSON entity. Deserialize and return it.
         // Note: deserializeFromJson closes the response body.
         return deserializeFromJson(responseBuilder, responseBody, javaType);
@@ -393,60 +369,6 @@ public class ApiRequestExecutor {
       IncompleteResponse incompleteResponse = responseBuilder.incompleteResponse();
       throw new ApiClientIoException("Error reading response body: " + e, incompleteResponse, e);
     }
-  }
-
-  /**
-   * Returns the Java type of the response. If the response is not matching the contract, null is returned. If the response is defined to have no content, type
-   * {@link Void#TYPE} is returned.
-   */
-  // TODO: Write unit test
-  private Type determineTypeOfContent(int statusCode, String contentType, boolean isEmptyBody, Operation operation) {
-    // If the contentType is null, the server should not have sent a response body. If it has nevertheless, something is amiss.
-    if (contentType == null && !isEmptyBody) {
-      return null;
-    }
-
-    MediaType mediaType = contentType == null ? null : MediaType.get(contentType);
-    List<ResponseDefinition> responseDefinitions = operation.selectResponseDefinitionsByStatusCode(statusCode);
-
-    for (ResponseDefinition definition : responseDefinitions) {
-      if (mediaType == null && definition.hasNoContent()) {
-        return Void.TYPE;
-      } else if (mediaType != null && isCompatibleMediaType(mediaType, MediaType.get(definition.getContentType()))) {
-        return definition.getJavaType();
-      }
-    }
-
-    return null;
-  }
-
-  // TODO: Write unit test
-  private boolean isCompatibleMediaType(MediaType testedMediaType, MediaType mediaTypeToMatchAgainst) {
-    if (mediaTypeToMatchAgainst.type().equals("*")) {
-      return true;
-    }
-
-    boolean sameType = mediaTypeToMatchAgainst.type().equals(testedMediaType.type());
-    return sameType && (mediaTypeToMatchAgainst.subtype().equals("*") || mediaTypeToMatchAgainst.subtype().equals(testedMediaType.subtype()));
-  }
-
-  // TODO: Write unit test
-  private boolean isJsonMediaType(String mediaType) {
-    if (mediaType == null) {
-      return false;
-    }
-
-    return isJsonMediaType(MediaType.get(mediaType));
-  }
-
-  // TODO: Write unit test
-  private boolean isJsonMediaType(MediaType mediaType) {
-    if (mediaType == null) {
-      return false;
-    }
-
-    String subtype = mediaType.subtype();
-    return mediaType.type().equals("application") && (subtype.equals("json") || subtype.startsWith("vnd.") && subtype.endsWith("+json"));
   }
 
   /**

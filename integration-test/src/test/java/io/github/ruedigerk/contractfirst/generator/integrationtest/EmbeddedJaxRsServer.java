@@ -56,7 +56,6 @@ public class EmbeddedJaxRsServer {
     // Register resource classes
     jaxRsResourceClasses.forEach(resourceConfig::register);
 
-    // TODO: Use JdkHttpServerFactory instead of Grizzly? Is it faster to start up? (also needs other dependencies)
     // Create and start a new instance of grizzly http server.
     httpServer = GrizzlyHttpServerFactory.createHttpServer(URI.create(baseUrl), resourceConfig);
   }
