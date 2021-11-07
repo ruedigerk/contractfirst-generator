@@ -1,9 +1,11 @@
 package io.github.ruedigerk.contractfirst.generator.integrationtest
 
 import io.github.ruedigerk.contractfirst.generator.integrationtest.generated.client.api.FormEncodedRequestBodyApiClient
-import io.github.ruedigerk.contractfirst.generator.integrationtest.generated.server.resources.FormEncodedRequestBodyApi
+import io.github.ruedigerk.contractfirst.generator.integrationtest.generated.client.model.CFormEncodedRequestBodyRequestBodyFieldC
 import io.github.ruedigerk.contractfirst.generator.integrationtest.spec.EmbeddedJaxRsServerSpecification
 import spock.lang.Subject
+
+import javax.ws.rs.*
 
 /**
  * Tests serialization of form encoded request bodies.
@@ -20,7 +22,7 @@ class FormEncodedRequestBodyTest extends EmbeddedJaxRsServerSpecification {
 
   def "Test form encoded request body"() {
     when:
-    def result = apiClient.returningResult().formEncodedRequestBody("a&1", "b = really great!")
+    def result = apiClient.returningResult().formEncodedRequestBody("a&1", "b = really great!", CFormEncodedRequestBodyRequestBodyFieldC.SECOND_VALUE)
 
     then:
     result.isStatus204WithoutEntity()
@@ -29,12 +31,17 @@ class FormEncodedRequestBodyTest extends EmbeddedJaxRsServerSpecification {
   /**
    * JAX-RS resource implementation used in this test.
    */
-  static class EmbeddedServerResource implements FormEncodedRequestBodyApi {
+  @Path("")
+  static class EmbeddedServerResource {
 
-    @Override
-    FormEncodedRequestBodyResponse formEncodedRequestBody(String fieldA, String fieldB) {
-      assert fieldA == "a&1" && fieldB == "b = really great!"
-      return FormEncodedRequestBodyResponse.with204()
+    @POST
+    @Path("/formEncodedRequestBody")
+    @Consumes("application/x-www-form-urlencoded")
+    @Produces
+    void formEncodedRequestBody(@FormParam("fieldA") String fieldA, @FormParam("fieldB") String fieldB, @FormParam("fieldC") String fieldC) {
+      assert fieldA == "a&1" 
+      assert fieldB == "b = really great!"
+      assert fieldC == "second%value"
     }
   }
 }

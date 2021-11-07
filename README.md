@@ -119,6 +119,7 @@ Changelog
 
 **Fixed**
 - Made the client more resilient to unusual combinations of content-types and invalid content-types.
+- Implemented support for enums in x-www-form-urlencoded request bodies, where the Java names of the constants do not match the original names.
 
 ### 1.4.0
 

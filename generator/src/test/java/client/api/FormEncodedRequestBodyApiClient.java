@@ -1,5 +1,6 @@
 package client.api;
 
+import client.model.FormEncodedRequestBodyRequestBodyFieldC;
 import io.github.ruedigerk.contractfirst.generator.client.ApiClientIncompatibleResponseException;
 import io.github.ruedigerk.contractfirst.generator.client.ApiClientIoException;
 import io.github.ruedigerk.contractfirst.generator.client.ApiClientValidationException;
@@ -32,10 +33,11 @@ public class FormEncodedRequestBodyApiClient {
   /**
    * A test case for an x-www-form-urlencoded encoded request body.
    */
-  public void formEncodedRequestBody(String fieldA, String fieldB) throws ApiClientIoException,
+  public void formEncodedRequestBody(String fieldA, String fieldB,
+      FormEncodedRequestBodyRequestBodyFieldC fieldC) throws ApiClientIoException,
       ApiClientValidationException, ApiClientIncompatibleResponseException {
 
-    FormEncodedRequestBodyResult result = returningResult.formEncodedRequestBody(fieldA, fieldB);
+    FormEncodedRequestBodyResult result = returningResult.formEncodedRequestBody(fieldA, fieldB, fieldC);
   }
 
   /**
@@ -45,13 +47,15 @@ public class FormEncodedRequestBodyApiClient {
     /**
      * A test case for an x-www-form-urlencoded encoded request body.
      */
-    public FormEncodedRequestBodyResult formEncodedRequestBody(String fieldA, String fieldB) throws
-        ApiClientIoException, ApiClientValidationException, ApiClientIncompatibleResponseException {
+    public FormEncodedRequestBodyResult formEncodedRequestBody(String fieldA, String fieldB,
+        FormEncodedRequestBodyRequestBodyFieldC fieldC) throws ApiClientIoException,
+        ApiClientValidationException, ApiClientIncompatibleResponseException {
 
       Operation.Builder builder = new Operation.Builder("/formEncodedRequestBody", "POST");
 
       builder.requestBodyPart("fieldA", fieldA);
       builder.requestBodyPart("fieldB", fieldB);
+      builder.requestBodyPart("fieldC", fieldC);
       builder.multipartRequestBody("application/x-www-form-urlencoded");
 
       builder.response(StatusCode.of(204));

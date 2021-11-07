@@ -362,6 +362,11 @@ paths:
                   type: string
                 fieldB:
                   type: string
+                fieldC:
+                  type: string
+                  enum:
+                    - first_value
+                    - second%value
       responses:
         204:
           description: Ok.

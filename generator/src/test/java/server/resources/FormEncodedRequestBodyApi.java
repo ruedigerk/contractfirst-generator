@@ -6,6 +6,7 @@ import javax.ws.rs.POST;
 import javax.ws.rs.Path;
 import javax.ws.rs.Produces;
 import javax.ws.rs.core.Response;
+import server.model.FormEncodedRequestBodyRequestBodyFieldC;
 import server.resources.support.ResponseWrapper;
 
 @Path("")
@@ -18,7 +19,8 @@ public interface FormEncodedRequestBodyApi {
   @Consumes("application/x-www-form-urlencoded")
   @Produces
   FormEncodedRequestBodyResponse formEncodedRequestBody(@FormParam("fieldA") String fieldA,
-      @FormParam("fieldB") String fieldB);
+      @FormParam("fieldB") String fieldB,
+      @FormParam("fieldC") FormEncodedRequestBodyRequestBodyFieldC fieldC);
 
   class FormEncodedRequestBodyResponse extends ResponseWrapper {
     private FormEncodedRequestBodyResponse(Response delegate) {

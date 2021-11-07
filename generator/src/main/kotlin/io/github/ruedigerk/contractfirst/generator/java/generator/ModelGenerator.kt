@@ -10,8 +10,7 @@ import io.github.ruedigerk.contractfirst.generator.java.generator.JavapoetExtens
 import io.github.ruedigerk.contractfirst.generator.java.generator.JavapoetExtensions.doIfNotNull
 import io.github.ruedigerk.contractfirst.generator.java.model.*
 import java.io.File
-import javax.lang.model.element.Modifier.PRIVATE
-import javax.lang.model.element.Modifier.PUBLIC
+import javax.lang.model.element.Modifier.*
 
 /**
  * Generates the code for the model classes.
@@ -104,12 +103,55 @@ class ModelGenerator(configuration: Configuration) {
   }
 
   private fun toJavaEnum(enumFile: JavaEnumFile): TypeSpec {
+    // If any of the enum constants has a name, that is not equal to its java name, then generate a "complex" enum, where the toString method returns the
+    // original name, so that enums are properly serialized for x-www-form-urlencoded request bodies.
+    return if (enumFile.constants.any { it.originalName != it.javaName }) {
+      toComplexEnum(enumFile)
+    } else {
+      toSimpleEnum(enumFile)
+    }
+  }
+
+  /**
+   * Construct a "simple" enum, where the constants' names match their Java names.
+   */
+  private fun toSimpleEnum(enumFile: JavaEnumFile): TypeSpec {
     val builder = TypeSpec.enumBuilder(enumFile.className)
         .doIfNotNull(enumFile.javadoc) { addJavadoc("\$L", it) }
         .addModifiers(PUBLIC)
 
     enumFile.constants.forEach { enumConstant ->
-      val constant = TypeSpec.anonymousClassBuilder("")
+      builder.addEnumConstant(enumConstant.javaName)
+    }
+
+    return builder.build()
+  }
+
+  /**
+   * Construct a "complex" enum, where the constants' names do not match their Java names.
+   */
+  private fun toComplexEnum(enumFile: JavaEnumFile): TypeSpec {
+    val constructorSpec = MethodSpec.constructorBuilder()
+        .addParameter(String::class.java, "serializedName")
+        .addStatement("this.serializedName = serializedName")
+        .build()
+
+    val toStringMethodSpec = MethodSpec.methodBuilder("toString")
+        .addAnnotation(Override::class.java)
+        .addModifiers(PUBLIC)
+        .returns(String::class.java)
+        .addStatement("return serializedName")
+        .build()
+    
+    val builder = TypeSpec.enumBuilder(enumFile.className)
+        .doIfNotNull(enumFile.javadoc) { addJavadoc("\$L", it) }
+        .addModifiers(PUBLIC)
+        .addField(String::class.java, "serializedName", PRIVATE, FINAL)
+        .addMethod(constructorSpec)
+        .addMethod(toStringMethodSpec)
+
+    enumFile.constants.forEach { enumConstant ->
+      val constant = TypeSpec.anonymousClassBuilder("\$S", enumConstant.originalName)
           .doIf(enumConstant.javaName != enumConstant.originalName) { addAnnotation(serializedNameAnnotation(enumConstant.originalName)) }
           .build()
 
