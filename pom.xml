@@ -52,7 +52,7 @@
       <!-- Language versions -->
       <target-jdk.release>8</target-jdk.release>
       <target-jdk.version>1.8</target-jdk.version>
-      <kotlin.version>1.5.30</kotlin.version>
+      <kotlin.version>1.6.0</kotlin.version>
       <groovy.version>2.5.15</groovy.version>
 
       <!-- Maven project plugin versions -->
@@ -73,7 +73,7 @@
 
       <!-- Third party plugin versions -->
       <gmavenplus-plugin.version>1.13.0</gmavenplus-plugin.version>
-      <dokka.version>1.5.30</dokka.version>
+      <dokka.version>1.6.0</dokka.version>
 
       <!-- Dependency versions -->
       <bean-validation.version>1.1.0.Final</bean-validation.version>
