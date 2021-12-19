@@ -11,8 +11,7 @@
    </parent>
 
    <properties>
-      <jersey.version>2.34</jersey.version>
-      <okhttp.version>4.9.1</okhttp.version>
+      <okhttp.version>4.9.3</okhttp.version>
    </properties>
 
    <build>
@@ -80,9 +79,9 @@
       <!-- ################# -->
       <dependency>
          <!-- For testing with Spock -->
-         <groupId>junit</groupId>
-         <artifactId>junit</artifactId>
-         <version>${junit.version}</version>
+         <groupId>org.junit.jupiter</groupId>
+         <artifactId>junit-jupiter</artifactId>
+         <version>${junit5.version}</version>
          <scope>test</scope>
       </dependency>
       <dependency>

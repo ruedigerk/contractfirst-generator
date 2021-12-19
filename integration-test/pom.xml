@@ -166,9 +166,9 @@
       <!-- ################# -->
       <dependency>
          <!-- For testing with Spock -->
-         <groupId>junit</groupId>
-         <artifactId>junit</artifactId>
-         <version>${junit.version}</version>
+         <groupId>org.junit.jupiter</groupId>
+         <artifactId>junit-jupiter</artifactId>
+         <version>${junit5.version}</version>
          <scope>test</scope>
       </dependency>
       <dependency>

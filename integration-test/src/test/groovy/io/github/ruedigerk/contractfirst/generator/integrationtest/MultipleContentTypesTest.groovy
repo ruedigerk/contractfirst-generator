@@ -49,7 +49,7 @@ class MultipleContentTypesTest extends EmbeddedJaxRsServerSpecification {
         new Header("Host", HOST),
         new Header("Connection", "Keep-Alive"),
         new Header("Accept-Encoding", "gzip"),
-        new Header("User-Agent", "okhttp/4.9.1"),
+        new Header("User-Agent", "okhttp/4.9.3"),
     ]
     response.headers == [
         new Header("Content-Type", "application/json"),
@@ -86,7 +86,7 @@ class MultipleContentTypesTest extends EmbeddedJaxRsServerSpecification {
         new Header("Host", HOST),
         new Header("Connection", "Keep-Alive"),
         new Header("Accept-Encoding", "gzip"),
-        new Header("User-Agent", "okhttp/4.9.1"),
+        new Header("User-Agent", "okhttp/4.9.3"),
     ]
     response.headers == [
         new Header("Content-Type", "application/pdf"),
@@ -122,7 +122,7 @@ class MultipleContentTypesTest extends EmbeddedJaxRsServerSpecification {
         new Header("Host", HOST),
         new Header("Connection", "Keep-Alive"),
         new Header("Accept-Encoding", "gzip"),
-        new Header("User-Agent", "okhttp/4.9.1"),
+        new Header("User-Agent", "okhttp/4.9.3"),
     ]
     response.headers == [
         new Header("Content-Type", "text/plain"),
