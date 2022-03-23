@@ -5,11 +5,11 @@ import io.github.ruedigerk.contractfirst.generator.Configuration
 import io.github.ruedigerk.contractfirst.generator.NotSupportedException
 import io.github.ruedigerk.contractfirst.generator.java.Identifiers.capitalize
 import io.github.ruedigerk.contractfirst.generator.java.Identifiers.mediaTypeToJavaIdentifier
-import io.github.ruedigerk.contractfirst.generator.java.generator.GeneratorCommon.NOT_NULL_ANNOTATION
-import io.github.ruedigerk.contractfirst.generator.java.generator.GeneratorCommon.toAnnotation
-import io.github.ruedigerk.contractfirst.generator.java.generator.GeneratorCommon.toTypeName
+import io.github.ruedigerk.contractfirst.generator.java.generator.TypeNames.toTypeName
 import io.github.ruedigerk.contractfirst.generator.java.generator.JavapoetExtensions.doIf
 import io.github.ruedigerk.contractfirst.generator.java.generator.JavapoetExtensions.doIfNotNull
+import io.github.ruedigerk.contractfirst.generator.java.generator.Annotations.NOT_NULL_ANNOTATION
+import io.github.ruedigerk.contractfirst.generator.java.generator.Annotations.toAnnotation
 import io.github.ruedigerk.contractfirst.generator.java.model.*
 import io.github.ruedigerk.contractfirst.generator.model.DefaultStatusCode
 import io.github.ruedigerk.contractfirst.generator.model.ParameterLocation.*
@@ -70,7 +70,7 @@ class ServerStubGenerator(private val configuration: Configuration) {
   }
 
   private fun toParameterSpec(parameter: JavaParameter): ParameterSpec {
-    val typeValidationAnnotations = parameter.javaType.validations.map(GeneratorCommon::toAnnotation)
+    val typeValidationAnnotations = parameter.javaType.validations.map(Annotations::toAnnotation)
 
     return ParameterSpec.builder(parameter.javaType.toTypeName(), parameter.javaParameterName)
         .doIfNotNull(parameter as? JavaRegularParameter) { addAnnotation(paramAnnotation(it)) }

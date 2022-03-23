@@ -1,0 +1,77 @@
+openapi: 3.0.0
+info:
+  title: Contract for testing validations for the data model.
+  version: 1.0.0
+servers:
+- url: https://example.com/
+paths:
+  /v1/components:
+    get:
+      operationId: getComponent
+      responses:
+        "200":
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Component'
+          description: Returned component.
+      summary: Get component.
+      tags:
+      - V1Components
+components:
+  schemas:
+    Component:
+      description: Test validations
+      properties:
+        intMinMax:
+          description: Test integer validations too large for Java int.
+          format: int32
+          maximum: -999999999
+          minimum: -999999999
+          type: integer
+        longMinMax:
+          description: Test integer validations too large for Java int.
+          format: int64
+          maximum: -9999999999999
+          minimum: -9999999999999
+          type: integer
+        bigIntMinMax:
+          description: Test integer validations too large for Java long.
+          maximum: 99999999999999999999999999
+          minimum: -99999999999999999999999999
+          type: integer
+        validatedStrings:
+          description: Test size validation on arrays and validation on array elements.
+          items:
+            maxLength: 4
+            minLength: 2
+            pattern: ^\d+$
+            type: string
+          maxItems: 1000
+          minItems: 1
+          type: array
+        validatedObjects:
+          description: Test validation on array elements of type object.
+          items:
+            properties:
+              name:
+                pattern: ^\d+$
+                type: string
+            type: object
+          type: array
+        validatedMap:
+          additionalProperties:
+            maxLength: 10
+            minLength: 1
+            type: string
+          description: Test validation on map values.
+          type: object
+        text:
+          description: Test length and pattern validation on strings.
+          maxLength: 1000
+          minLength: 1
+          pattern: ^\w+$
+          type: string
+      required:
+      - intMinMax
+      type: object

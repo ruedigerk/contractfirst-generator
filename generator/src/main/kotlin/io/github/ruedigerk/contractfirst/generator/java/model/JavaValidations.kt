@@ -1,6 +1,7 @@
 package io.github.ruedigerk.contractfirst.generator.java.model
 
 import java.math.BigDecimal
+import java.math.BigInteger
 
 /**
  * Represents any kind of validation performed on a value.
@@ -12,8 +13,11 @@ sealed interface TypeValidation
  */
 data class IntegralValidation(
     val type: NumericValidationType,
-    val value: Long
-) : TypeValidation
+    val value: BigInteger
+) : TypeValidation {
+  
+  fun toDecimalValidation(): DecimalValidation = DecimalValidation(type, value.toBigDecimal(), true)
+}
 
 /**
  * Represents a validation performed on decimal values like double and BigDecimal.
@@ -25,7 +29,7 @@ data class DecimalValidation(
 ) : TypeValidation
 
 /**
- * Represents the type of a numeric validation.
+ * Represents the type of numeric validation.
  */
 enum class NumericValidationType {
   MIN,

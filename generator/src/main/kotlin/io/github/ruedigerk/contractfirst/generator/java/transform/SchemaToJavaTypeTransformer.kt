@@ -7,7 +7,7 @@ import io.github.ruedigerk.contractfirst.generator.java.model.NumericValidationT
 import io.github.ruedigerk.contractfirst.generator.java.model.NumericValidationType.MIN
 import io.github.ruedigerk.contractfirst.generator.logging.Log
 import io.github.ruedigerk.contractfirst.generator.model.*
-import io.github.ruedigerk.contractfirst.generator.model.MPrimitiveType.*
+import io.github.ruedigerk.contractfirst.generator.model.PrimitiveType.*
 
 /**
  * Transforms the parsed Schemas into Java types, assigning unique and valid type names. This needs to be done before creating Java source file models for these
@@ -114,10 +114,10 @@ class SchemaToJavaTypeTransformer(
     val validations = mutableListOf<TypeValidation>()
 
     if (schema.minimum != null) {
-      validations.add(IntegralValidation(MIN, schema.minimum.toLong()))
+      validations.add(IntegralValidation(MIN, schema.minimum.toBigInteger()))
     }
     if (schema.maximum != null) {
-      validations.add(IntegralValidation(MAX, schema.maximum.toLong()))
+      validations.add(IntegralValidation(MAX, schema.maximum.toBigInteger()))
     }
 
     return validations.toList()

@@ -27,7 +27,7 @@ Here is an example for using the Maven plugin to generate server stubs:
     <plugin>
        <artifactId>contractfirst-generator-maven-plugin</artifactId>
        <groupId>io.github.ruedigerk.contractfirst.generator</groupId>
-       <version>1.4.1</version>
+       <version>1.5.0</version>
        <executions>
           <execution>
              <id>generate-server</id>
@@ -49,13 +49,13 @@ The generated server code needs the following dependencies:
         <!-- Contains a JAX-RS ParamConverterProvider and a Gson MessageBodyHandler to support LocalDate and OffsetDateTime -->
         <groupId>io.github.ruedigerk.contractfirst.generator</groupId>
         <artifactId>contractfirst-generator-server-support</artifactId>
-        <version>1.4.1</version>
+        <version>1.5.0</version>
     </dependency>
     <dependency>
         <!-- BeanValidation API for the generated data model -->
         <groupId>javax.validation</groupId>
         <artifactId>validation-api</artifactId>
-        <version>1.1.0.Final</version>
+        <version>2.0.1.Final</version>
     </dependency>
     <dependency>
         <!-- Gson for serializing and deserializing the generated data model to and from JSON -->
@@ -75,7 +75,7 @@ Here is an example for using the Maven plugin to generate an API client:
     <plugin>
        <artifactId>contractfirst-generator-maven-plugin</artifactId>
        <groupId>io.github.ruedigerk.contractfirst.generator</groupId>
-       <version>1.4.1</version>
+       <version>1.5.0</version>
        <executions>
           <execution>
              <id>generate-client</id>
@@ -97,13 +97,13 @@ The generated client code needs the following dependencies:
         <!-- Support module for the generated client code -->
         <groupId>io.github.ruedigerk.contractfirst.generator</groupId>
         <artifactId>contractfirst-generator-client-support</artifactId>
-        <version>1.4.1</version>
+        <version>1.5.0</version>
     </dependency>
     <dependency>
         <!-- BeanValidation API for the generated data model -->
         <groupId>javax.validation</groupId>
         <artifactId>validation-api</artifactId>
-        <version>1.1.0.Final</version>
+        <version>2.0.1.Final</version>
     </dependency>
     <dependency>
         <!-- Gson for serializing and deserializing the generated data model to and from JSON -->
@@ -114,6 +114,18 @@ The generated client code needs the following dependencies:
 
 Changelog
 ---------
+
+### 1.5.0
+
+**Changed**
+- The generated model files now contain annotations requiring BeanValidation in version 2.0.0.Final or above.
+
+**Fixed**
+- Fixed a bug in generated @Min and @Max annotations when the values were larger than what is representable by int.
+
+**Added**
+- Added the capability that the fields generated model files have validation annotations on the element type of List and Map, i.e. 
+  List<@Size(min = 2, max = 4) String>.
 
 ### 1.4.1
 

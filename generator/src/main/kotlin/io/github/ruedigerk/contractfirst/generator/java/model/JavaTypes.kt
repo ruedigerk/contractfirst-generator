@@ -1,8 +1,8 @@
 package io.github.ruedigerk.contractfirst.generator.java.model
 
 /**
- * Represents any kind of type used in generated Java code. Contains all data necessary to reference a type, including the contrains set on a type via 
- * BeanValidation-Annotations. Does not represent the actual definition of that type. The definiton of a type is JavaSourceFile. 
+ * Represents any kind of type used in generated Java code. Contains all data necessary to reference a type, including the contraints set on a type via 
+ * BeanValidation-Annotations. Does not represent the actual definition of that type. The definition of a type is JavaSourceFile. 
  */
 sealed interface JavaAnyType {
 

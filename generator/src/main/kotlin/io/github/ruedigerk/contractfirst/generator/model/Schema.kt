@@ -102,7 +102,7 @@ data class EnumSchema(
 data class PrimitiveSchema(
     override val title: String?,
     override val description: String?,
-    val type: MPrimitiveType,
+    val type: PrimitiveType,
     val format: String?,
     val minimum: BigDecimal?,
     val maximum: BigDecimal?,
@@ -118,11 +118,11 @@ data class PrimitiveSchema(
 }
 
 /**
- * Represents the type of a primitive schema.
+ * Represents the type of primitive schema.
  * 
  * Type "null" is currently not supported.
  */
-enum class MPrimitiveType {
+enum class PrimitiveType {
 
   BOOLEAN,
   INTEGER,

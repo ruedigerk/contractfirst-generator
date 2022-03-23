@@ -3,9 +3,8 @@ package io.github.ruedigerk.contractfirst.generator.java.generator
 import com.squareup.javapoet.*
 import io.github.ruedigerk.contractfirst.generator.Configuration
 import io.github.ruedigerk.contractfirst.generator.java.Identifiers.capitalize
-import io.github.ruedigerk.contractfirst.generator.java.generator.GeneratorCommon.NOT_NULL_ANNOTATION
-import io.github.ruedigerk.contractfirst.generator.java.generator.GeneratorCommon.toAnnotation
-import io.github.ruedigerk.contractfirst.generator.java.generator.GeneratorCommon.toTypeName
+import io.github.ruedigerk.contractfirst.generator.java.generator.Annotations.toAnnotation
+import io.github.ruedigerk.contractfirst.generator.java.generator.TypeNames.toTypeName
 import io.github.ruedigerk.contractfirst.generator.java.generator.JavapoetExtensions.doIf
 import io.github.ruedigerk.contractfirst.generator.java.generator.JavapoetExtensions.doIfNotNull
 import io.github.ruedigerk.contractfirst.generator.java.model.*
@@ -91,11 +90,11 @@ class ModelGenerator(configuration: Configuration) {
   }
 
   private fun toField(property: JavaProperty): FieldSpec {
-    val typeValidationAnnotations = property.type.validations.map(GeneratorCommon::toAnnotation)
+    val typeValidationAnnotations = property.type.validations.map(Annotations::toAnnotation)
 
-    return FieldSpec.builder(property.type.toTypeName(), property.javaName, PRIVATE)
+    return FieldSpec.builder(property.type.toTypeName(true), property.javaName, PRIVATE)
         .doIfNotNull(property.javadoc) { addJavadoc("\$L", it) }
-        .doIf(property.required) { addAnnotation(NOT_NULL_ANNOTATION) }
+        .doIf(property.required) { addAnnotation(Annotations.NOT_NULL_ANNOTATION) }
         .doIf(property.javaName != property.originalName) { addAnnotation(serializedNameAnnotation(property.originalName)) }
         .addAnnotations(typeValidationAnnotations)
         .doIfNotNull(property.initializerType) { initializer("new \$T<>()", it.toTypeName()) }

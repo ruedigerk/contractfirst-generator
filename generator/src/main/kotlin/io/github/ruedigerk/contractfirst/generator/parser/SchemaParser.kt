@@ -31,7 +31,7 @@ class SchemaParser(private val log: Log) {
 
     return when (schema.type) {
       "array" -> toArraySchema(schema as SwaggerArraySchema, location)
-      "boolean", "integer", "number", "string" -> toPrimitiveSchema(MPrimitiveType.valueOf(schema.type.uppercase()), schema, location)
+      "boolean", "integer", "number", "string" -> toPrimitiveSchema(PrimitiveType.valueOf(schema.type.uppercase()), schema, location)
       "object", null -> toObjectOrMapSchema(schema, location)
       else -> throw NotSupportedException("Schema type '${schema.type}' is not supported: $schema")
     }
@@ -60,7 +60,7 @@ class SchemaParser(private val log: Log) {
     ).also { itemsSchema.embedIn(it) }
   }
 
-  private fun toPrimitiveSchema(primitiveType: MPrimitiveType, schema: SwaggerSchema<*>, location: NameHint): PrimitiveSchema {
+  private fun toPrimitiveSchema(primitiveType: PrimitiveType, schema: SwaggerSchema<*>, location: NameHint): PrimitiveSchema {
     return PrimitiveSchema(
         schema.title.normalize(),
         schema.description.normalize(),

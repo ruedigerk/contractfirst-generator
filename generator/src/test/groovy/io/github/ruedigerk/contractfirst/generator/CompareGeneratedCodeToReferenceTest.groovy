@@ -1,8 +1,6 @@
 package io.github.ruedigerk.contractfirst.generator
 
-import spock.lang.Specification
-import spock.lang.Unroll
-
+import spock.lang.Specification 
 /**
  * Compares generated code to the reference in the src/test/java source root.
  */
@@ -16,8 +14,8 @@ class CompareGeneratedCodeToReferenceTest extends Specification {
   static def multipartHarness = new GeneratorHarness("src/test/contract/multipart-request-body.yaml", "multipart", false)
   static def parametersServerHarness = new GeneratorHarness("src/test/contract/equally-named-parameters.yaml", "parameters_server", true)
   static def parametersClientHarness = new GeneratorHarness("src/test/contract/equally-named-parameters.yaml", "parameters_client", false)
+  static def validationsHarness = new GeneratorHarness("src/test/contract/validations.yaml", "validations", true)
 
-  @Unroll
   def "Testsuite (server): #fileName"() {
     when:
     serverHarness.runGenerator()
@@ -34,7 +32,6 @@ class CompareGeneratedCodeToReferenceTest extends Specification {
     generatedFile << serverHarness.generatedFiles
   }
 
-  @Unroll
   def "Testsuite (client): #fileName"() {
     when:
     clientHarness.runGenerator()
@@ -51,7 +48,6 @@ class CompareGeneratedCodeToReferenceTest extends Specification {
     generatedFile << clientHarness.generatedFiles
   }
 
-  @Unroll
   def "Content type combinations (server): #fileName"() {
     when:
     combinationsServerHarness.runGenerator()
@@ -68,7 +64,6 @@ class CompareGeneratedCodeToReferenceTest extends Specification {
     generatedFile << combinationsServerHarness.generatedFiles
   }
 
-  @Unroll
   def "Content type combinations (client): #fileName"() {
     when:
     combinationsClientHarness.runGenerator()
@@ -85,7 +80,6 @@ class CompareGeneratedCodeToReferenceTest extends Specification {
     generatedFile << combinationsClientHarness.generatedFiles
   }
 
-  @Unroll
   def "Self referential data model: #fileName"() {
     when:
     selfReferentialHarness.runGenerator()
@@ -102,7 +96,6 @@ class CompareGeneratedCodeToReferenceTest extends Specification {
     generatedFile << selfReferentialHarness.generatedFiles
   }
 
-  @Unroll
   def "Multipart request body: #fileName"() {
     when:
     multipartHarness.runGenerator()
@@ -119,7 +112,6 @@ class CompareGeneratedCodeToReferenceTest extends Specification {
     generatedFile << multipartHarness.generatedFiles
   }
 
-  @Unroll
   def "Operations with equally named parameters (server): #fileName"() {
     when:
     parametersServerHarness.runGenerator()
@@ -136,7 +128,6 @@ class CompareGeneratedCodeToReferenceTest extends Specification {
     generatedFile << parametersServerHarness.generatedFiles
   }
 
-  @Unroll
   def "Operations with equally named parameters (client): #fileName"() {
     when:
     parametersClientHarness.runGenerator()
@@ -151,5 +142,21 @@ class CompareGeneratedCodeToReferenceTest extends Specification {
     fileName << parametersClientHarness.relativePathNames
     referenceFile << parametersClientHarness.referenceFiles
     generatedFile << parametersClientHarness.generatedFiles
+  }
+
+  def "Validation annotations: #fileName"() {
+    when:
+    validationsHarness.runGenerator()
+
+    then:
+    generatedFile.exists()
+
+    and:
+    generatedFile.text == referenceFile.text
+
+    where:
+    fileName << validationsHarness.relativePathNames
+    referenceFile << validationsHarness.referenceFiles
+    generatedFile << validationsHarness.generatedFiles
   }
 }

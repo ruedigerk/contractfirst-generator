@@ -4,8 +4,8 @@ import com.squareup.javapoet.*
 import io.github.ruedigerk.contractfirst.generator.Configuration
 import io.github.ruedigerk.contractfirst.generator.java.Identifiers.toJavaConstant
 import io.github.ruedigerk.contractfirst.generator.java.Identifiers.toJavaTypeIdentifier
-import io.github.ruedigerk.contractfirst.generator.java.generator.GeneratorCommon.toAnnotation
-import io.github.ruedigerk.contractfirst.generator.java.generator.GeneratorCommon.toTypeName
+import io.github.ruedigerk.contractfirst.generator.java.generator.Annotations.toAnnotation
+import io.github.ruedigerk.contractfirst.generator.java.generator.TypeNames.toTypeName
 import io.github.ruedigerk.contractfirst.generator.java.generator.JavapoetExtensions.doIf
 import io.github.ruedigerk.contractfirst.generator.java.generator.JavapoetExtensions.doIfNotNull
 import io.github.ruedigerk.contractfirst.generator.java.model.*
