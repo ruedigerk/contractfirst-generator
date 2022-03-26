@@ -121,11 +121,11 @@ Changelog
 - The generated model files now contain annotations requiring BeanValidation in version 2.0.0.Final or above.
 
 **Fixed**
-- Fixed a bug in generated @Min and @Max annotations when the values were larger than what is representable by int.
+- Fixed a bug in generated `@Min` and `@Max` annotations when the values were larger than representable by `int`.
 
 **Added**
-- Added the capability that the fields generated model files have validation annotations on the element type of List and Map, i.e. 
-  List<@Size(min = 2, max = 4) String>.
+- Added the capability that fields of type List or Map in the generated model classes can have validation annotations on the element type, i.e. 
+  `private List<@Size(min = 2, max = 4) String> theList;`.
 
 ### 1.4.1
 
