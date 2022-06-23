@@ -55,6 +55,22 @@ public class PayloadVariantsApiClient {
   }
 
   /**
+   * Second test operation for generic types, using the same generic return type as the other operation (test for bug in the generator).
+   */
+  public List<Item> filterItems2(List<Item> requestBody) throws ApiClientIoException,
+      ApiClientValidationException, ApiClientIncompatibleResponseException,
+      ApiClientErrorWithFailureEntityException {
+
+    FilterItems2Result result = returningResult.filterItems2(requestBody);
+
+    if (!result.isSuccessful()) {
+      throw new ApiClientErrorWithFailureEntityException(result.getResponse());
+    }
+
+    return result.getEntityAsListOfItem();
+  }
+
+  /**
    * Test binary input and output.
    */
   public InputStream uploadAndReturnBinary(InputStream requestBody) throws ApiClientIoException,
@@ -104,6 +120,24 @@ public class PayloadVariantsApiClient {
       ApiResponse response = requestExecutor.executeRequest(builder.build());
 
       return new FilterItemsResult(response);
+    }
+
+    /**
+     * Second test operation for generic types, using the same generic return type as the other operation (test for bug in the generator).
+     */
+    public FilterItems2Result filterItems2(List<Item> requestBody) throws ApiClientIoException,
+        ApiClientValidationException, ApiClientIncompatibleResponseException {
+
+      Operation.Builder builder = new Operation.Builder("/items2", "POST");
+
+      builder.requestBody("application/json", true, requestBody);
+
+      builder.response(StatusCode.of(200), "application/json", LIST_OF_ITEM);
+      builder.response(StatusCode.DEFAULT, "application/json", Failure.class);
+
+      ApiResponse response = requestExecutor.executeRequest(builder.build());
+
+      return new FilterItems2Result(response);
     }
 
     /**
@@ -243,6 +277,109 @@ public class PayloadVariantsApiClient {
       StringBuilder builder = new StringBuilder();
       builder.append(", response=").append(response);
       return builder.replace(0, 2, "FilterItemsResult{").append('}').toString();
+    }
+  }
+
+  /**
+   * Represents the result of calling operation filterItems2.
+   */
+  public static class FilterItems2Result {
+    private final ApiResponse response;
+
+    public FilterItems2Result(ApiResponse response) {
+      this.response = response;
+    }
+
+    /**
+     * Returns the ApiResponse instance with the details of the operation's HTTP response.
+     */
+    public ApiResponse getResponse() {
+      return response;
+    }
+
+    /**
+     * Returns the HTTP status code of the operation's response.
+     */
+    public int getStatus() {
+      return response.getStatusCode();
+    }
+
+    /**
+     * Returns whether the response has a status code in the range 200 to 299.
+     */
+    public boolean isSuccessful() {
+      return response.isSuccessful();
+    }
+
+    /**
+     * Returns whether the response's status code is 200, while the response's entity is of type {@code List<Item>}.
+     */
+    public boolean isStatus200ReturningListOfItem() {
+      return response.getStatusCode() == 200 && response.getEntityType() == LIST_OF_ITEM;
+    }
+
+    /**
+     * Returns whether the response's entity is of type {@code Failure}.
+     */
+    public boolean isReturningFailure() {
+      return response.getEntityType() == Failure.class;
+    }
+
+    /**
+     * Returns the response's entity wrapped in {@code java.lang.Optional.of()} if it is of type {@code List<Item>}. Otherwise, returns {@code Optional.empty()}.
+     */
+    public Optional<List<Item>> getEntityIfListOfItem() {
+      return Optional.ofNullable(getEntityAsListOfItem());
+    }
+
+    /**
+     * Returns the response's entity if it is of type {@code List<Item>}. Otherwise, returns null.
+     */
+    @SuppressWarnings("unchecked")
+    public List<Item> getEntityAsListOfItem() {
+      if (response.getEntityType() == LIST_OF_ITEM) {
+        return (List<Item>) response.getEntity();
+      } else {
+        return null;
+      }
+    }
+
+    /**
+     * Returns the response's entity wrapped in {@code java.lang.Optional.of()} if it is of type {@code Failure}. Otherwise, returns {@code Optional.empty()}.
+     */
+    public Optional<Failure> getEntityIfFailure() {
+      return Optional.ofNullable(getEntityAsFailure());
+    }
+
+    /**
+     * Returns the response's entity if it is of type {@code Failure}. Otherwise, returns null.
+     */
+    public Failure getEntityAsFailure() {
+      if (response.getEntityType() == Failure.class) {
+        return (Failure) response.getEntity();
+      } else {
+        return null;
+      }
+    }
+
+    @Override
+    public boolean equals(Object other) {
+      if (other == this) return true;
+      if (other == null || getClass() != other.getClass()) return false;
+      FilterItems2Result o = (FilterItems2Result) other;
+      return Objects.equals(response, o.response);
+    }
+
+    @Override
+    public int hashCode() {
+      return Objects.hash(response);
+    }
+
+    @Override
+    public String toString() {
+      StringBuilder builder = new StringBuilder();
+      builder.append(", response=").append(response);
+      return builder.replace(0, 2, "FilterItems2Result{").append('}').toString();
     }
   }
 

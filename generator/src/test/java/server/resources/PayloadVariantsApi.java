@@ -26,6 +26,15 @@ public interface PayloadVariantsApi {
   FilterItemsResponse filterItems(@NotNull @Valid List<Item> requestBody);
 
   /**
+   * Second test operation for generic types, using the same generic return type as the other operation (test for bug in the generator).
+   */
+  @POST
+  @Path("/items2")
+  @Consumes("application/json")
+  @Produces("application/json")
+  FilterItems2Response filterItems2(@NotNull @Valid List<Item> requestBody);
+
+  /**
    * Test binary input and output.
    */
   @PUT
@@ -61,6 +70,24 @@ public interface PayloadVariantsApi {
 
     public static FilterItemsResponse withCustomResponse(Response response) {
       return new FilterItemsResponse(response);
+    }
+  }
+
+  class FilterItems2Response extends ResponseWrapper {
+    private FilterItems2Response(Response delegate) {
+      super(delegate);
+    }
+
+    public static FilterItems2Response with200ApplicationJson(List<Item> entity) {
+      return new FilterItems2Response(Response.status(200).header("Content-Type", "application/json").entity(entity).build());
+    }
+
+    public static FilterItems2Response withApplicationJson(int status, Failure entity) {
+      return new FilterItems2Response(Response.status(status).header("Content-Type", "application/json").entity(entity).build());
+    }
+
+    public static FilterItems2Response withCustomResponse(Response response) {
+      return new FilterItems2Response(response);
     }
   }
 

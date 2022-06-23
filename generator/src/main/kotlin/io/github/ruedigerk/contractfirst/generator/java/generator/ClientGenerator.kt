@@ -54,7 +54,7 @@ class ClientGenerator(configuration: Configuration) {
   }
 
   private fun createApiClientClass(operationGroup: JavaOperationGroup): JavaFile {
-    val genericTypeConstants = operationGroup.operations.flatMap { it.allReturnTypes }.filter { it.isGenericType }.map(::generateTypeTokenConstant)
+    val genericTypeConstants = generateTypeTokenConstants(operationGroup)
 
     val requestExecutorFieldSpec = FieldSpec.builder(SupportTypes.ApiRequestExecutor, "requestExecutor", Modifier.PRIVATE, Modifier.FINAL).build()
     val returningResultFieldSpec = FieldSpec.builder("ReturningResult".toTypeName(), "returningResult", Modifier.PRIVATE, Modifier.FINAL).build()
@@ -94,6 +94,14 @@ class ClientGenerator(configuration: Configuration) {
     return JavaFile.builder(apiPackage, classSpec)
         .skipJavaLangImports(true)
         .build()
+  }
+
+  private fun generateTypeTokenConstants(operationGroup: JavaOperationGroup): Set<FieldSpec> {
+    return operationGroup.operations
+        .flatMap { it.allReturnTypes }
+        .filter { it.isGenericType }
+        .map(::generateTypeTokenConstant)
+        .toSet()
   }
 
   private fun generateTypeTokenConstant(type: JavaAnyType): FieldSpec {

@@ -93,6 +93,32 @@ paths:
         default:
           $ref: "#/components/responses/DefaultFailures"
 
+  /items2:
+    post:
+      summary: Second test operation for generic types, using the same generic return type as the other operation (test for bug in the generator).
+      operationId: filterItems2
+      tags:
+        - PayloadVariants
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: array
+              items:
+                $ref: "#/components/schemas/Item"
+      responses:
+        200:
+          description: Returned filtered items.
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: "#/components/schemas/Item"
+        default:
+          $ref: "#/components/responses/DefaultFailures"
+
   /itemBinaries:
     post:
       summary: Test for 204 response.

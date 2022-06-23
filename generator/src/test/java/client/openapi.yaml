@@ -103,6 +103,35 @@ paths:
       summary: "Test operation for generating generic types, e.g. List of Item."
       tags:
       - PayloadVariants
+  /items2:
+    post:
+      operationId: filterItems2
+      requestBody:
+        content:
+          application/json:
+            schema:
+              items:
+                $ref: '#/components/schemas/Item'
+              type: array
+        required: true
+      responses:
+        "200":
+          content:
+            application/json:
+              schema:
+                items:
+                  $ref: '#/components/schemas/Item'
+                type: array
+          description: Returned filtered items.
+        default:
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Failure'
+          description: "Some other error, like 500."
+      summary: "Second test operation for generic types, using the same generic return type as the other operation (test for bug in the generator)."
+      tags:
+      - PayloadVariants
   /itemBinaries:
     post:
       operationId: changeItem
