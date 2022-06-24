@@ -17,6 +17,9 @@ class CompareGeneratedCodeToReferenceTest extends Specification {
   static def parametersClientHarness = new GeneratorHarness("src/test/contract/equally-named-parameters.yaml", "parameters_client", GeneratorType.CLIENT)
   static def validationsHarness = new GeneratorHarness("src/test/contract/validations.yaml", "validations", GeneratorType.SERVER)
   static def modelOnlyHarness = new GeneratorHarness("src/test/contract/modelOnlySchemas", "model_only", GeneratorType.MODEL_ONLY)
+  static def serverJsr305Harness = new GeneratorHarness("src/test/contract/testsuite.yaml", "server_jsr305", GeneratorType.SERVER, "", true)
+  static def clientJsr305Harness = new GeneratorHarness("src/test/contract/testsuite.yaml", "client_jsr305", GeneratorType.CLIENT, "", true)
+  static def modelOnlyJsr305Harness = new GeneratorHarness("src/test/contract/modelOnlySchemas", "model_only_jsr305", GeneratorType.MODEL_ONLY, "", true)
 
   def "Testsuite (server): #fileName"() {
     when:
@@ -176,5 +179,53 @@ class CompareGeneratedCodeToReferenceTest extends Specification {
     fileName << modelOnlyHarness.relativePathNames
     referenceFile << modelOnlyHarness.referenceFiles
     generatedFile << modelOnlyHarness.generatedFiles
+  }
+
+  def "Testsuite (server) with JSR-305: #fileName"() {
+    when:
+    serverJsr305Harness.runGenerator()
+
+    then:
+    generatedFile.exists()
+
+    and:
+    generatedFile.text == referenceFile.text
+
+    where:
+    fileName << serverJsr305Harness.relativePathNames
+    referenceFile << serverJsr305Harness.referenceFiles
+    generatedFile << serverJsr305Harness.generatedFiles
+  }
+
+  def "Testsuite (client) with JSR-305: #fileName"() {
+    when:
+    clientJsr305Harness.runGenerator()
+
+    then:
+    generatedFile.exists()
+
+    and:
+    generatedFile.text == referenceFile.text
+
+    where:
+    fileName << clientJsr305Harness.relativePathNames
+    referenceFile << clientJsr305Harness.referenceFiles
+    generatedFile << clientJsr305Harness.generatedFiles
+  }
+
+  def "Model-Only mode with JSR-305: #fileName"() {
+    when:
+    modelOnlyJsr305Harness.runGenerator()
+
+    then:
+    generatedFile.exists()
+
+    and:
+    generatedFile.text == referenceFile.text
+
+    where:
+    fileName << modelOnlyJsr305Harness.relativePathNames
+    referenceFile << modelOnlyJsr305Harness.referenceFiles
+    generatedFile << modelOnlyJsr305Harness.generatedFiles
   }
 }

@@ -1,0 +1,585 @@
+openapi: 3.0.0
+info:
+  title: Test suite for the client and server code generator
+  version: 1.0.0
+servers:
+- url: https://example.com/v1
+paths:
+  /{systemId}/components:
+    post:
+      operationId: createItem
+      parameters:
+      - description: ID of the system to create the item in.
+        explode: false
+        in: path
+        name: systemId
+        required: true
+        schema:
+          type: string
+        style: simple
+      - description: Do a dry run?
+        explode: true
+        in: query
+        name: dryRun
+        required: false
+        schema:
+          type: boolean
+        style: form
+      - description: Optional part number
+        explode: false
+        in: header
+        name: partNumber
+        required: false
+        schema:
+          format: int64
+          type: integer
+        style: simple
+      - description: Used to select the desired behaviour of the server in the test.
+        explode: false
+        in: header
+        name: testCaseSelector
+        required: false
+        schema:
+          type: string
+        style: simple
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/Item'
+        required: true
+      responses:
+        "200":
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Item'
+          description: Return created item
+        "201":
+          description: "Accepted, also empty response."
+        "204":
+          description: Empty response
+        "400":
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Failure'
+          description: "Error, customer ID unknown"
+        default:
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Failure'
+          description: "Some other error, like 500."
+      summary: Test for the various parameter locations and for serializing request and response body entities.
+      tags:
+      - ResponseVariants
+  /items:
+    post:
+      operationId: filterItems
+      requestBody:
+        content:
+          application/json:
+            schema:
+              items:
+                $ref: '#/components/schemas/Item'
+              type: array
+        required: true
+      responses:
+        "200":
+          content:
+            application/json:
+              schema:
+                items:
+                  $ref: '#/components/schemas/Item'
+                type: array
+          description: Returned filtered items.
+        default:
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Failure'
+          description: "Some other error, like 500."
+      summary: "Test operation for generating generic types, e.g. List of Item."
+      tags:
+      - PayloadVariants
+  /items2:
+    post:
+      operationId: filterItems2
+      requestBody:
+        content:
+          application/json:
+            schema:
+              items:
+                $ref: '#/components/schemas/Item'
+              type: array
+        required: true
+      responses:
+        "200":
+          content:
+            application/json:
+              schema:
+                items:
+                  $ref: '#/components/schemas/Item'
+                type: array
+          description: Returned filtered items.
+        default:
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Failure'
+          description: "Some other error, like 500."
+      summary: "Second test operation for generic types, using the same generic return type as the other operation (test for bug in the generator)."
+      tags:
+      - PayloadVariants
+  /itemBinaries:
+    post:
+      operationId: changeItem
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/Item'
+        required: true
+      responses:
+        "204":
+          description: Ok
+        default:
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Failure'
+          description: "Some other error, like 500."
+      summary: Test for 204 response.
+      tags:
+      - PayloadVariants
+    put:
+      operationId: uploadAndReturnBinary
+      requestBody:
+        content:
+          application/octet-stream:
+            schema:
+              format: binary
+              type: string
+        required: true
+      responses:
+        "200":
+          content:
+            application/octet-stream:
+              schema:
+                format: binary
+                type: string
+          description: Returned binary data.
+        default:
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Failure'
+          description: "Some other error, like 500."
+      summary: Test binary input and output.
+      tags:
+      - PayloadVariants
+  /manuals:
+    get:
+      operationId: getManual
+      parameters:
+      - description: Used to select the desired behaviour of the server in the test.
+        explode: false
+        in: header
+        name: testCaseSelector
+        required: false
+        schema:
+          type: string
+        style: simple
+      responses:
+        "200":
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Manual'
+            application/pdf:
+              schema:
+                format: binary
+                type: string
+          description: Returned requested Manual.
+        "202":
+          content:
+            text/plain:
+              schema:
+                type: string
+          description: Returned a description of the manual instead.
+        "204":
+          description: Return nothing.
+        default:
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Failure'
+          description: "Some other error, like 500."
+      summary: Test case for multiple response content types with different schemas.
+      tags:
+      - MultipleContentTypes
+  /wildcardContentTypes:
+    get:
+      operationId: getWildcardContentTypes
+      parameters:
+      - description: Used to select the desired behaviour of the server in the test.
+        explode: false
+        in: header
+        name: testCaseSelector
+        required: false
+        schema:
+          type: string
+        style: simple
+      responses:
+        "200":
+          content:
+            text/*:
+              schema:
+                type: string
+            application/*:
+              schema:
+                format: binary
+                type: string
+          description: Returned some content.
+        default:
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Failure'
+          description: "Some other error, like 500."
+      summary: Test wildcard response content types.
+      tags:
+      - WildcardContentTypes
+  /time/{timeId}:
+    post:
+      operationId: updateTime
+      parameters:
+      - explode: false
+        in: path
+        name: timeId
+        required: true
+        schema:
+          format: date
+          type: string
+        style: simple
+      - explode: true
+        in: query
+        name: queryTimeA
+        required: true
+        schema:
+          format: date
+          type: string
+        style: form
+      - explode: true
+        in: query
+        name: queryTimeB
+        required: true
+        schema:
+          format: date-time
+          type: string
+        style: form
+      - explode: false
+        in: header
+        name: headerTimeA
+        required: true
+        schema:
+          format: date
+          type: string
+        style: simple
+      - explode: false
+        in: header
+        name: headerTimeB
+        required: true
+        schema:
+          format: date-time
+          type: string
+        style: simple
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/Clock'
+        required: true
+      responses:
+        "200":
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ClockResponse'
+          description: Returned a clock.
+        default:
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Failure'
+          description: "Some other error, like 500."
+      summary: For testing handling of date and date-time formats.
+      tags:
+      - time
+  /bigDecimals:
+    get:
+      operationId: getNumber
+      parameters:
+      - description: Test BigDecimal
+        explode: true
+        in: query
+        name: decimalNumber
+        required: true
+        schema:
+          type: number
+        style: form
+      responses:
+        "200":
+          content:
+            application/json:
+              schema:
+                type: number
+          description: Returned decimal number.
+        default:
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Failure'
+          description: "Some other error, like 500."
+      summary: Test serialization of schema type number as BigDecimal.
+      tags:
+      - BigDecimals
+  /testcases:
+    get:
+      description: A test case for the SchemaToJavaTypeTransformer.
+      operationId: getInlineObjectInArray
+      responses:
+        "200":
+          content:
+            application/json:
+              schema:
+                items:
+                  properties:
+                    someProperty:
+                      type: string
+                  type: object
+                type: array
+          description: Return an object embedded inline in an array.
+        default:
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Failure'
+          description: "Some other error, like 500."
+      tags:
+      - testcases
+  /postWithoutBody/post:
+    post:
+      description: Testing HTTP method POST without a request body.
+      operationId: postWithoutBody
+      responses:
+        "204":
+          description: Ok.
+      tags:
+      - PostWithoutBody
+  /postWithoutBody/put:
+    put:
+      description: Testing HTTP method PUT without a request body.
+      operationId: putWithoutBody
+      responses:
+        "204":
+          description: Ok.
+      tags:
+      - PostWithoutBody
+  /postWithoutBody/patch:
+    post:
+      description: Testing HTTP method PATCH without a request body.
+      operationId: patchWithoutBody
+      responses:
+        "204":
+          description: Ok.
+      tags:
+      - PostWithoutBody
+  /nonJavaPropertyNames:
+    post:
+      description: A test case for a JSON model with properties that are not legal Java identifiers.
+      operationId: postNonJavaPropertyNames
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/ProblematicName'
+        required: true
+      responses:
+        "200":
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ProblematicName'
+          description: Return object as received.
+        default:
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Failure'
+          description: "Some other error, like 500."
+      tags:
+      - NonJavaPropertyNames
+  /formEncodedRequestBody:
+    post:
+      description: A test case for an x-www-form-urlencoded encoded request body.
+      operationId: formEncodedRequestBody
+      requestBody:
+        content:
+          application/x-www-form-urlencoded:
+            schema:
+              properties:
+                fieldA:
+                  type: string
+                fieldB:
+                  type: string
+                fieldC:
+                  enum:
+                  - first_value
+                  - second%value
+                  type: string
+              type: object
+        required: true
+      responses:
+        "204":
+          description: Ok.
+      tags:
+      - FormEncodedRequestBody
+  /nonJsonEntityAsJson:
+    get:
+      operationId: getNonJsonEntityAsJson
+      responses:
+        "200":
+          content:
+            application/xml:
+              schema:
+                $ref: '#/components/schemas/Item'
+          description: "Response defined with content type XML, but server sends JSON anyway."
+      summary: Test case for an operation that declares a non-JSON entity and the server nevertheless sending the entity as JSON.
+      tags:
+      - NonJsonEntityAsJson
+components:
+  responses:
+    DefaultFailures:
+      content:
+        application/json:
+          schema:
+            $ref: '#/components/schemas/Failure'
+      description: "Some other error, like 500."
+  schemas:
+    Item:
+      properties:
+        id:
+          format: int64
+          type: integer
+        name:
+          type: string
+        tag:
+          type: string
+      required:
+      - id
+      - name
+    Component:
+      description: A component.
+      properties:
+        id:
+          type: string
+        name:
+          type: string
+        type:
+          $ref: '#/components/schemas/ComponentType'
+        multiplier:
+          enum:
+          - "1"
+          - "2"
+          - "4"
+          type: string
+        rarity:
+          enum:
+          - COMMON
+          - UNCOMMON
+          - RARE
+          type: string
+      required:
+      - id
+      - name
+    ComponentType:
+      description: Type of a component.
+      enum:
+      - Integrated
+      - Plug-in
+      - After sales
+      type: string
+    Components:
+      items:
+        $ref: '#/components/schemas/Component'
+      type: array
+    Manual:
+      properties:
+        title:
+          type: string
+        content:
+          type: string
+      required:
+      - content
+      - title
+      type: object
+    Clock:
+      properties:
+        time1:
+          format: date
+          type: string
+        time2:
+          format: date-time
+          type: string
+      required:
+      - time1
+      - time2
+      type: object
+    ClockResponse:
+      properties:
+        time1:
+          format: date
+          type: string
+        time2:
+          format: date-time
+          type: string
+        pathTime:
+          format: date
+          type: string
+        queryTime1:
+          format: date
+          type: string
+        queryTime2:
+          format: date-time
+          type: string
+        headerTime1:
+          format: date
+          type: string
+        headerTime2:
+          format: date-time
+          type: string
+      type: object
+    Failure:
+      properties:
+        code:
+          format: int32
+          type: integer
+        message:
+          type: string
+      required:
+      - code
+      - message
+    ProblematicName:
+      properties:
+        "2name":
+          type: string
+        name-and-value:
+          type: string
+        problemat%c:
+          enum:
+          - "1"
+          - two-point-zero
+          - three?
+          type: string

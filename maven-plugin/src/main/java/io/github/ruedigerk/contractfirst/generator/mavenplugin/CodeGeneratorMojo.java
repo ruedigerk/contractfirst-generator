@@ -76,6 +76,12 @@ public class CodeGeneratorMojo extends AbstractMojo {
   private String outputJavaModelNamePrefix = "";
 
   /**
+   * whether to generate JSR-305 nullability annotations for the getter and setter methods of the model classes
+   */
+  @Parameter(name = "outputJavaModelUseJsr305NullabilityAnnotations", property = "openapi.generator.maven.plugin.outputJavaModelUseJsr305NullabilityAnnotations", defaultValue = "false")
+  private boolean outputJavaModelUseJsr305NullabilityAnnotations = false;
+
+  /**
    * skip execution of this plugin
    */
   @Parameter(name = "skip", property = "openapi.generator.maven.plugin.skip", defaultValue = "false")
@@ -113,6 +119,7 @@ public class CodeGeneratorMojo extends AbstractMojo {
         "\n\toutputContractFile='" + outputContractFile + '\'' +
         "\n\toutputJavaBasePackage='" + outputJavaBasePackage + '\'' +
         "\n\toutputJavaModelNamePrefix='" + outputJavaModelNamePrefix + '\'' +
+        "\n\toutputJavaModelUseJsr305NullabilityAnnotations='" + outputJavaModelUseJsr305NullabilityAnnotations + '\'' +
         "\n\tskip=" + skip +
         "\n\tproject=" + project;
   }
@@ -125,7 +132,8 @@ public class CodeGeneratorMojo extends AbstractMojo {
         outputContract,
         outputContractFile,
         outputJavaBasePackage,
-        outputJavaModelNamePrefix
+        outputJavaModelNamePrefix,
+        outputJavaModelUseJsr305NullabilityAnnotations
     );
   }
 

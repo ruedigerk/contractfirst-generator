@@ -125,6 +125,7 @@
                      <generator>model-only</generator>
                      <inputContractFile>src/main/contract/modelOnlySchemas</inputContractFile>
                      <outputJavaBasePackage>io.github.ruedigerk.contractfirst.generator.integrationtest.modelonly</outputJavaBasePackage>
+                     <outputJavaModelUseJsr305NullabilityAnnotations>true</outputJavaModelUseJsr305NullabilityAnnotations>
                   </configuration>
                </execution>
 
@@ -165,6 +166,11 @@
          <groupId>com.google.code.gson</groupId>
          <artifactId>gson</artifactId>
          <version>${gson.version}</version>
+      </dependency>
+      <dependency>
+         <groupId>com.google.code.findbugs</groupId>
+         <artifactId>jsr305</artifactId>
+         <version>3.0.2</version>
       </dependency>
 
       <!-- Dependencies of the generated client code -->

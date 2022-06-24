@@ -27,15 +27,17 @@ class GeneratorHarness {
   private final String inputContractFile
   private final String outputJavaBasePackage
   private final String outputJavaModelNamePrefix
+  private final boolean outputJavaModelUseJsr305NullabilityAnnotations
   private final GeneratorType generatorType
 
   private generatorRan = false
 
-  GeneratorHarness(String inputContractFile, String outputJavaBasePackage, GeneratorType generatorType, String outputJavaModelNamePrefix = "") {
+  GeneratorHarness(String inputContractFile, String outputJavaBasePackage, GeneratorType generatorType, String outputJavaModelNamePrefix = "", boolean outputJavaModelUseJsr305NullabilityAnnotations = false) {
     this.inputContractFile = inputContractFile
     this.outputJavaBasePackage = outputJavaBasePackage
     this.generatorType = generatorType
     this.outputJavaModelNamePrefix = outputJavaModelNamePrefix
+    this.outputJavaModelUseJsr305NullabilityAnnotations = outputJavaModelUseJsr305NullabilityAnnotations
 
     referenceDir = "src/test/java/$outputJavaBasePackage"
     generatedDir = "$OUTPUT_DIR/$outputJavaBasePackage"
@@ -81,7 +83,8 @@ class GeneratorHarness {
             true,
             "$outputJavaBasePackage/openapi.yaml",
             outputJavaBasePackage,
-            outputJavaModelNamePrefix
+            outputJavaModelNamePrefix,
+            outputJavaModelUseJsr305NullabilityAnnotations
         )
     )
   }

@@ -62,6 +62,7 @@ object CommandLineInterface {
       cliConfiguration.outputContractFile,
       cliConfiguration.outputJavaBasePackage,
       cliConfiguration.outputJavaModelNamePrefix,
+      cliConfiguration.outputJavaModelUseJsr305NullabilityAnnotations
   )
 
   private fun determineGenerator(generator: String): GeneratorType = when (generator) {
@@ -99,6 +100,8 @@ private class CliConfiguration(parser: ArgParser) {
   val outputJavaBasePackage: String by parser.storing("--output-java-base-package", help = "the Java package to put generated classes into")
 
   val outputJavaModelNamePrefix: String by parser.storing("--output-java-model-name-prefix", help = "the prefix for Java model class names").default("")
+
+  val outputJavaModelUseJsr305NullabilityAnnotations: Boolean by parser.flagging("--output-java-model-use-jsr305-nullability-annotations", help = "whether to generate JSR-305 nullability annotations for the getter and setter methods of the model classes")
 
   val verbose: Boolean by parser.flagging("--verbose", "-v", help = "verbose output")
 

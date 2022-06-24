@@ -11,6 +11,7 @@ data class Configuration(
     val outputContractFile: String,
     val outputJavaBasePackage: String,
     val outputJavaModelNamePrefix: String,
+    val outputJavaModelUseJsr305NullabilityAnnotations: Boolean,
 ) {
 
   fun prettyPrint(indent: String = "\t"): String =
@@ -20,5 +21,6 @@ data class Configuration(
          |outputContract=outputContract
          |outputContractFile='$outputContractFile'
          |outputJavaBasePackage='$outputJavaBasePackage'
-         |outputJavaModelNamePrefix='$outputJavaModelNamePrefix'""".trimMargin().prependIndent(indent)
+         |outputJavaModelNamePrefix='$outputJavaModelNamePrefix'
+         |outputJavaModelUseJsr305NullabilityAnnotations='$outputJavaModelUseJsr305NullabilityAnnotations'""".trimMargin().prependIndent(indent)
 }

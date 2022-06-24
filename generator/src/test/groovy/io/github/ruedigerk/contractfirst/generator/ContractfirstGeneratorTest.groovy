@@ -13,7 +13,8 @@ class ContractfirstGeneratorTest extends Specification {
         true,
         "openapi.yaml",
         "package",
-        "lowercase"
+        "lowercase",
+        false
     )
 
     when:

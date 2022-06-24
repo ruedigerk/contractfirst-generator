@@ -22,6 +22,7 @@ data class JavaConfiguration(
     val modelPackage: String,
     val supportPackage: String,
     val modelNamePrefix: String,
+    val useJsr305NullabilityAnnotations: Boolean
 ) {
 
   companion object {
@@ -31,7 +32,8 @@ data class JavaConfiguration(
         configuration.outputJavaBasePackage + apiPackagePrefix,
         configuration.outputJavaBasePackage + ".model",
         configuration.outputJavaBasePackage + apiPackagePrefix + ".support",
-        configuration.outputJavaModelNamePrefix
+        configuration.outputJavaModelNamePrefix,
+        configuration.outputJavaModelUseJsr305NullabilityAnnotations
     )
 
     fun forModelOnly(configuration: Configuration) = JavaConfiguration(
@@ -39,7 +41,8 @@ data class JavaConfiguration(
         configuration.outputJavaBasePackage,
         configuration.outputJavaBasePackage,
         configuration.outputJavaBasePackage,
-        configuration.outputJavaModelNamePrefix
+        configuration.outputJavaModelNamePrefix,
+        configuration.outputJavaModelUseJsr305NullabilityAnnotations
     )
   }
 }

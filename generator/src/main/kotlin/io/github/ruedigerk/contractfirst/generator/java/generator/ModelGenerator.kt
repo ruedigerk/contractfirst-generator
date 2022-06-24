@@ -3,6 +3,7 @@ package io.github.ruedigerk.contractfirst.generator.java.generator
 import com.squareup.javapoet.*
 import io.github.ruedigerk.contractfirst.generator.java.Identifiers.capitalize
 import io.github.ruedigerk.contractfirst.generator.java.JavaConfiguration
+import io.github.ruedigerk.contractfirst.generator.java.generator.Annotations.jsr305NullabilityAnnotation
 import io.github.ruedigerk.contractfirst.generator.java.generator.Annotations.toAnnotation
 import io.github.ruedigerk.contractfirst.generator.java.generator.JavapoetExtensions.doIf
 import io.github.ruedigerk.contractfirst.generator.java.generator.JavapoetExtensions.doIfNotNull
@@ -18,6 +19,7 @@ class ModelGenerator(configuration: JavaConfiguration) {
 
   private val outputDir = File(configuration.outputDir)
   private val modelPackage = configuration.modelPackage
+  private val useJsr305Nullability = configuration.useJsr305NullabilityAnnotations
 
   fun generateCode(specification: JavaSpecification) {
     specification.modelFiles.asSequence()
@@ -57,7 +59,6 @@ class ModelGenerator(configuration: JavaConfiguration) {
   private fun generateAccessorMethods(property: JavaProperty, className: String): List<MethodSpec> {
     val propertyTypeName = property.type.toTypeName()
 
-    // The getter is annotated with BeanValidation annotations.
     val getter = generateGetter(property, propertyTypeName)
     val setter = generateSetter(property, propertyTypeName)
     val builder = generateBuilderSetter(property, className, propertyTypeName)
@@ -68,7 +69,7 @@ class ModelGenerator(configuration: JavaConfiguration) {
   private fun generateSetter(property: JavaProperty, propertyTypeName: TypeName): MethodSpec =
       MethodSpec.methodBuilder("set${property.javaName.capitalize()}")
           .addModifiers(PUBLIC)
-          .addParameter(propertyTypeName, property.javaName)
+          .addParameter(toSetterParameterSpec(propertyTypeName, property))
           .addStatement("this.\$1N = \$1N", property.javaName)
           .build()
 
@@ -76,13 +77,19 @@ class ModelGenerator(configuration: JavaConfiguration) {
       MethodSpec.methodBuilder(property.javaName)
           .addModifiers(PUBLIC)
           .returns(className.toTypeName())
-          .addParameter(propertyTypeName, property.javaName)
+          .addParameter(toSetterParameterSpec(propertyTypeName, property))
           .addStatement("this.\$1N = \$1N", property.javaName)
           .addStatement("return this", property.javaName)
           .build()
 
+  private fun toSetterParameterSpec(propertyTypeName: TypeName, property: JavaProperty): ParameterSpec =
+      ParameterSpec.builder(propertyTypeName, property.javaName)
+          .doIf(useJsr305Nullability) { addAnnotation(jsr305NullabilityAnnotation(property.required)) }
+          .build()
+
   private fun generateGetter(property: JavaProperty, propertyTypeName: TypeName): MethodSpec {
     return MethodSpec.methodBuilder("get${property.javaName.capitalize()}")
+        .doIf(useJsr305Nullability) { addAnnotation(jsr305NullabilityAnnotation(property.required)) }
         .addModifiers(PUBLIC)
         .returns(propertyTypeName)
         .addStatement("return \$N", property.javaName)
@@ -141,7 +148,7 @@ class ModelGenerator(configuration: JavaConfiguration) {
         .returns(String::class.java)
         .addStatement("return serializedName")
         .build()
-    
+
     val builder = TypeSpec.enumBuilder(enumFile.className)
         .doIfNotNull(enumFile.javadoc) { addJavadoc("\$L", it) }
         .addModifiers(PUBLIC)

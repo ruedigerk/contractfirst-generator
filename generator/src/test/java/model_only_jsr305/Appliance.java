@@ -1,8 +1,10 @@
-package model_only;
+package model_only_jsr305;
 
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Objects;
+import javax.annotation.Nonnull;
+import javax.annotation.Nullable;
 import javax.validation.Valid;
 import javax.validation.constraints.NotNull;
 
@@ -16,29 +18,31 @@ public class Appliance {
   @Valid
   private List<@Valid Device> devices = new ArrayList<>();
 
-  public Appliance name(String name) {
+  public Appliance name(@Nonnull String name) {
     this.name = name;
     return this;
   }
 
+  @Nonnull
   public String getName() {
     return name;
   }
 
-  public void setName(String name) {
+  public void setName(@Nonnull String name) {
     this.name = name;
   }
 
-  public Appliance devices(List<Device> devices) {
+  public Appliance devices(@Nullable List<Device> devices) {
     this.devices = devices;
     return this;
   }
 
+  @Nullable
   public List<Device> getDevices() {
     return devices;
   }
 
-  public void setDevices(List<Device> devices) {
+  public void setDevices(@Nullable List<Device> devices) {
     this.devices = devices;
   }
 

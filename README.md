@@ -61,7 +61,15 @@ The generated server code needs the following dependencies:
         <!-- Gson for serializing and deserializing the generated data model to and from JSON -->
         <groupId>com.google.code.gson</groupId>
         <artifactId>gson</artifactId>
-        <version>2.8.9</version>
+        <version>2.9.0</version>
+    </dependency>
+
+Additionally, if using the option `outputJavaModelUseJsr305NullabilityAnnotations` there needs to be a dependency for these annotations, like:
+
+    <dependency>
+        <groupId>com.google.code.findbugs</groupId>
+        <artifactId>jsr305</artifactId>
+        <version>3.0.2</version>
     </dependency>
 
 
@@ -109,7 +117,15 @@ The generated client code needs the following dependencies:
         <!-- Gson for serializing and deserializing the generated data model to and from JSON -->
         <groupId>com.google.code.gson</groupId>
         <artifactId>gson</artifactId>
-        <version>2.8.9</version>
+        <version>2.9.0</version>
+    </dependency>
+
+Additionally, if using the option `outputJavaModelUseJsr305NullabilityAnnotations` there needs to be a dependency for these annotations, like:
+
+    <dependency>
+        <groupId>com.google.code.findbugs</groupId>
+        <artifactId>jsr305</artifactId>
+        <version>3.0.2</version>
     </dependency>
 
 
@@ -120,6 +136,8 @@ Changelog
 
 **Added**
 - Added `model-only` generator for only generating a Java model for a set of JSON-Schema files.
+- New configuration option `outputJavaModelUseJsr305NullabilityAnnotations` for adding JSR-305 nullability annotations to the generated model's getter and
+  setter methods.
 
 ### 1.5.2
 

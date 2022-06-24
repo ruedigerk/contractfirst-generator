@@ -5,12 +5,17 @@ import com.squareup.javapoet.ClassName
 import io.github.ruedigerk.contractfirst.generator.java.model.*
 import java.math.BigInteger
 
+
 /**
  * For creating annotations and BeanValidation annotations.
  */
 object Annotations {
 
+  private const val BEAN_VALIDATION_PACKAGE = "javax.validation.constraints"
+
   private val VALID_ANNOTATION: AnnotationSpec = toAnnotation("javax.validation.Valid")
+  private val JSR305_NULLABLE_ANNOTATION: AnnotationSpec = toAnnotation("javax.annotation.Nullable")
+  private val JSR305_NONNULL_ANNOTATION: AnnotationSpec = toAnnotation("javax.annotation.Nonnull")
 
   val NOT_NULL_ANNOTATION: AnnotationSpec = toAnnotation("javax.validation.constraints.NotNull")
 
@@ -32,6 +37,12 @@ object Annotations {
     }
   }
 
+  fun jsr305NullabilityAnnotation(nonnull: Boolean) = if (nonnull) {
+    JSR305_NONNULL_ANNOTATION
+  } else {
+    JSR305_NULLABLE_ANNOTATION
+  }
+
   private fun createIntegralMinMaxAnnotation(validation: IntegralValidation): AnnotationSpec = when {
     isRepresentableAsLong(validation.value) -> createMinMaxAnnotation(validation)
     else -> createDecimalMinMaxAnnotation(validation.toDecimalValidation())
@@ -48,7 +59,7 @@ object Annotations {
       NumericValidationType.MAX -> "Max"
     }
 
-    return AnnotationSpec.builder(ClassName.get("javax.validation.constraints", name)).addMember("value", "\$LL", validation.value).build()
+    return AnnotationSpec.builder(ClassName.get(BEAN_VALIDATION_PACKAGE, name)).addMember("value", "\$LL", validation.value).build()
   }
 
   private fun createDecimalMinMaxAnnotation(validation: DecimalValidation): AnnotationSpec {
@@ -57,7 +68,7 @@ object Annotations {
       NumericValidationType.MAX -> "DecimalMax"
     }
 
-    val builder = AnnotationSpec.builder(ClassName.get("javax.validation.constraints", name))
+    val builder = AnnotationSpec.builder(ClassName.get(BEAN_VALIDATION_PACKAGE, name))
     builder.addMember("value", "\$S", validation.value)
 
     if (!validation.inclusive) {
@@ -68,7 +79,7 @@ object Annotations {
   }
 
   private fun createSizeAnnotation(validation: SizeValidation): AnnotationSpec {
-    val builder = AnnotationSpec.builder(ClassName.get("javax.validation.constraints", "Size"))
+    val builder = AnnotationSpec.builder(ClassName.get(BEAN_VALIDATION_PACKAGE, "Size"))
     if (validation.min != null) {
       builder.addMember("min", "\$L", validation.min)
     }
@@ -79,5 +90,5 @@ object Annotations {
   }
 
   private fun createPatternAnnotation(validation: PatternValidation) =
-      AnnotationSpec.builder(ClassName.get("javax.validation.constraints", "Pattern")).addMember("regexp", "\$S", validation.pattern).build()
+      AnnotationSpec.builder(ClassName.get(BEAN_VALIDATION_PACKAGE, "Pattern")).addMember("regexp", "\$S", validation.pattern).build()
 }

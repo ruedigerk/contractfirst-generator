@@ -149,12 +149,20 @@
          <version>${gson.version}</version>
          <scope>test</scope>
       </dependency>
+      <dependency>
+         <!-- For JSR-305 nullability annotations -->
+         <groupId>com.google.code.findbugs</groupId>
+         <artifactId>jsr305</artifactId>
+         <version>3.0.2</version>
+         <scope>test</scope>
+      </dependency>
 
       <!-- Dependencies of the generated client Code -->
       <dependency>
          <groupId>io.github.ruedigerk.contractfirst.generator</groupId>
          <artifactId>contractfirst-generator-client-support</artifactId>
          <version>${project.version}</version>
+         <scope>test</scope>
       </dependency>
    </dependencies>
 
