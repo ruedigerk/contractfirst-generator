@@ -27,14 +27,14 @@ class GeneratorHarness {
   private final String inputContractFile
   private final String outputJavaBasePackage
   private final String outputJavaModelNamePrefix
-  private final boolean generateServer
+  private final GeneratorType generatorType
 
   private generatorRan = false
 
-  GeneratorHarness(String inputContractFile, String outputJavaBasePackage, boolean generateServer, String outputJavaModelNamePrefix = "") {
+  GeneratorHarness(String inputContractFile, String outputJavaBasePackage, GeneratorType generatorType, String outputJavaModelNamePrefix = "") {
     this.inputContractFile = inputContractFile
     this.outputJavaBasePackage = outputJavaBasePackage
-    this.generateServer = generateServer
+    this.generatorType = generatorType
     this.outputJavaModelNamePrefix = outputJavaModelNamePrefix
 
     referenceDir = "src/test/java/$outputJavaBasePackage"
@@ -76,7 +76,7 @@ class GeneratorHarness {
     new ContractfirstGenerator(logAdapter).generate(
         new Configuration(
             inputContractFile,
-            generateServer ? GeneratorType.SERVER : GeneratorType.CLIENT,
+            generatorType,
             OUTPUT_DIR,
             true,
             "$outputJavaBasePackage/openapi.yaml",

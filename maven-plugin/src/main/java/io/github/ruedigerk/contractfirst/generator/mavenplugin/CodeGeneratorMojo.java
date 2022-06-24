@@ -16,6 +16,8 @@ import org.apache.maven.plugins.annotations.Mojo;
 import org.apache.maven.plugins.annotations.Parameter;
 import org.apache.maven.project.MavenProject;
 
+import java.io.File;
+
 /**
  * Goal for generating sources from an OpenAPI contract.
  */
@@ -27,13 +29,14 @@ public class CodeGeneratorMojo extends AbstractMojo {
   // See https://medium.com/swlh/step-by-step-guide-to-developing-a-custom-maven-plugin-b6e3a0e09966
 
   /**
-   * the path to the file containing the OpenAPI contract to use as input
+   * the path to the file containing the OpenAPI contract to use as input; in case of the model-only generator, this should point to a single
+   * JSON-Schema file in YAML or JSON format or to a directory, which is recursively searched for JSON-Schema files
    */
   @Parameter(name = "inputContractFile", property = "openapi.generator.maven.plugin.inputContractFile", required = true)
   private String inputContractFile;
 
   /**
-   * the type of generator to use for code generation; allowed values are: "server", "client"
+   * the type of generator to use for code generation; allowed values are: "server", "client", "model-only"
    */
   @Parameter(name = "generator", property = "openapi.generator.maven.plugin.generator", required = true)
   private String generator;
@@ -116,7 +119,7 @@ public class CodeGeneratorMojo extends AbstractMojo {
 
   private Configuration determineConfiguration() throws MojoExecutionException {
     return new Configuration(
-        inputContractFile,
+        makeAbsolutePath(inputContractFile),
         determineGenerator(),
         outputDir,
         outputContract,
@@ -126,12 +129,22 @@ public class CodeGeneratorMojo extends AbstractMojo {
     );
   }
 
+  private String makeAbsolutePath(String path) {
+    if (new File(path).isAbsolute()) {
+      return path;
+    } else {
+      return new File(project.getBasedir(), path).toString();
+    }
+  }
+
   private GeneratorType determineGenerator() throws MojoExecutionException {
     switch (generator) {
       case "client":
         return GeneratorType.CLIENT;
       case "server":
         return GeneratorType.SERVER;
+      case "model-only":
+        return GeneratorType.MODEL_ONLY;
       default:
         throw new MojoExecutionException("Configuration 'generator' has invalid value: '" + generator + "', allowed values are 'client', 'server'.");
     }

@@ -1,7 +1,7 @@
 package io.github.ruedigerk.contractfirst.generator.java.transform
 
-import io.github.ruedigerk.contractfirst.generator.Configuration
 import io.github.ruedigerk.contractfirst.generator.java.Identifiers.toJavaTypeIdentifier
+import io.github.ruedigerk.contractfirst.generator.java.JavaConfiguration
 import io.github.ruedigerk.contractfirst.generator.java.model.*
 import io.github.ruedigerk.contractfirst.generator.java.model.NumericValidationType.MAX
 import io.github.ruedigerk.contractfirst.generator.java.model.NumericValidationType.MIN
@@ -15,11 +15,11 @@ import io.github.ruedigerk.contractfirst.generator.model.PrimitiveType.*
  */
 class SchemaToJavaTypeTransformer(
     private val log: Log,
-    private val configuration: Configuration,
+    private val configuration: JavaConfiguration,
     private val schemaRefLookup: SchemaRefLookup
 ) {
 
-  private val modelPackage = "${configuration.outputJavaBasePackage}.model"
+  private val modelPackage = configuration.modelPackage
   private val schemaToTypeLookup: MutableMap<ActualSchema, JavaAnyType> = mutableMapOf()
   private val uniqueNameFinder = UniqueNameFinder()
 
@@ -56,7 +56,7 @@ class SchemaToJavaTypeTransformer(
   private fun determineName(schema: ActualSchema): String {
     val name = when (val parent = schema.embeddedIn) {
       is ObjectSchema -> toJavaType(parent).name + suggestName(schema, schema.nameHint.removePrefix(parent.nameHint))
-      else -> configuration.outputJavaModelNamePrefix + suggestName(schema)
+      else -> configuration.modelNamePrefix + suggestName(schema)
     }
 
     return uniqueNameFinder.toUniqueName(name)

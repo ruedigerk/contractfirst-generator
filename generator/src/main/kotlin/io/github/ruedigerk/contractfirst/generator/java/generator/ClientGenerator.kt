@@ -1,13 +1,13 @@
 package io.github.ruedigerk.contractfirst.generator.java.generator
 
 import com.squareup.javapoet.*
-import io.github.ruedigerk.contractfirst.generator.Configuration
 import io.github.ruedigerk.contractfirst.generator.java.Identifiers.toJavaConstant
 import io.github.ruedigerk.contractfirst.generator.java.Identifiers.toJavaTypeIdentifier
+import io.github.ruedigerk.contractfirst.generator.java.JavaConfiguration
 import io.github.ruedigerk.contractfirst.generator.java.generator.Annotations.toAnnotation
-import io.github.ruedigerk.contractfirst.generator.java.generator.TypeNames.toTypeName
 import io.github.ruedigerk.contractfirst.generator.java.generator.JavapoetExtensions.doIf
 import io.github.ruedigerk.contractfirst.generator.java.generator.JavapoetExtensions.doIfNotNull
+import io.github.ruedigerk.contractfirst.generator.java.generator.TypeNames.toTypeName
 import io.github.ruedigerk.contractfirst.generator.java.model.*
 import io.github.ruedigerk.contractfirst.generator.model.DefaultStatusCode
 import io.github.ruedigerk.contractfirst.generator.model.StatusCode
@@ -18,12 +18,12 @@ import javax.lang.model.element.Modifier
 /**
  * Generates the contract-specific code for an API client in Java.
  */
-class ClientGenerator(configuration: Configuration) {
+class ClientGenerator(configuration: JavaConfiguration) : (JavaSpecification) -> Unit {
 
   private val outputDir = File(configuration.outputDir)
-  private val apiPackage = "${configuration.outputJavaBasePackage}.$API_PACKAGE"
+  private val apiPackage = configuration.apiPackage
 
-  fun generateCode(specification: JavaSpecification) {
+  override operator fun invoke(specification: JavaSpecification) {
     // The client does not generate cookie parameters. They have to be supplied by cookies in the HTTP client itself.
     val specWithoutCookieParameters = removeAllCookieParameters(specification)
 
@@ -523,7 +523,6 @@ class ClientGenerator(configuration: Configuration) {
   companion object {
 
     const val SUPPORT_PACKAGE = "io.github.ruedigerk.contractfirst.generator.client"
-    const val API_PACKAGE = "api"
     const val CLIENT_CLASS_NAME_SUFFIX = "Client"
   }
 }

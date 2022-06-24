@@ -27,7 +27,7 @@ Here is an example for using the Maven plugin to generate server stubs:
     <plugin>
        <artifactId>contractfirst-generator-maven-plugin</artifactId>
        <groupId>io.github.ruedigerk.contractfirst.generator</groupId>
-       <version>1.5.1</version>
+       <version>1.6.0</version>
        <executions>
           <execution>
              <id>generate-server</id>
@@ -49,7 +49,7 @@ The generated server code needs the following dependencies:
         <!-- Contains a JAX-RS ParamConverterProvider and a Gson MessageBodyHandler to support LocalDate and OffsetDateTime -->
         <groupId>io.github.ruedigerk.contractfirst.generator</groupId>
         <artifactId>contractfirst-generator-server-support</artifactId>
-        <version>1.5.1</version>
+        <version>1.6.0</version>
     </dependency>
     <dependency>
         <!-- BeanValidation API for the generated data model -->
@@ -75,7 +75,7 @@ Here is an example for using the Maven plugin to generate an API client:
     <plugin>
        <artifactId>contractfirst-generator-maven-plugin</artifactId>
        <groupId>io.github.ruedigerk.contractfirst.generator</groupId>
-       <version>1.5.1</version>
+       <version>1.6.0</version>
        <executions>
           <execution>
              <id>generate-client</id>
@@ -97,7 +97,7 @@ The generated client code needs the following dependencies:
         <!-- Support module for the generated client code -->
         <groupId>io.github.ruedigerk.contractfirst.generator</groupId>
         <artifactId>contractfirst-generator-client-support</artifactId>
-        <version>1.5.1</version>
+        <version>1.6.0</version>
     </dependency>
     <dependency>
         <!-- BeanValidation API for the generated data model -->
@@ -115,6 +115,11 @@ The generated client code needs the following dependencies:
 
 Changelog
 ---------
+
+### 1.6.0
+
+**Added**
+- Added `model-only` generator for only generating a Java model for a set of JSON-Schema files.
 
 ### 1.5.2
 

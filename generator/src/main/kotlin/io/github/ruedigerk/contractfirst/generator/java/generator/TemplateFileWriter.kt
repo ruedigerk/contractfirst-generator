@@ -1,6 +1,6 @@
 package io.github.ruedigerk.contractfirst.generator.java.generator
 
-import io.github.ruedigerk.contractfirst.generator.Configuration
+import io.github.ruedigerk.contractfirst.generator.java.JavaConfiguration
 import java.io.BufferedOutputStream
 import java.io.File
 import java.io.InputStream
@@ -8,7 +8,7 @@ import java.io.InputStream
 /**
  * Used for writing template source files. Template source files are static resource files that get added a package statement, when being written.
  */
-class TemplateFileWriter(private val configuration: Configuration) {
+class TemplateFileWriter(private val configuration: JavaConfiguration) {
 
   fun writeTemplateFile(destinationPackage: String, templateFileName: String) {
     val packageAsDirectory = destinationPackage.replace('.', '/')

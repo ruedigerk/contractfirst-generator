@@ -1,20 +1,22 @@
 package io.github.ruedigerk.contractfirst.generator
 
-import spock.lang.Specification 
+import spock.lang.Specification
+
 /**
  * Compares generated code to the reference in the src/test/java source root.
  */
 class CompareGeneratedCodeToReferenceTest extends Specification {
 
-  static def serverHarness = new GeneratorHarness("src/test/contract/testsuite.yaml", "server", true)
-  static def clientHarness = new GeneratorHarness("src/test/contract/testsuite.yaml", "client", false)
-  static def combinationsServerHarness = new GeneratorHarness("src/test/contract/content-type-combinations.yaml", "combinations_server", true)
-  static def combinationsClientHarness = new GeneratorHarness("src/test/contract/content-type-combinations.yaml", "combinations_client", false)
-  static def selfReferentialHarness = new GeneratorHarness("src/test/contract/self-referential-model.yaml", "selfreferential", false)
-  static def multipartHarness = new GeneratorHarness("src/test/contract/multipart-request-body.yaml", "multipart", false)
-  static def parametersServerHarness = new GeneratorHarness("src/test/contract/equally-named-parameters.yaml", "parameters_server", true)
-  static def parametersClientHarness = new GeneratorHarness("src/test/contract/equally-named-parameters.yaml", "parameters_client", false)
-  static def validationsHarness = new GeneratorHarness("src/test/contract/validations.yaml", "validations", true)
+  static def serverHarness = new GeneratorHarness("src/test/contract/testsuite.yaml", "server", GeneratorType.SERVER)
+  static def clientHarness = new GeneratorHarness("src/test/contract/testsuite.yaml", "client", GeneratorType.CLIENT)
+  static def combinationsServerHarness = new GeneratorHarness("src/test/contract/content-type-combinations.yaml", "combinations_server", GeneratorType.SERVER)
+  static def combinationsClientHarness = new GeneratorHarness("src/test/contract/content-type-combinations.yaml", "combinations_client", GeneratorType.CLIENT)
+  static def selfReferentialHarness = new GeneratorHarness("src/test/contract/self-referential-model.yaml", "selfreferential", GeneratorType.CLIENT)
+  static def multipartHarness = new GeneratorHarness("src/test/contract/multipart-request-body.yaml", "multipart", GeneratorType.CLIENT)
+  static def parametersServerHarness = new GeneratorHarness("src/test/contract/equally-named-parameters.yaml", "parameters_server", GeneratorType.SERVER)
+  static def parametersClientHarness = new GeneratorHarness("src/test/contract/equally-named-parameters.yaml", "parameters_client", GeneratorType.CLIENT)
+  static def validationsHarness = new GeneratorHarness("src/test/contract/validations.yaml", "validations", GeneratorType.SERVER)
+  static def modelOnlyHarness = new GeneratorHarness("src/test/contract/modelOnlySchemas", "model_only", GeneratorType.MODEL_ONLY)
 
   def "Testsuite (server): #fileName"() {
     when:
@@ -158,5 +160,21 @@ class CompareGeneratedCodeToReferenceTest extends Specification {
     fileName << validationsHarness.relativePathNames
     referenceFile << validationsHarness.referenceFiles
     generatedFile << validationsHarness.generatedFiles
+  }
+
+  def "Model-Only mode: #fileName"() {
+    when:
+    modelOnlyHarness.runGenerator()
+
+    then:
+    generatedFile.exists()
+
+    and:
+    generatedFile.text == referenceFile.text
+
+    where:
+    fileName << modelOnlyHarness.relativePathNames
+    referenceFile << modelOnlyHarness.referenceFiles
+    generatedFile << modelOnlyHarness.generatedFiles
   }
 }

@@ -6,5 +6,6 @@ package io.github.ruedigerk.contractfirst.generator
 enum class GeneratorType {
 
   CLIENT,
-  SERVER
+  SERVER,
+  MODEL_ONLY
 }

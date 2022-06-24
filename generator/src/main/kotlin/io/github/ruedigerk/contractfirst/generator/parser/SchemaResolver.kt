@@ -15,7 +15,7 @@ class SchemaResolver(log: Log, topLevelSchemas: Map<String, SwaggerSchema<Any>>)
   private val schemaParser = SchemaParser(log)
 
   // Top level schemas are the schemas of the components section of the contract. Only they can be referenced by a $ref.
-  private val topLevelSchemas: Map<SchemaRef, ActualSchema> = topLevelSchemas
+  val topLevelSchemas: Map<SchemaRef, ActualSchema> = topLevelSchemas
       .mapValues { schemaParser.parseSchema(it.value, NameHint(it.key)) }
       .mapValues { it.value as? ActualSchema ?: throw NotSupportedException("Unsupported schema reference in #/components/schemas: ${it.value}") }
       .mapKeys { SchemaRef("#/components/schemas/${it.key}") }
@@ -36,19 +36,24 @@ class SchemaResolver(log: Log, topLevelSchemas: Map<String, SwaggerSchema<Any>>)
 
   private fun rememberReferencedSchema(schemaRef: SchemaRef) {
     val schema: Schema = topLevelSchemas[schemaRef] ?: throw ParserException("Unresolvable schema reference $schemaRef")
-    val referencedSchema = schema as? ActualSchema ?: throw NotSupportedException("Unsupported: schema reference pointing to reference: $schemaRef -> $schema")
+    val referencedSchema =
+        schema as? ActualSchema ?: throw NotSupportedException("Unsupported: schema reference pointing to reference: $schemaRef -> $schema")
     usedSchemas.add(referencedSchema)
   }
 
   /**
-   * Finds all schemas actually being used in the contract. This is done by recursively examining all schemas remembered by parseSchema. Must be called after
-   * the contract has been parsed.
+   * Used for overwriting the set of used schemas - only used in model-only mode, where none of the schemas is used by a REST-operation in the contract.
    */
-  fun findAllUsedSchemas(): Schemas {
-    if (usedSchemas.isEmpty()) {
-      throw IllegalStateException("determineAndResolveReferencedSchemas must be called after parsing the contract's operations")
-    }
+  fun overwriteUsedSchemas(schemas: Collection<ActualSchema>) {
+    usedSchemas.clear()
+    usedSchemas.addAll(schemas)
+  }
 
+  /**
+   * Finds all schemas actually being used in the contract. This is done by recursively examining all schemas remembered by parseSchema. Must be called
+   * after the contract has been parsed.
+   */
+  fun findAllUsedSchemasRecursively(): Schemas {
     val foundSchemas = mutableSetOf<ActualSchema>()
     var schemasToExamine = usedSchemas.toSet()
 

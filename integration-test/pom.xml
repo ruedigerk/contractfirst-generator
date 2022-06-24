@@ -115,6 +115,19 @@
                      <outputJavaBasePackage>io.github.ruedigerk.contractfirst.generator.integrationtest.defaults</outputJavaBasePackage>
                   </configuration>
                </execution>
+
+               <execution>
+                  <id>test-model-only-generation</id>
+                  <goals>
+                     <goal>generate</goal>
+                  </goals>
+                  <configuration>
+                     <generator>model-only</generator>
+                     <inputContractFile>src/main/contract/modelOnlySchemas</inputContractFile>
+                     <outputJavaBasePackage>io.github.ruedigerk.contractfirst.generator.integrationtest.modelonly</outputJavaBasePackage>
+                  </configuration>
+               </execution>
+
                <execution>
                   <id>test-help-mojo</id>
                   <goals>

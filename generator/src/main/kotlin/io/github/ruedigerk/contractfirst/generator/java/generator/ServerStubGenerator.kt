@@ -1,15 +1,15 @@
 package io.github.ruedigerk.contractfirst.generator.java.generator
 
 import com.squareup.javapoet.*
-import io.github.ruedigerk.contractfirst.generator.Configuration
 import io.github.ruedigerk.contractfirst.generator.NotSupportedException
 import io.github.ruedigerk.contractfirst.generator.java.Identifiers.capitalize
 import io.github.ruedigerk.contractfirst.generator.java.Identifiers.mediaTypeToJavaIdentifier
-import io.github.ruedigerk.contractfirst.generator.java.generator.TypeNames.toTypeName
-import io.github.ruedigerk.contractfirst.generator.java.generator.JavapoetExtensions.doIf
-import io.github.ruedigerk.contractfirst.generator.java.generator.JavapoetExtensions.doIfNotNull
+import io.github.ruedigerk.contractfirst.generator.java.JavaConfiguration
 import io.github.ruedigerk.contractfirst.generator.java.generator.Annotations.NOT_NULL_ANNOTATION
 import io.github.ruedigerk.contractfirst.generator.java.generator.Annotations.toAnnotation
+import io.github.ruedigerk.contractfirst.generator.java.generator.JavapoetExtensions.doIf
+import io.github.ruedigerk.contractfirst.generator.java.generator.JavapoetExtensions.doIfNotNull
+import io.github.ruedigerk.contractfirst.generator.java.generator.TypeNames.toTypeName
 import io.github.ruedigerk.contractfirst.generator.java.model.*
 import io.github.ruedigerk.contractfirst.generator.model.DefaultStatusCode
 import io.github.ruedigerk.contractfirst.generator.model.ParameterLocation.*
@@ -20,13 +20,13 @@ import javax.lang.model.element.Modifier.*
 /**
  * Generates the code for the server stubs.
  */
-class ServerStubGenerator(private val configuration: Configuration) {
+class ServerStubGenerator(private val configuration: JavaConfiguration) : (JavaSpecification) -> Unit {
 
   private val outputDir = File(configuration.outputDir)
-  private val apiPackage = "${configuration.outputJavaBasePackage}.$API_PACKAGE"
-  private val supportPackage = "$apiPackage.support"
+  private val apiPackage = configuration.apiPackage
+  private val supportPackage = configuration.supportPackage
 
-  fun generateCode(specification: JavaSpecification) {
+  override operator fun invoke(specification: JavaSpecification) {
     specification.operationGroups.asSequence()
         .map(::toJavaInterface)
         .forEach { it.writeTo(outputDir) }
@@ -193,7 +193,6 @@ class ServerStubGenerator(private val configuration: Configuration) {
 
   companion object {
 
-    const val API_PACKAGE = "resources"
     const val RESPONSE_WRAPPER_CLASS_NAME = "ResponseWrapper"
   }
 }

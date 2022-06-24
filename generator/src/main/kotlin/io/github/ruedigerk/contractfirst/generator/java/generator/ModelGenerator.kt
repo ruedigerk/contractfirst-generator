@@ -1,12 +1,12 @@
 package io.github.ruedigerk.contractfirst.generator.java.generator
 
 import com.squareup.javapoet.*
-import io.github.ruedigerk.contractfirst.generator.Configuration
 import io.github.ruedigerk.contractfirst.generator.java.Identifiers.capitalize
+import io.github.ruedigerk.contractfirst.generator.java.JavaConfiguration
 import io.github.ruedigerk.contractfirst.generator.java.generator.Annotations.toAnnotation
-import io.github.ruedigerk.contractfirst.generator.java.generator.TypeNames.toTypeName
 import io.github.ruedigerk.contractfirst.generator.java.generator.JavapoetExtensions.doIf
 import io.github.ruedigerk.contractfirst.generator.java.generator.JavapoetExtensions.doIfNotNull
+import io.github.ruedigerk.contractfirst.generator.java.generator.TypeNames.toTypeName
 import io.github.ruedigerk.contractfirst.generator.java.model.*
 import java.io.File
 import javax.lang.model.element.Modifier.*
@@ -14,10 +14,10 @@ import javax.lang.model.element.Modifier.*
 /**
  * Generates the code for the model classes.
  */
-class ModelGenerator(configuration: Configuration) {
+class ModelGenerator(configuration: JavaConfiguration) {
 
   private val outputDir = File(configuration.outputDir)
-  private val modelPackage = "${configuration.outputJavaBasePackage}.model"
+  private val modelPackage = configuration.modelPackage
 
   fun generateCode(specification: JavaSpecification) {
     specification.modelFiles.asSequence()

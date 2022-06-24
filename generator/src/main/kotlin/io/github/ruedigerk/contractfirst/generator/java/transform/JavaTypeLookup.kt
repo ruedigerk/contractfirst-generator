@@ -1,6 +1,6 @@
 package io.github.ruedigerk.contractfirst.generator.java.transform
 
-import io.github.ruedigerk.contractfirst.generator.Configuration
+import io.github.ruedigerk.contractfirst.generator.java.JavaConfiguration
 import io.github.ruedigerk.contractfirst.generator.java.model.JavaAnyType
 import io.github.ruedigerk.contractfirst.generator.logging.Log
 import io.github.ruedigerk.contractfirst.generator.model.ActualSchema
@@ -12,7 +12,7 @@ import io.github.ruedigerk.contractfirst.generator.model.SchemaRef
  */
 class JavaTypeLookup(
     private val log: Log,
-    configuration: Configuration,
+    configuration: JavaConfiguration,
     val allSchemas: Set<ActualSchema>,
     topLevelSchemas: Map<SchemaRef, ActualSchema>
 ) {
@@ -20,7 +20,7 @@ class JavaTypeLookup(
   private val schemaRefLookup = SchemaRefLookup(topLevelSchemas)
   private val javaTypesForSchemas: Map<ActualSchema, JavaAnyType> = createSchemasToTypesLookup(configuration)
 
-  private fun createSchemasToTypesLookup(configuration: Configuration): Map<ActualSchema, JavaAnyType> {
+  private fun createSchemasToTypesLookup(configuration: JavaConfiguration): Map<ActualSchema, JavaAnyType> {
     val typeTransformer = SchemaToJavaTypeTransformer(log, configuration, schemaRefLookup)
     return allSchemas.associateWith(typeTransformer::toJavaType)
   }

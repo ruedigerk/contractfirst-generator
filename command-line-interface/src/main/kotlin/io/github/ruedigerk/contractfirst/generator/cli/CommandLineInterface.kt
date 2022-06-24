@@ -67,6 +67,7 @@ object CommandLineInterface {
   private fun determineGenerator(generator: String): GeneratorType = when (generator) {
     "client" -> GeneratorType.CLIENT
     "server" -> GeneratorType.SERVER
+    "model-only" -> GeneratorType.MODEL_ONLY
     else -> throw InvalidConfigurationException("Option --generator has invalid value: '$generator', allowed values are 'client', 'server'")
   }
 
@@ -79,9 +80,9 @@ object CommandLineInterface {
 
 private class CliConfiguration(parser: ArgParser) {
 
-  val inputContractFile: String by parser.storing("--input-contract-file", help = "the path to the file containing the OpenAPI contract to use as input")
+  val inputContractFile: String by parser.storing("--input-contract-file", help = "the path to the file containing the OpenAPI contract to use as input; in case of the model-only generator, this should point to a single JSON-Schema file in YAML or JSON format or to a directory, which is recursively searched for JSON-Schema files")
 
-  val generator: String by parser.storing("--generator", help = "the type of generator to use for code generation; allowed values are: \"server\", \"client\"")
+  val generator: String by parser.storing("--generator", help = "the type of generator to use for code generation; allowed values are: \"server\", \"client\", \"model-only\"")
 
   val outputDir: String by parser.storing("--output-dir", help = "the path to the directory where the generated code is written to")
 

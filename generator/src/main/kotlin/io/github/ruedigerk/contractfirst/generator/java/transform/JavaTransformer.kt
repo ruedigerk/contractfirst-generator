@@ -1,11 +1,11 @@
 package io.github.ruedigerk.contractfirst.generator.java.transform
 
-import io.github.ruedigerk.contractfirst.generator.Configuration
 import io.github.ruedigerk.contractfirst.generator.NotSupportedException
 import io.github.ruedigerk.contractfirst.generator.ParserException
 import io.github.ruedigerk.contractfirst.generator.java.Identifiers.capitalize
 import io.github.ruedigerk.contractfirst.generator.java.Identifiers.toJavaIdentifier
 import io.github.ruedigerk.contractfirst.generator.java.Identifiers.toJavaTypeIdentifier
+import io.github.ruedigerk.contractfirst.generator.java.JavaConfiguration
 import io.github.ruedigerk.contractfirst.generator.java.model.*
 import io.github.ruedigerk.contractfirst.generator.logging.Log
 import io.github.ruedigerk.contractfirst.generator.model.*
@@ -13,7 +13,7 @@ import io.github.ruedigerk.contractfirst.generator.model.*
 /**
  * Transforms the parsed specification into a Java-specific specification, appropriate for code generation.
  */
-class JavaTransformer(private val log: Log, private val configuration: Configuration) {
+class JavaTransformer(private val log: Log, private val configuration: JavaConfiguration) {
 
   private lateinit var typeLookup: JavaTypeLookup
 

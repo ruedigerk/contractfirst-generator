@@ -3,7 +3,10 @@ package io.github.ruedigerk.contractfirst.generator.java.generator
 import com.squareup.javapoet.ClassName
 import com.squareup.javapoet.ParameterizedTypeName
 import com.squareup.javapoet.TypeName
-import io.github.ruedigerk.contractfirst.generator.java.model.*
+import io.github.ruedigerk.contractfirst.generator.java.model.JavaAnyType
+import io.github.ruedigerk.contractfirst.generator.java.model.JavaCollectionType
+import io.github.ruedigerk.contractfirst.generator.java.model.JavaMapType
+import io.github.ruedigerk.contractfirst.generator.java.model.JavaType
 
 /**
  * Code for creating Javapoet TypeNames.

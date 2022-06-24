@@ -6,11 +6,9 @@ import io.github.ruedigerk.contractfirst.generator.logging.Log
 import io.github.ruedigerk.contractfirst.generator.model.*
 import io.github.ruedigerk.contractfirst.generator.parser.ParserHelper.normalize
 import io.github.ruedigerk.contractfirst.generator.parser.ParserHelper.nullToEmpty
-import io.swagger.parser.OpenAPIParser
 import io.swagger.v3.oas.models.OpenAPI
 import io.swagger.v3.oas.models.PathItem
 import io.swagger.v3.oas.models.responses.ApiResponses
-import io.swagger.v3.parser.core.models.ParseOptions
 import io.swagger.v3.oas.models.Operation as SwaggerOperation
 import io.swagger.v3.oas.models.media.Content as SwaggerContent
 import io.swagger.v3.oas.models.parameters.Parameter as SwaggerParameter
@@ -23,31 +21,11 @@ class Parser(private val log: Log) {
 
   private lateinit var schemaResolver: SchemaResolver
 
-  fun parse(specFilePath: String): Specification {
-    val openApiSpecification = runSwaggerParser(specFilePath)
-    return toContract(openApiSpecification)
-  }
-
-  private fun runSwaggerParser(specFile: String): OpenAPI {
-    val parseOptions = ParseOptions().apply {
-      // Replace remote/relative references with a local references, e.g. "#/components/schemas/NameOfRemoteSchema".
-      isResolve = true
-    }
-
-    val result = OpenAPIParser().readLocation(specFile, null, parseOptions)
-
-    if (result.messages.isNotEmpty()) {
-      throw ParserException(result.messages)
-    }
-
-    return result.openAPI!!
-  }
-
-  private fun toContract(openApi: OpenAPI): Specification {
+  fun toSpecification(openApi: OpenAPI): Specification {
     schemaResolver = SchemaResolver(log, openApi.components?.schemas ?: emptyMap())
 
     val operations = toOperations(openApi.paths)
-    val schemas = schemaResolver.findAllUsedSchemas()
+    val schemas = schemaResolver.findAllUsedSchemasRecursively()
 
     return Specification(operations, schemas.allSchemas, schemas.topLevelSchemas, openApi)
   }
