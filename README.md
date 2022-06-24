@@ -27,7 +27,7 @@ Here is an example for using the Maven plugin to generate server stubs:
     <plugin>
        <artifactId>contractfirst-generator-maven-plugin</artifactId>
        <groupId>io.github.ruedigerk.contractfirst.generator</groupId>
-       <version>1.5.0</version>
+       <version>1.5.1</version>
        <executions>
           <execution>
              <id>generate-server</id>
@@ -49,7 +49,7 @@ The generated server code needs the following dependencies:
         <!-- Contains a JAX-RS ParamConverterProvider and a Gson MessageBodyHandler to support LocalDate and OffsetDateTime -->
         <groupId>io.github.ruedigerk.contractfirst.generator</groupId>
         <artifactId>contractfirst-generator-server-support</artifactId>
-        <version>1.5.0</version>
+        <version>1.5.1</version>
     </dependency>
     <dependency>
         <!-- BeanValidation API for the generated data model -->
@@ -75,7 +75,7 @@ Here is an example for using the Maven plugin to generate an API client:
     <plugin>
        <artifactId>contractfirst-generator-maven-plugin</artifactId>
        <groupId>io.github.ruedigerk.contractfirst.generator</groupId>
-       <version>1.5.0</version>
+       <version>1.5.1</version>
        <executions>
           <execution>
              <id>generate-client</id>
@@ -97,7 +97,7 @@ The generated client code needs the following dependencies:
         <!-- Support module for the generated client code -->
         <groupId>io.github.ruedigerk.contractfirst.generator</groupId>
         <artifactId>contractfirst-generator-client-support</artifactId>
-        <version>1.5.0</version>
+        <version>1.5.1</version>
     </dependency>
     <dependency>
         <!-- BeanValidation API for the generated data model -->
@@ -112,8 +112,14 @@ The generated client code needs the following dependencies:
         <version>2.8.9</version>
     </dependency>
 
+
 Changelog
 ---------
+
+### 1.5.1
+
+**Fixed**
+- Fixed a bug that lead to uncompilable code if multiple operations used the same generic response type.
 
 ### 1.5.0
 
