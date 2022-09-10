@@ -5,7 +5,7 @@ info:
 servers:
   - url: https://example.com/equally-named-parameters
 paths:
-  /getEquallyNamedParameters:
+  /getEquallyNamedParameters/{theParameter}:
     get:
       summary: Test for multiple equally named parameters.
       operationId: getEquallyNamedParameters
@@ -22,6 +22,7 @@ paths:
             type: string
         - name: theParameter
           in: path
+          required: true
           schema: 
             type: string
         - name: theParameter

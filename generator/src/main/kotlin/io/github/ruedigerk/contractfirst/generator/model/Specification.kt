@@ -1,13 +1,12 @@
 package io.github.ruedigerk.contractfirst.generator.model
 
-import io.swagger.v3.oas.models.OpenAPI
+import io.github.ruedigerk.contractfirst.generator.parser.Parseable
 
 /**
  * Represents the contents of a contract.
  */
 data class Specification(
     val operations: List<Operation>,
-    val allSchemas: Set<ActualSchema>,
-    val topLevelSchemas: Map<SchemaRef, ActualSchema>,
-    val source: OpenAPI
+    val schemas: Map<SchemaId, Schema>,
+    val source: Parseable
 )

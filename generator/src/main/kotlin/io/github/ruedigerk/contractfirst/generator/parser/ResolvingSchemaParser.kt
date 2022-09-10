@@ -1,0 +1,177 @@
+package io.github.ruedigerk.contractfirst.generator.parser
+
+import io.github.ruedigerk.contractfirst.generator.NotSupportedException
+import io.github.ruedigerk.contractfirst.generator.logging.Log
+import io.github.ruedigerk.contractfirst.generator.model.*
+import io.github.ruedigerk.contractfirst.generator.parser.Strings.normalize
+import java.io.File
+
+/**
+ * A parser for JSON Schema files in either JSON oder YAML format.
+ */
+class ResolvingSchemaParser(
+    private val log: Log,
+    private val parseableCache: ParseableCache,
+) {
+
+  private val schemasToParse = ArrayDeque<Parseable>()
+  private val visitedSchemas = mutableSetOf<SchemaId>()
+
+  fun parseAndResolveAll(schemas: Collection<Parseable>): Map<SchemaId, Schema> {
+    schemasToParse.addAll(schemas)
+
+    val parsedSchemas = mutableMapOf<SchemaId, Schema>()
+
+    while (schemasToParse.isNotEmpty()) {
+      val parseable = schemasToParse.removeFirst()
+      val id = SchemaId(parseable)
+      visitedSchemas.add(id)
+
+      val schema = parseSchema(parseable)
+      parsedSchemas[id] = schema
+    }
+
+    return parsedSchemas
+  }
+
+  private fun dereferenceAndRememberSchema(schemaOrReference: Parseable): SchemaId {
+    val schema = parseableCache.resolveWhileReference(schemaOrReference)
+    val id = SchemaId(schema)
+
+    if (id !in visitedSchemas) {
+      schemasToParse.addLast(schema)
+    }
+    
+    return id
+  }
+
+  /**
+   * The supplied parseable must not be a schema reference.
+   */
+  private fun parseSchema(parseable: Parseable): Schema {
+    log.debug { "Parsing schema ${parseable.position}" }
+
+    if (parseable.isReference()) {
+      throw IllegalArgumentException("Parseable supplied to parseSchema must not be a schema reference, but was ${parseable.getReference()} at ${parseable.position}")
+    }
+
+    if (parseable.optionalField("enum").isPresent()) {
+      return toEnumSchema(parseable)
+    }
+
+    return when (val type = parseable.optionalField("type").string()) {
+      "array" -> toArraySchema(parseable)
+      "boolean", "integer", "number", "string" -> toPrimitiveSchema(PrimitiveType.valueOf(type.uppercase()), parseable)
+      "object", null -> toObjectOrMapSchema(parseable)
+      else -> throw NotSupportedException("Schema type '$type' is not supported at ${parseable.position}")
+    }
+  }
+
+  private fun toEnumSchema(parseable: Parseable): EnumSchema {
+    val type = parseable.optionalField("type").string()
+
+    if (type != null && type != "string") {
+      throw NotSupportedException("Currently only enum schemas of type 'string' are supported, type is '$type' at ${parseable.position}")
+    }
+
+    val enumValues = parseable.requiredField("enum").requireArray().requireNonEmpty().stringElements()
+
+    return EnumSchema(
+        parseable.optionalField("title").string().normalize(),
+        parseable.optionalField("description").string().normalize(),
+        enumValues.map { it },
+        parseable.position
+    )
+  }
+
+  private fun toArraySchema(parseable: Parseable): ArraySchema {
+    val itemsParseable = parseable.requiredField("items").requireObject()
+    val itemsSchema = dereferenceAndRememberSchema(itemsParseable)
+
+    return ArraySchema(
+        parseable.optionalField("title").string().normalize(),
+        parseable.optionalField("description").string().normalize(),
+        itemsSchema,
+        parseable.optionalField("uniqueItems").boolean() ?: false,
+        parseable.optionalField("minItems").int(),
+        parseable.optionalField("maxItems").int(),
+        parseable.position
+    )
+  }
+
+  private fun toPrimitiveSchema(primitiveType: PrimitiveType, parseable: Parseable): PrimitiveSchema {
+    return PrimitiveSchema(
+        parseable.optionalField("title").string().normalize(),
+        parseable.optionalField("description").string().normalize(),
+        primitiveType,
+        parseable.optionalField("format").string().normalize(),
+        parseable.optionalField("minimum").number(),
+        parseable.optionalField("maximum").number(),
+        parseable.optionalField("exclusiveMinimum").boolean() ?: false,
+        parseable.optionalField("exclusiveMaximum").boolean() ?: false,
+        parseable.optionalField("minLength").int(),
+        parseable.optionalField("maxLength").int(),
+        parseable.optionalField("pattern").string(),
+        parseable.position
+    )
+  }
+
+  private fun toObjectOrMapSchema(parseable: Parseable): Schema {
+    val properties = parseable.optionalField("properties").let { if (!it.isPresent() || !it.isObject() || it.isEmpty()) null else it }
+
+    // TODO: Support additionalProperties of type Boolean instead of type Object/Schema.
+    val additionalProperties = parseable.optionalField("additionalProperties").let { if (!it.isPresent() || !it.isObject()) null else it }
+
+    return when {
+      properties != null && additionalProperties != null -> {
+        throw NotSupportedException("Object schemas having both properties and additionalProperties are not supported, just either or, at ${parseable.position}")
+      }
+
+      additionalProperties != null -> toMapSchema(parseable, additionalProperties)
+      else -> toObjectSchema(parseable)
+    }
+  }
+
+  private fun toMapSchema(parseable: Parseable, valuesParseable: Parseable): MapSchema {
+    val valuesSchema = dereferenceAndRememberSchema(valuesParseable)
+
+    return MapSchema(
+        parseable.optionalField("title").string().normalize(),
+        parseable.optionalField("description").string().normalize(),
+        valuesSchema,
+        parseable.optionalField("minItems").int(),
+        parseable.optionalField("maxItems").int(),
+        parseable.position
+    )
+  }
+
+  private fun toObjectSchema(parseable: Parseable): ObjectSchema {
+    val requiredProperties = parseable.optionalField("required").stringElements().toSet()
+    val properties: List<SchemaProperty> = parseable.optionalField("properties").fields().map { (name, propertySchemaParseable) ->
+      val propertySchema = dereferenceAndRememberSchema(propertySchemaParseable)
+      SchemaProperty(name, requiredProperties.contains(name), propertySchema)
+    }
+
+    return ObjectSchema(
+        parseable.optionalField("title").string().normalize(),
+        parseable.optionalField("description").string().normalize(),
+        properties,
+        parseable.position
+    )
+  }
+
+  companion object {
+
+    /**
+     * Utility method for parsing standalone schema files, instead of parsing the schemas referenced from an OpenAPI contract.
+     */
+    @JvmStatic
+    fun parseAndResolveAll(log: Log, files: Collection<File>): Map<SchemaId, Schema> {
+      val parseableCache = ParseableCache()
+      val parseables = files.map { parseableCache.get(it) }
+      val parser = ResolvingSchemaParser(log, parseableCache)
+
+      return parser.parseAndResolveAll(parseables)
+    }
+  }
+}

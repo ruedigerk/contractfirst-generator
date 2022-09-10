@@ -76,7 +76,6 @@
                      <outputJavaModelNamePrefix>C</outputJavaModelNamePrefix>
                   </configuration>
                </execution>
-
                <execution>
                   <id>generate-content-type-combinations-server-code</id>
                   <goals>
@@ -105,6 +104,7 @@
                </execution>
 
                <execution>
+                  <!-- TODO: wite test to verify the expected files are generated -->
                   <id>test-plugin-parameter-defaults</id>
                   <goals>
                      <goal>generate</goal>
@@ -112,11 +112,11 @@
                   <configuration>
                      <generator>server</generator>
                      <inputContractFile>${project.basedir}/src/main/contract/minimal.yaml</inputContractFile>
-                     <outputJavaBasePackage>io.github.ruedigerk.contractfirst.generator.integrationtest.defaults</outputJavaBasePackage>
+                     <outputJavaBasePackage>io.github.ruedigerk.contractfirst.generator.mojotest.defaults</outputJavaBasePackage>
                   </configuration>
                </execution>
-
                <execution>
+                  <!-- TODO: wite test to verify the expected files are generated -->
                   <id>test-model-only-generation</id>
                   <goals>
                      <goal>generate</goal>
@@ -124,17 +124,27 @@
                   <configuration>
                      <generator>model-only</generator>
                      <inputContractFile>src/main/contract/modelOnlySchemas</inputContractFile>
-                     <outputJavaBasePackage>io.github.ruedigerk.contractfirst.generator.integrationtest.modelonly</outputJavaBasePackage>
+                     <outputJavaBasePackage>io.github.ruedigerk.contractfirst.generator.mojotest.modelonly</outputJavaBasePackage>
                      <outputJavaModelUseJsr305NullabilityAnnotations>true</outputJavaModelUseJsr305NullabilityAnnotations>
                   </configuration>
                </execution>
-
                <execution>
                   <id>test-help-mojo</id>
                   <goals>
                      <goal>help</goal>
                   </goals>
                   <phase>generate-sources</phase>
+               </execution>
+               <execution>
+                  <id>test-help-mojo-generate-details</id>
+                  <goals>
+                     <goal>help</goal>
+                  </goals>
+                  <phase>generate-sources</phase>
+                  <configuration>
+                     <detail>true</detail>
+                     <goal>generate</goal>
+                  </configuration>
                </execution>
             </executions>
          </plugin>

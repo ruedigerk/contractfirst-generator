@@ -7,6 +7,7 @@ import io.github.ruedigerk.contractfirst.generator.java.JavaConfiguration
 import io.github.ruedigerk.contractfirst.generator.java.generator.Annotations.toAnnotation
 import io.github.ruedigerk.contractfirst.generator.java.generator.JavapoetExtensions.doIf
 import io.github.ruedigerk.contractfirst.generator.java.generator.JavapoetExtensions.doIfNotNull
+import io.github.ruedigerk.contractfirst.generator.java.generator.TypeNames.toClassName
 import io.github.ruedigerk.contractfirst.generator.java.generator.TypeNames.toTypeName
 import io.github.ruedigerk.contractfirst.generator.java.model.*
 import io.github.ruedigerk.contractfirst.generator.model.DefaultStatusCode
@@ -57,7 +58,7 @@ class ClientGenerator(configuration: JavaConfiguration) : (JavaSpecification) ->
     val genericTypeConstants = generateTypeTokenConstants(operationGroup)
 
     val requestExecutorFieldSpec = FieldSpec.builder(SupportTypes.ApiRequestExecutor, "requestExecutor", Modifier.PRIVATE, Modifier.FINAL).build()
-    val returningResultFieldSpec = FieldSpec.builder("ReturningResult".toTypeName(), "returningResult", Modifier.PRIVATE, Modifier.FINAL).build()
+    val returningResultFieldSpec = FieldSpec.builder("ReturningResult".toClassName(), "returningResult", Modifier.PRIVATE, Modifier.FINAL).build()
 
     val constructorSpec = MethodSpec.constructorBuilder()
         .addModifiers(Modifier.PUBLIC)
@@ -69,7 +70,7 @@ class ClientGenerator(configuration: JavaConfiguration) : (JavaSpecification) ->
     val returningSuccessfulResultGetterMethodSpec = MethodSpec.methodBuilder("returningResult")
         .addJavadoc("Returns an API client with methods that return operation specific result classes, allowing inspection of the operations' responses.")
         .addModifiers(Modifier.PUBLIC)
-        .returns("ReturningResult".toTypeName())
+        .returns("ReturningResult".toClassName())
         .addStatement("return returningResult")
         .build()
 
@@ -107,18 +108,18 @@ class ClientGenerator(configuration: JavaConfiguration) : (JavaSpecification) ->
   private fun generateTypeTokenConstant(type: JavaAnyType): FieldSpec {
     val initializer = CodeBlock.of(
         "new \$T<\$T>(){}.getType()",
-        "com.google.gson.reflect.TypeToken".toTypeName(),
+        "com.google.gson.reflect.TypeToken".toClassName(),
         type.toTypeName()
     )
-    return FieldSpec.builder("java.lang.reflect.Type".toTypeName(), constantsNameForGenericType(type), Modifier.PUBLIC, Modifier.STATIC, Modifier.FINAL)
+    return FieldSpec.builder("java.lang.reflect.Type".toClassName(), constantsNameForGenericType(type), Modifier.PUBLIC, Modifier.STATIC, Modifier.FINAL)
         .initializer(initializer)
         .build()
   }
 
   private fun constantsNameForGenericType(type: JavaAnyType): String = when (type) {
-    is JavaCollectionType -> type.name.toJavaConstant() + "_OF_" + constantsNameForGenericType(type.elementType)
-    is JavaMapType -> type.name.toJavaConstant() + "_OF_" + constantsNameForGenericType(type.valuesType)
-    is JavaType -> type.name.toJavaConstant()
+    is JavaCollectionType -> type.name.simpleName.toJavaConstant() + "_OF_" + constantsNameForGenericType(type.elementType)
+    is JavaMapType -> type.name.simpleName.toJavaConstant() + "_OF_" + constantsNameForGenericType(type.valuesType)
+    is JavaType -> type.name.simpleName.toJavaConstant()
   }
 
   private fun createSimplifiedMethod(operation: JavaOperation): MethodSpec {
@@ -216,7 +217,7 @@ class ClientGenerator(configuration: JavaConfiguration) : (JavaSpecification) ->
   }
 
   private fun typeNameOfResultClass(operation: JavaOperation): ClassName {
-    return (operation.javaMethodName.toJavaTypeIdentifier() + "Result").toTypeName()
+    return (operation.javaMethodName.toJavaTypeIdentifier() + "Result").toClassName()
   }
 
   private fun getAllErrorWithEntityExceptionsFor(operation: JavaOperation): List<TypeName> =
@@ -326,14 +327,14 @@ class ClientGenerator(configuration: JavaConfiguration) : (JavaSpecification) ->
         .build()
 
     val methodSpecGetEntity = MethodSpec.methodBuilder("getEntity")
-        .addAnnotation("java.lang.Override".toTypeName())
+        .addAnnotation("java.lang.Override".toClassName())
         .addModifiers(Modifier.PUBLIC)
         .returns(entityType.toTypeName())
         .addStatement("return (\$T) super.getEntity()", entityType.toTypeName())
         .build()
 
     val classSpec = TypeSpec.classBuilder(errorWithEntityExceptionClassName(entityType))
-        .addJavadoc("Exception for errors where the API returned an entity of type {@code ${entityType.name}}.")
+        .addJavadoc("Exception for errors where the API returned an entity of type {@code ${entityType.name.simpleName}}.")
         .addModifiers(Modifier.PUBLIC)
         .superclass(SupportTypes.ApiClientErrorWithEntityException)
         .addMethod(constructorSpec)
@@ -347,7 +348,7 @@ class ClientGenerator(configuration: JavaConfiguration) : (JavaSpecification) ->
 
   private fun errorWithEntityExceptionClassName(entityType: JavaAnyType): ClassName = ClassName.get(
       apiPackage,
-      "ApiClientErrorWith${entityType.name}EntityException"
+      "ApiClientErrorWith${entityType.name.simpleName}EntityException"
   )
 
   private fun createClassForOperationSpecificResult(operation: JavaOperation): TypeSpec {
@@ -447,9 +448,9 @@ class ClientGenerator(configuration: JavaConfiguration) : (JavaSpecification) ->
 
   private fun methodNameForEntityType(type: JavaAnyType): String {
     return when (type) {
-      is JavaCollectionType -> "${type.name}Of${type.elementType.name}"
-      is JavaMapType -> "MapOfStringTo${type.valuesType.name}"
-      is JavaType -> type.name
+      is JavaCollectionType -> "${type.name.simpleName}Of${type.elementType.name.simpleName}"
+      is JavaMapType -> "MapOfStringTo${type.valuesType.name.simpleName}"
+      is JavaType -> type.name.simpleName
     }
   }
 
@@ -509,15 +510,15 @@ class ClientGenerator(configuration: JavaConfiguration) : (JavaSpecification) ->
 
   object SupportTypes {
 
-    val ApiResponse = "$SUPPORT_PACKAGE.ApiResponse".toTypeName()
-    val OperationBuilder = "$SUPPORT_PACKAGE.internal.Operation.Builder".toTypeName()
-    val ParameterLocation = "$SUPPORT_PACKAGE.internal.ParameterLocation".toTypeName()
-    val ApiRequestExecutor = "$SUPPORT_PACKAGE.ApiRequestExecutor".toTypeName()
-    val StatusCode = "$SUPPORT_PACKAGE.internal.StatusCode".toTypeName()
-    val ApiClientErrorWithEntityException = "$SUPPORT_PACKAGE.ApiClientErrorWithEntityException".toTypeName()
-    val ApiClientIoException = "$SUPPORT_PACKAGE.ApiClientIoException".toTypeName()
-    val ApiClientValidationException = "$SUPPORT_PACKAGE.ApiClientValidationException".toTypeName()
-    val ApiClientIncompatibleResponseException = "$SUPPORT_PACKAGE.ApiClientIncompatibleResponseException".toTypeName()
+    val ApiResponse = "$SUPPORT_PACKAGE.ApiResponse".toClassName()
+    val OperationBuilder = "$SUPPORT_PACKAGE.internal.Operation.Builder".toClassName()
+    val ParameterLocation = "$SUPPORT_PACKAGE.internal.ParameterLocation".toClassName()
+    val ApiRequestExecutor = "$SUPPORT_PACKAGE.ApiRequestExecutor".toClassName()
+    val StatusCode = "$SUPPORT_PACKAGE.internal.StatusCode".toClassName()
+    val ApiClientErrorWithEntityException = "$SUPPORT_PACKAGE.ApiClientErrorWithEntityException".toClassName()
+    val ApiClientIoException = "$SUPPORT_PACKAGE.ApiClientIoException".toClassName()
+    val ApiClientValidationException = "$SUPPORT_PACKAGE.ApiClientValidationException".toClassName()
+    val ApiClientIncompatibleResponseException = "$SUPPORT_PACKAGE.ApiClientIncompatibleResponseException".toClassName()
   }
 
   companion object {

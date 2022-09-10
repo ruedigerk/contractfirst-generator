@@ -5,5 +5,5 @@ package io.github.ruedigerk.contractfirst.generator.model
  */
 data class Content(
     val mediaType: String,
-    val schema: Schema
+    val schemaId: SchemaId
 )

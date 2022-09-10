@@ -6,15 +6,16 @@ package io.github.ruedigerk.contractfirst.generator.model
 data class Operation(
     val path: String,
 
-    /**
-     * The HTTP method of the operation in upper case (ensured by the parser).
-     */
+    /** The HTTP method of the operation in upper case (ensured by the parser). */
     val method: String,
     val tags: List<String>,
     val summary: String?,
     val description: String?,
-    val operationId: String,
+    val operationId: String?,
     val requestBody: RequestBody?,
     val parameters: List<Parameter>,
-    val responses: List<Response>
+    val responses: List<Response>,
+
+    /** The position of the operation in the contract */
+    val position: Position
 )

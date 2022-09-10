@@ -1,0 +1,17 @@
+$schema: http://json-schema.org/draft-04/schema#
+title: Special Type
+type: object
+properties:
+  sibling:
+    $ref: ../sibling/sibling.yaml
+  typeName:
+    type: string
+  specialities:
+    type: array
+    items:
+      type: object
+      properties:
+        label:
+          type: string
+        category:
+          type: string

@@ -71,6 +71,20 @@ public class PayloadVariantsApiClient {
   }
 
   /**
+   * Test for 204 response.
+   */
+  public void changeItem(Item requestBody) throws ApiClientIoException,
+      ApiClientValidationException, ApiClientIncompatibleResponseException,
+      ApiClientErrorWithFailureEntityException {
+
+    ChangeItemResult result = returningResult.changeItem(requestBody);
+
+    if (!result.isSuccessful()) {
+      throw new ApiClientErrorWithFailureEntityException(result.getResponse());
+    }
+  }
+
+  /**
    * Test binary input and output.
    */
   public InputStream uploadAndReturnBinary(InputStream requestBody) throws ApiClientIoException,
@@ -84,20 +98,6 @@ public class PayloadVariantsApiClient {
     }
 
     return result.getEntityAsInputStream();
-  }
-
-  /**
-   * Test for 204 response.
-   */
-  public void changeItem(Item requestBody) throws ApiClientIoException,
-      ApiClientValidationException, ApiClientIncompatibleResponseException,
-      ApiClientErrorWithFailureEntityException {
-
-    ChangeItemResult result = returningResult.changeItem(requestBody);
-
-    if (!result.isSuccessful()) {
-      throw new ApiClientErrorWithFailureEntityException(result.getResponse());
-    }
   }
 
   /**
@@ -141,24 +141,6 @@ public class PayloadVariantsApiClient {
     }
 
     /**
-     * Test binary input and output.
-     */
-    public UploadAndReturnBinaryResult uploadAndReturnBinary(InputStream requestBody) throws
-        ApiClientIoException, ApiClientValidationException, ApiClientIncompatibleResponseException {
-
-      Operation.Builder builder = new Operation.Builder("/itemBinaries", "PUT");
-
-      builder.requestBody("application/octet-stream", true, requestBody);
-
-      builder.response(StatusCode.of(200), "application/octet-stream", InputStream.class);
-      builder.response(StatusCode.DEFAULT, "application/json", Failure.class);
-
-      ApiResponse response = requestExecutor.executeRequest(builder.build());
-
-      return new UploadAndReturnBinaryResult(response);
-    }
-
-    /**
      * Test for 204 response.
      */
     public ChangeItemResult changeItem(Item requestBody) throws ApiClientIoException,
@@ -174,6 +156,24 @@ public class PayloadVariantsApiClient {
       ApiResponse response = requestExecutor.executeRequest(builder.build());
 
       return new ChangeItemResult(response);
+    }
+
+    /**
+     * Test binary input and output.
+     */
+    public UploadAndReturnBinaryResult uploadAndReturnBinary(InputStream requestBody) throws
+        ApiClientIoException, ApiClientValidationException, ApiClientIncompatibleResponseException {
+
+      Operation.Builder builder = new Operation.Builder("/itemBinaries", "PUT");
+
+      builder.requestBody("application/octet-stream", true, requestBody);
+
+      builder.response(StatusCode.of(200), "application/octet-stream", InputStream.class);
+      builder.response(StatusCode.DEFAULT, "application/json", Failure.class);
+
+      ApiResponse response = requestExecutor.executeRequest(builder.build());
+
+      return new UploadAndReturnBinaryResult(response);
     }
   }
 
@@ -384,6 +384,79 @@ public class PayloadVariantsApiClient {
   }
 
   /**
+   * Represents the result of calling operation changeItem.
+   */
+  public static class ChangeItemResult {
+    private final ApiResponse response;
+
+    public ChangeItemResult(ApiResponse response) {
+      this.response = response;
+    }
+
+    /**
+     * Returns the ApiResponse instance with the details of the operation's HTTP response.
+     */
+    public ApiResponse getResponse() {
+      return response;
+    }
+
+    /**
+     * Returns the HTTP status code of the operation's response.
+     */
+    public int getStatus() {
+      return response.getStatusCode();
+    }
+
+    /**
+     * Returns whether the response has a status code in the range 200 to 299.
+     */
+    public boolean isSuccessful() {
+      return response.isSuccessful();
+    }
+
+    /**
+     * Returns whether the response's status code is 204, while the response has no entity.
+     */
+    public boolean isStatus204WithoutEntity() {
+      return response.getStatusCode() == 204;
+    }
+
+    /**
+     * Returns whether the response's entity is of type {@code Failure}.
+     */
+    public boolean isReturningFailure() {
+      return response.getEntityType() == Failure.class;
+    }
+
+    /**
+     * Returns the response's entity of type {@code Failure}.
+     */
+    public Failure getEntity() {
+      return (Failure) response.getEntity();
+    }
+
+    @Override
+    public boolean equals(Object other) {
+      if (other == this) return true;
+      if (other == null || getClass() != other.getClass()) return false;
+      ChangeItemResult o = (ChangeItemResult) other;
+      return Objects.equals(response, o.response);
+    }
+
+    @Override
+    public int hashCode() {
+      return Objects.hash(response);
+    }
+
+    @Override
+    public String toString() {
+      StringBuilder builder = new StringBuilder();
+      builder.append(", response=").append(response);
+      return builder.replace(0, 2, "ChangeItemResult{").append('}').toString();
+    }
+  }
+
+  /**
    * Represents the result of calling operation uploadAndReturnBinary.
    */
   public static class UploadAndReturnBinaryResult {
@@ -482,79 +555,6 @@ public class PayloadVariantsApiClient {
       StringBuilder builder = new StringBuilder();
       builder.append(", response=").append(response);
       return builder.replace(0, 2, "UploadAndReturnBinaryResult{").append('}').toString();
-    }
-  }
-
-  /**
-   * Represents the result of calling operation changeItem.
-   */
-  public static class ChangeItemResult {
-    private final ApiResponse response;
-
-    public ChangeItemResult(ApiResponse response) {
-      this.response = response;
-    }
-
-    /**
-     * Returns the ApiResponse instance with the details of the operation's HTTP response.
-     */
-    public ApiResponse getResponse() {
-      return response;
-    }
-
-    /**
-     * Returns the HTTP status code of the operation's response.
-     */
-    public int getStatus() {
-      return response.getStatusCode();
-    }
-
-    /**
-     * Returns whether the response has a status code in the range 200 to 299.
-     */
-    public boolean isSuccessful() {
-      return response.isSuccessful();
-    }
-
-    /**
-     * Returns whether the response's status code is 204, while the response has no entity.
-     */
-    public boolean isStatus204WithoutEntity() {
-      return response.getStatusCode() == 204;
-    }
-
-    /**
-     * Returns whether the response's entity is of type {@code Failure}.
-     */
-    public boolean isReturningFailure() {
-      return response.getEntityType() == Failure.class;
-    }
-
-    /**
-     * Returns the response's entity of type {@code Failure}.
-     */
-    public Failure getEntity() {
-      return (Failure) response.getEntity();
-    }
-
-    @Override
-    public boolean equals(Object other) {
-      if (other == this) return true;
-      if (other == null || getClass() != other.getClass()) return false;
-      ChangeItemResult o = (ChangeItemResult) other;
-      return Objects.equals(response, o.response);
-    }
-
-    @Override
-    public int hashCode() {
-      return Objects.hash(response);
-    }
-
-    @Override
-    public String toString() {
-      StringBuilder builder = new StringBuilder();
-      builder.append(", response=").append(response);
-      return builder.replace(0, 2, "ChangeItemResult{").append('}').toString();
     }
   }
 }

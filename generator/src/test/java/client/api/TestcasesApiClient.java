@@ -1,7 +1,7 @@
 package client.api;
 
 import client.model.Failure;
-import client.model.GetInlineObjectInArray200;
+import client.model.GetInlineObjectInArrayResponse200ApplicationJsonItem;
 import com.google.gson.reflect.TypeToken;
 import io.github.ruedigerk.contractfirst.generator.client.ApiClientIncompatibleResponseException;
 import io.github.ruedigerk.contractfirst.generator.client.ApiClientIoException;
@@ -19,7 +19,7 @@ import java.util.Optional;
  * Contains methods for all API operations tagged "testcases".
  */
 public class TestcasesApiClient {
-  public static final Type LIST_OF_GET_INLINE_OBJECT_IN_ARRAY200 = new TypeToken<List<GetInlineObjectInArray200>>(){}.getType();
+  public static final Type LIST_OF_GET_INLINE_OBJECT_IN_ARRAY_RESPONSE200_APPLICATION_JSON_ITEM = new TypeToken<List<GetInlineObjectInArrayResponse200ApplicationJsonItem>>(){}.getType();
 
   private final ApiRequestExecutor requestExecutor;
 
@@ -40,8 +40,8 @@ public class TestcasesApiClient {
   /**
    * A test case for the SchemaToJavaTypeTransformer.
    */
-  public List<GetInlineObjectInArray200> getInlineObjectInArray() throws ApiClientIoException,
-      ApiClientValidationException, ApiClientIncompatibleResponseException,
+  public List<GetInlineObjectInArrayResponse200ApplicationJsonItem> getInlineObjectInArray() throws
+      ApiClientIoException, ApiClientValidationException, ApiClientIncompatibleResponseException,
       ApiClientErrorWithFailureEntityException {
 
     GetInlineObjectInArrayResult result = returningResult.getInlineObjectInArray();
@@ -50,7 +50,7 @@ public class TestcasesApiClient {
       throw new ApiClientErrorWithFailureEntityException(result.getResponse());
     }
 
-    return result.getEntityAsListOfGetInlineObjectInArray200();
+    return result.getEntityAsListOfGetInlineObjectInArrayResponse200ApplicationJsonItem();
   }
 
   /**
@@ -65,7 +65,7 @@ public class TestcasesApiClient {
 
       Operation.Builder builder = new Operation.Builder("/testcases", "GET");
 
-      builder.response(StatusCode.of(200), "application/json", LIST_OF_GET_INLINE_OBJECT_IN_ARRAY200);
+      builder.response(StatusCode.of(200), "application/json", LIST_OF_GET_INLINE_OBJECT_IN_ARRAY_RESPONSE200_APPLICATION_JSON_ITEM);
       builder.response(StatusCode.DEFAULT, "application/json", Failure.class);
 
       ApiResponse response = requestExecutor.executeRequest(builder.build());
@@ -106,10 +106,11 @@ public class TestcasesApiClient {
     }
 
     /**
-     * Returns whether the response's status code is 200, while the response's entity is of type {@code List<GetInlineObjectInArray200>}.
+     * Returns whether the response's status code is 200, while the response's entity is of type {@code List<GetInlineObjectInArrayResponse200ApplicationJsonItem>}.
      */
-    public boolean isStatus200ReturningListOfGetInlineObjectInArray200() {
-      return response.getStatusCode() == 200 && response.getEntityType() == LIST_OF_GET_INLINE_OBJECT_IN_ARRAY200;
+    public boolean isStatus200ReturningListOfGetInlineObjectInArrayResponse200ApplicationJsonItem(
+        ) {
+      return response.getStatusCode() == 200 && response.getEntityType() == LIST_OF_GET_INLINE_OBJECT_IN_ARRAY_RESPONSE200_APPLICATION_JSON_ITEM;
     }
 
     /**
@@ -120,19 +121,21 @@ public class TestcasesApiClient {
     }
 
     /**
-     * Returns the response's entity wrapped in {@code java.lang.Optional.of()} if it is of type {@code List<GetInlineObjectInArray200>}. Otherwise, returns {@code Optional.empty()}.
+     * Returns the response's entity wrapped in {@code java.lang.Optional.of()} if it is of type {@code List<GetInlineObjectInArrayResponse200ApplicationJsonItem>}. Otherwise, returns {@code Optional.empty()}.
      */
-    public Optional<List<GetInlineObjectInArray200>> getEntityIfListOfGetInlineObjectInArray200() {
-      return Optional.ofNullable(getEntityAsListOfGetInlineObjectInArray200());
+    public Optional<List<GetInlineObjectInArrayResponse200ApplicationJsonItem>> getEntityIfListOfGetInlineObjectInArrayResponse200ApplicationJsonItem(
+        ) {
+      return Optional.ofNullable(getEntityAsListOfGetInlineObjectInArrayResponse200ApplicationJsonItem());
     }
 
     /**
-     * Returns the response's entity if it is of type {@code List<GetInlineObjectInArray200>}. Otherwise, returns null.
+     * Returns the response's entity if it is of type {@code List<GetInlineObjectInArrayResponse200ApplicationJsonItem>}. Otherwise, returns null.
      */
     @SuppressWarnings("unchecked")
-    public List<GetInlineObjectInArray200> getEntityAsListOfGetInlineObjectInArray200() {
-      if (response.getEntityType() == LIST_OF_GET_INLINE_OBJECT_IN_ARRAY200) {
-        return (List<GetInlineObjectInArray200>) response.getEntity();
+    public List<GetInlineObjectInArrayResponse200ApplicationJsonItem> getEntityAsListOfGetInlineObjectInArrayResponse200ApplicationJsonItem(
+        ) {
+      if (response.getEntityType() == LIST_OF_GET_INLINE_OBJECT_IN_ARRAY_RESPONSE200_APPLICATION_JSON_ITEM) {
+        return (List<GetInlineObjectInArrayResponse200ApplicationJsonItem>) response.getEntity();
       } else {
         return null;
       }

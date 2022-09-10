@@ -32,7 +32,13 @@ class GeneratorHarness {
 
   private generatorRan = false
 
-  GeneratorHarness(String inputContractFile, String outputJavaBasePackage, GeneratorType generatorType, String outputJavaModelNamePrefix = "", boolean outputJavaModelUseJsr305NullabilityAnnotations = false) {
+  GeneratorHarness(
+      String inputContractFile,
+      String outputJavaBasePackage,
+      GeneratorType generatorType,
+      String outputJavaModelNamePrefix = "",
+      boolean outputJavaModelUseJsr305NullabilityAnnotations = false
+  ) {
     this.inputContractFile = inputContractFile
     this.outputJavaBasePackage = outputJavaBasePackage
     this.generatorType = generatorType
@@ -60,7 +66,7 @@ class GeneratorHarness {
       executeGenerator()
 
       assert relativePathNames != [NO_REFERENCE_FILES]: "There are no reference files in $referenceDir"
-      
+
       checkForAdditionalFiles()
     }
   }
@@ -83,6 +89,8 @@ class GeneratorHarness {
             true,
             "$outputJavaBasePackage/openapi.yaml",
             outputJavaBasePackage,
+            true,
+            generatorType == GeneratorType.MODEL_ONLY ? new File(inputContractFile).absolutePath : new File(inputContractFile).parentFile.absolutePath,
             outputJavaModelNamePrefix,
             outputJavaModelUseJsr305NullabilityAnnotations
         )

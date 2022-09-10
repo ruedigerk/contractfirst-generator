@@ -21,6 +21,8 @@ data class JavaConfiguration(
     val apiPackage: String,
     val modelPackage: String,
     val supportPackage: String,
+    val outputJavaPackageMirrorsSchemaDirectory: Boolean,
+    val outputJavaPackageSchemaDirectoryPrefix: String,
     val modelNamePrefix: String,
     val useJsr305NullabilityAnnotations: Boolean
 ) {
@@ -32,6 +34,8 @@ data class JavaConfiguration(
         configuration.outputJavaBasePackage + apiPackagePrefix,
         configuration.outputJavaBasePackage + ".model",
         configuration.outputJavaBasePackage + apiPackagePrefix + ".support",
+        configuration.outputJavaPackageMirrorsSchemaDirectory,
+        configuration.outputJavaPackageSchemaDirectoryPrefix,
         configuration.outputJavaModelNamePrefix,
         configuration.outputJavaModelUseJsr305NullabilityAnnotations
     )
@@ -41,6 +45,8 @@ data class JavaConfiguration(
         configuration.outputJavaBasePackage,
         configuration.outputJavaBasePackage,
         configuration.outputJavaBasePackage,
+        configuration.outputJavaPackageMirrorsSchemaDirectory,
+        configuration.outputJavaPackageSchemaDirectoryPrefix,
         configuration.outputJavaModelNamePrefix,
         configuration.outputJavaModelUseJsr305NullabilityAnnotations
     )

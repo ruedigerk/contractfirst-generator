@@ -1,9 +1,6 @@
 package io.github.ruedigerk.contractfirst.generator.java.generator
 
-import com.squareup.javapoet.FieldSpec
-import com.squareup.javapoet.MethodSpec
-import com.squareup.javapoet.NameAllocator
-import com.squareup.javapoet.TypeName
+import com.squareup.javapoet.*
 import java.util.*
 import javax.lang.model.element.Modifier
 
@@ -12,8 +9,8 @@ import javax.lang.model.element.Modifier
  */
 object MethodsFromObject {
   
-  fun generateEqualsHashCodeAndToString(thisTypeName: TypeName, fields: List<FieldSpec>): List<MethodSpec> =
-      listOf(generateEquals(thisTypeName, fields), generateHashCode(fields), generateToString(thisTypeName.toString(), fields))
+  fun generateEqualsHashCodeAndToString(thisClassName: ClassName, fields: List<FieldSpec>): List<MethodSpec> =
+      listOf(generateEquals(thisClassName, fields), generateHashCode(fields), generateToString(thisClassName, fields))
 
   private fun generateEquals(thisTypeName: TypeName, fields: List<FieldSpec>): MethodSpec {
     val localNameAllocator = NameAllocator()
@@ -98,7 +95,7 @@ object MethodsFromObject {
    *    return o.toString().replace("\n", "\n    ");
    *  }
    */
-  private fun generateToString(thisTypeName: String, fields: List<FieldSpec>): MethodSpec {
+  private fun generateToString(thisClassName: ClassName, fields: List<FieldSpec>): MethodSpec {
     val nameAllocator = NameAllocator()
     fields.forEach { nameAllocator.newName(it.name, it) }
 
@@ -115,7 +112,7 @@ object MethodsFromObject {
       result.addStatement("\$N.append(\", \$N=\").append(\$L)", builderName, field.name, fieldName)
     }
 
-    result.addStatement("return builder.replace(0, 2, \"\$L{\").append('}').toString()", thisTypeName)
+    result.addStatement("return builder.replace(0, 2, \"\$L{\").append('}').toString()", thisClassName.simpleName())
 
     return result.build()
   }

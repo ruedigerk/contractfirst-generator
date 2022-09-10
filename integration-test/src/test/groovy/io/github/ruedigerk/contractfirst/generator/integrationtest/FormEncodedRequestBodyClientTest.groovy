@@ -1,7 +1,7 @@
 package io.github.ruedigerk.contractfirst.generator.integrationtest
 
 import io.github.ruedigerk.contractfirst.generator.integrationtest.generated.client.api.FormEncodedRequestBodyApiClient
-import io.github.ruedigerk.contractfirst.generator.integrationtest.generated.client.model.CFormEncodedRequestBodyRequestBodyFieldC
+import io.github.ruedigerk.contractfirst.generator.integrationtest.generated.client.model.CFormEncodedRequestBodyRequestBodyApplicationXWwwFormUrlencodedFieldC
 import io.github.ruedigerk.contractfirst.generator.integrationtest.spec.EmbeddedJaxRsServerSpecification
 import spock.lang.Subject
 
@@ -22,7 +22,7 @@ class FormEncodedRequestBodyClientTest extends EmbeddedJaxRsServerSpecification 
 
   def "Test form encoded request body"() {
     when:
-    def result = apiClient.returningResult().formEncodedRequestBody("a&1", "b = really great!", CFormEncodedRequestBodyRequestBodyFieldC.SECOND_VALUE)
+    def result = apiClient.returningResult().formEncodedRequestBody("a&1", "b = really great!", CFormEncodedRequestBodyRequestBodyApplicationXWwwFormUrlencodedFieldC.SECOND_VALUE)
 
     then:
     result.isStatus204WithoutEntity()

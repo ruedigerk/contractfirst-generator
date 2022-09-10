@@ -52,10 +52,10 @@ public class EquallyNamedParametersApiClient {
         String other) throws ApiClientIoException, ApiClientValidationException,
         ApiClientIncompatibleResponseException {
 
-      Operation.Builder builder = new Operation.Builder("/getEquallyNamedParameters", "GET");
+      Operation.Builder builder = new Operation.Builder("/getEquallyNamedParameters/{theParameter}", "GET");
 
       builder.parameter("theParameter", ParameterLocation.HEADER, false, theParameterInHeader);
-      builder.parameter("theParameter", ParameterLocation.PATH, false, theParameterInPath);
+      builder.parameter("theParameter", ParameterLocation.PATH, true, theParameterInPath);
       builder.parameter("theParameter", ParameterLocation.QUERY, false, theParameterInQuery);
       builder.requestBodyPart("theParameter", theParameterInBody);
       builder.requestBodyPart("other", other);

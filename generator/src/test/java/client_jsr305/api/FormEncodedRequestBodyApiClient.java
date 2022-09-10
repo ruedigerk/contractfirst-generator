@@ -1,6 +1,6 @@
 package client_jsr305.api;
 
-import client_jsr305.model.FormEncodedRequestBodyRequestBodyFieldC;
+import client_jsr305.model.FormEncodedRequestBodyRequestBodyApplicationXWwwFormUrlencodedFieldC;
 import io.github.ruedigerk.contractfirst.generator.client.ApiClientIncompatibleResponseException;
 import io.github.ruedigerk.contractfirst.generator.client.ApiClientIoException;
 import io.github.ruedigerk.contractfirst.generator.client.ApiClientValidationException;
@@ -34,8 +34,8 @@ public class FormEncodedRequestBodyApiClient {
    * A test case for an x-www-form-urlencoded encoded request body.
    */
   public void formEncodedRequestBody(String fieldA, String fieldB,
-      FormEncodedRequestBodyRequestBodyFieldC fieldC) throws ApiClientIoException,
-      ApiClientValidationException, ApiClientIncompatibleResponseException {
+      FormEncodedRequestBodyRequestBodyApplicationXWwwFormUrlencodedFieldC fieldC) throws
+      ApiClientIoException, ApiClientValidationException, ApiClientIncompatibleResponseException {
 
     FormEncodedRequestBodyResult result = returningResult.formEncodedRequestBody(fieldA, fieldB, fieldC);
   }
@@ -48,8 +48,8 @@ public class FormEncodedRequestBodyApiClient {
      * A test case for an x-www-form-urlencoded encoded request body.
      */
     public FormEncodedRequestBodyResult formEncodedRequestBody(String fieldA, String fieldB,
-        FormEncodedRequestBodyRequestBodyFieldC fieldC) throws ApiClientIoException,
-        ApiClientValidationException, ApiClientIncompatibleResponseException {
+        FormEncodedRequestBodyRequestBodyApplicationXWwwFormUrlencodedFieldC fieldC) throws
+        ApiClientIoException, ApiClientValidationException, ApiClientIncompatibleResponseException {
 
       Operation.Builder builder = new Operation.Builder("/formEncodedRequestBody", "POST");
 

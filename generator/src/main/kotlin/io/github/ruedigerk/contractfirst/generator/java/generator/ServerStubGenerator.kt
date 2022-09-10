@@ -9,6 +9,7 @@ import io.github.ruedigerk.contractfirst.generator.java.generator.Annotations.NO
 import io.github.ruedigerk.contractfirst.generator.java.generator.Annotations.toAnnotation
 import io.github.ruedigerk.contractfirst.generator.java.generator.JavapoetExtensions.doIf
 import io.github.ruedigerk.contractfirst.generator.java.generator.JavapoetExtensions.doIfNotNull
+import io.github.ruedigerk.contractfirst.generator.java.generator.TypeNames.toClassName
 import io.github.ruedigerk.contractfirst.generator.java.generator.TypeNames.toTypeName
 import io.github.ruedigerk.contractfirst.generator.java.model.*
 import io.github.ruedigerk.contractfirst.generator.model.DefaultStatusCode
@@ -64,7 +65,7 @@ class ServerStubGenerator(private val configuration: JavaConfiguration) : (JavaS
         .doIfNotNull(operation.requestBodyMediaType) { addAnnotation(consumesAnnotation(it)) }
         .addAnnotation(producesAnnotation(operation.responses))
         .addModifiers(PUBLIC, ABSTRACT)
-        .returns(typesafeResponseClass.name.toTypeName())
+        .returns(typesafeResponseClass.name.toClassName())
         .addParameters(parameters)
         .build()
   }
@@ -110,7 +111,7 @@ class ServerStubGenerator(private val configuration: JavaConfiguration) : (JavaS
   }
 
   private fun toTypesafeResponseClass(operation: JavaOperation): TypeSpec {
-    val jaxRsResponseTypeName = "javax.ws.rs.core.Response".toTypeName()
+    val jaxRsResponseTypeName = "javax.ws.rs.core.Response".toClassName()
     val className = operation.javaMethodName.capitalize() + "Response"
 
     val responseMethodsWithStatusCode = operation.responses
@@ -129,7 +130,7 @@ class ServerStubGenerator(private val configuration: JavaConfiguration) : (JavaS
 
     val customResponseMethod = MethodSpec.methodBuilder("withCustomResponse")
         .addModifiers(PUBLIC, STATIC)
-        .returns(className.toTypeName())
+        .returns(className.toClassName())
         .addParameter(jaxRsResponseTypeName, "response")
         .addStatement("return new \$N(response)", className)
         .build()
@@ -157,7 +158,7 @@ class ServerStubGenerator(private val configuration: JavaConfiguration) : (JavaS
 
     return MethodSpec.methodBuilder(methodName)
         .addModifiers(PUBLIC, STATIC)
-        .returns(className.toTypeName())
+        .returns(className.toClassName())
         .addParameter(content.javaType.toTypeName(), "entity")
         .addStatement("return new \$N(Response.status(\$L).header(\"Content-Type\", \$S).entity(entity).build())", className, statusCode, content.mediaType)
         .build()
@@ -169,7 +170,7 @@ class ServerStubGenerator(private val configuration: JavaConfiguration) : (JavaS
 
     return MethodSpec.methodBuilder(methodName)
         .addModifiers(PUBLIC, STATIC)
-        .returns(className.toTypeName())
+        .returns(className.toClassName())
         .addStatement("return new \$N(Response.status(\$L).build())", className, statusCode)
         .build()
   }
@@ -180,7 +181,7 @@ class ServerStubGenerator(private val configuration: JavaConfiguration) : (JavaS
 
     return MethodSpec.methodBuilder(methodName)
         .addModifiers(PUBLIC, STATIC)
-        .returns(className.toTypeName())
+        .returns(className.toClassName())
         .addParameter(Integer.TYPE, "status")
         .addParameter(content.javaType.toTypeName(), "entity")
         .addStatement("return new \$N(Response.status(status).header(\"Content-Type\", \$S).entity(entity).build())", className, content.mediaType)

@@ -1,5 +1,6 @@
 package parameters_server.resources;
 
+import javax.validation.constraints.NotNull;
 import javax.ws.rs.Consumes;
 import javax.ws.rs.CookieParam;
 import javax.ws.rs.FormParam;
@@ -18,13 +19,13 @@ public interface EquallyNamedParametersApi {
    * Test for multiple equally named parameters.
    */
   @GET
-  @Path("/getEquallyNamedParameters")
+  @Path("/getEquallyNamedParameters/{theParameter}")
   @Consumes("application/x-www-form-urlencoded")
   @Produces
   GetEquallyNamedParametersResponse getEquallyNamedParameters(
       @CookieParam("theParameter") String theParameterInCookie,
       @HeaderParam("theParameter") String theParameterInHeader,
-      @PathParam("theParameter") String theParameterInPath,
+      @PathParam("theParameter") @NotNull String theParameterInPath,
       @QueryParam("theParameter") String theParameterInQuery,
       @FormParam("theParameter") String theParameterInBody, @FormParam("other") String other);
 

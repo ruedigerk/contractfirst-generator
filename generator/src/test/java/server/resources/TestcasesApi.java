@@ -6,7 +6,7 @@ import javax.ws.rs.Path;
 import javax.ws.rs.Produces;
 import javax.ws.rs.core.Response;
 import server.model.Failure;
-import server.model.GetInlineObjectInArray200;
+import server.model.GetInlineObjectInArrayResponse200ApplicationJsonItem;
 import server.resources.support.ResponseWrapper;
 
 @Path("")
@@ -25,7 +25,7 @@ public interface TestcasesApi {
     }
 
     public static GetInlineObjectInArrayResponse with200ApplicationJson(
-        List<GetInlineObjectInArray200> entity) {
+        List<GetInlineObjectInArrayResponse200ApplicationJsonItem> entity) {
       return new GetInlineObjectInArrayResponse(Response.status(200).header("Content-Type", "application/json").entity(entity).build());
     }
 

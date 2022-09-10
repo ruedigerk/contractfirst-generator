@@ -7,6 +7,7 @@ import io.github.ruedigerk.contractfirst.generator.java.generator.Annotations.js
 import io.github.ruedigerk.contractfirst.generator.java.generator.Annotations.toAnnotation
 import io.github.ruedigerk.contractfirst.generator.java.generator.JavapoetExtensions.doIf
 import io.github.ruedigerk.contractfirst.generator.java.generator.JavapoetExtensions.doIfNotNull
+import io.github.ruedigerk.contractfirst.generator.java.generator.TypeNames.toClassName
 import io.github.ruedigerk.contractfirst.generator.java.generator.TypeNames.toTypeName
 import io.github.ruedigerk.contractfirst.generator.java.model.*
 import java.io.File
@@ -18,11 +19,10 @@ import javax.lang.model.element.Modifier.*
 class ModelGenerator(configuration: JavaConfiguration) {
 
   private val outputDir = File(configuration.outputDir)
-  private val modelPackage = configuration.modelPackage
   private val useJsr305Nullability = configuration.useJsr305NullabilityAnnotations
 
-  fun generateCode(specification: JavaSpecification) {
-    specification.modelFiles.asSequence()
+  fun generateCode(javaSourceFiles: List<JavaSourceFile>) {
+    javaSourceFiles.asSequence()
         .map(::toJavaFile)
         .forEach(::writeFile)
   }
@@ -37,17 +37,17 @@ class ModelGenerator(configuration: JavaConfiguration) {
       is JavaEnumFile -> toJavaEnum(sourceFile)
     }
 
-    return JavaFile.builder(modelPackage, typeSpec)
+    return JavaFile.builder(sourceFile.typeName.packageName, typeSpec)
         .skipJavaLangImports(true)
         .build()
   }
 
   private fun toJavaClass(classFile: JavaClassFile): TypeSpec {
     val fields = classFile.properties.map(::toField)
-    val accessors = classFile.properties.flatMap { generateAccessorMethods(it, classFile.className) }
-    val equalsHashCodeAndToString = MethodsFromObject.generateEqualsHashCodeAndToString(classFile.className.toTypeName(), fields)
+    val accessors = classFile.properties.flatMap { generateAccessorMethods(it, classFile.typeName) }
+    val equalsHashCodeAndToString = MethodsFromObject.generateEqualsHashCodeAndToString(classFile.typeName.toClassName(), fields)
 
-    return TypeSpec.classBuilder(classFile.className)
+    return TypeSpec.classBuilder(classFile.typeName.toClassName())
         .doIfNotNull(classFile.javadoc) { addJavadoc("\$L", it) }
         .addModifiers(PUBLIC)
         .addFields(fields)
@@ -56,12 +56,12 @@ class ModelGenerator(configuration: JavaConfiguration) {
         .build()
   }
 
-  private fun generateAccessorMethods(property: JavaProperty, className: String): List<MethodSpec> {
+  private fun generateAccessorMethods(property: JavaProperty, declaringTypeName: JavaTypeName): List<MethodSpec> {
     val propertyTypeName = property.type.toTypeName()
 
     val getter = generateGetter(property, propertyTypeName)
     val setter = generateSetter(property, propertyTypeName)
-    val builder = generateBuilderSetter(property, className, propertyTypeName)
+    val builder = generateBuilderSetter(property, declaringTypeName, propertyTypeName)
 
     return listOf(builder, getter, setter)
   }
@@ -73,10 +73,10 @@ class ModelGenerator(configuration: JavaConfiguration) {
           .addStatement("this.\$1N = \$1N", property.javaName)
           .build()
 
-  private fun generateBuilderSetter(property: JavaProperty, className: String, propertyTypeName: TypeName): MethodSpec =
+  private fun generateBuilderSetter(property: JavaProperty, declaringTypeName: JavaTypeName, propertyTypeName: TypeName): MethodSpec =
       MethodSpec.methodBuilder(property.javaName)
           .addModifiers(PUBLIC)
-          .returns(className.toTypeName())
+          .returns(declaringTypeName.toClassName())
           .addParameter(toSetterParameterSpec(propertyTypeName, property))
           .addStatement("this.\$1N = \$1N", property.javaName)
           .addStatement("return this", property.javaName)
@@ -122,7 +122,7 @@ class ModelGenerator(configuration: JavaConfiguration) {
    * Construct a "simple" enum, where the constants' names match their Java names.
    */
   private fun toSimpleEnum(enumFile: JavaEnumFile): TypeSpec {
-    val builder = TypeSpec.enumBuilder(enumFile.className)
+    val builder = TypeSpec.enumBuilder(enumFile.typeName.toClassName())
         .doIfNotNull(enumFile.javadoc) { addJavadoc("\$L", it) }
         .addModifiers(PUBLIC)
 
@@ -149,7 +149,7 @@ class ModelGenerator(configuration: JavaConfiguration) {
         .addStatement("return serializedName")
         .build()
 
-    val builder = TypeSpec.enumBuilder(enumFile.className)
+    val builder = TypeSpec.enumBuilder(enumFile.typeName.toClassName())
         .doIfNotNull(enumFile.javadoc) { addJavadoc("\$L", it) }
         .addModifiers(PUBLIC)
         .addField(String::class.java, "serializedName", PRIVATE, FINAL)

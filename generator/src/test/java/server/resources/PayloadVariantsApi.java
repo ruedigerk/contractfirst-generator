@@ -35,6 +35,15 @@ public interface PayloadVariantsApi {
   FilterItems2Response filterItems2(@NotNull @Valid List<Item> requestBody);
 
   /**
+   * Test for 204 response.
+   */
+  @POST
+  @Path("/itemBinaries")
+  @Consumes("application/json")
+  @Produces("application/json")
+  ChangeItemResponse changeItem(@NotNull @Valid Item requestBody);
+
+  /**
    * Test binary input and output.
    */
   @PUT
@@ -45,15 +54,6 @@ public interface PayloadVariantsApi {
       "application/octet-stream"
   })
   UploadAndReturnBinaryResponse uploadAndReturnBinary(@NotNull InputStream requestBody);
-
-  /**
-   * Test for 204 response.
-   */
-  @POST
-  @Path("/itemBinaries")
-  @Consumes("application/json")
-  @Produces("application/json")
-  ChangeItemResponse changeItem(@NotNull @Valid Item requestBody);
 
   class FilterItemsResponse extends ResponseWrapper {
     private FilterItemsResponse(Response delegate) {
@@ -91,24 +91,6 @@ public interface PayloadVariantsApi {
     }
   }
 
-  class UploadAndReturnBinaryResponse extends ResponseWrapper {
-    private UploadAndReturnBinaryResponse(Response delegate) {
-      super(delegate);
-    }
-
-    public static UploadAndReturnBinaryResponse with200ApplicationOctetStream(InputStream entity) {
-      return new UploadAndReturnBinaryResponse(Response.status(200).header("Content-Type", "application/octet-stream").entity(entity).build());
-    }
-
-    public static UploadAndReturnBinaryResponse withApplicationJson(int status, Failure entity) {
-      return new UploadAndReturnBinaryResponse(Response.status(status).header("Content-Type", "application/json").entity(entity).build());
-    }
-
-    public static UploadAndReturnBinaryResponse withCustomResponse(Response response) {
-      return new UploadAndReturnBinaryResponse(response);
-    }
-  }
-
   class ChangeItemResponse extends ResponseWrapper {
     private ChangeItemResponse(Response delegate) {
       super(delegate);
@@ -124,6 +106,24 @@ public interface PayloadVariantsApi {
 
     public static ChangeItemResponse withCustomResponse(Response response) {
       return new ChangeItemResponse(response);
+    }
+  }
+
+  class UploadAndReturnBinaryResponse extends ResponseWrapper {
+    private UploadAndReturnBinaryResponse(Response delegate) {
+      super(delegate);
+    }
+
+    public static UploadAndReturnBinaryResponse with200ApplicationOctetStream(InputStream entity) {
+      return new UploadAndReturnBinaryResponse(Response.status(200).header("Content-Type", "application/octet-stream").entity(entity).build());
+    }
+
+    public static UploadAndReturnBinaryResponse withApplicationJson(int status, Failure entity) {
+      return new UploadAndReturnBinaryResponse(Response.status(status).header("Content-Type", "application/json").entity(entity).build());
+    }
+
+    public static UploadAndReturnBinaryResponse withCustomResponse(Response response) {
+      return new UploadAndReturnBinaryResponse(response);
     }
   }
 }

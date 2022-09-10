@@ -1,7 +1,7 @@
 package io.github.ruedigerk.contractfirst.generator.logging
 
 /**
- * Logger class acting as a wrapper around an slf4j logger, providing Kotlin convenience using inline functions and lambdas.
+ * Logger class acting as a wrapper around a slf4j logger, providing Kotlin convenience using inline functions and lambdas.
  * 
  * In the spirit of: https://github.com/MicroUtils/kotlin-logging
  */
@@ -28,6 +28,18 @@ class Log(val underlyingLogger: LogAdapter) {
   inline fun info(throwable: Throwable, msg: () -> String) {
     if (underlyingLogger.isInfoEnabled()) {
       underlyingLogger.info(msg(), throwable)
+    }
+  }
+
+  inline fun warn(msg: () -> String) {
+    if (underlyingLogger.isWarnEnabled()) {
+      underlyingLogger.warn(msg())
+    }
+  }
+
+  inline fun warn(throwable: Throwable, msg: () -> String) {
+    if (underlyingLogger.isWarnEnabled()) {
+      underlyingLogger.warn(msg(), throwable)
     }
   }
 

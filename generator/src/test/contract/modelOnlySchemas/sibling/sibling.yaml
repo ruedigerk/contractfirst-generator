@@ -1,0 +1,6 @@
+$schema: http://json-schema.org/draft-04/schema#
+title: Sibling
+type: object
+properties:
+  value:
+    type: integer

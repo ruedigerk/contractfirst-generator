@@ -10,6 +10,8 @@ data class Configuration(
     val outputContract: Boolean,
     val outputContractFile: String,
     val outputJavaBasePackage: String,
+    val outputJavaPackageMirrorsSchemaDirectory: Boolean,
+    val outputJavaPackageSchemaDirectoryPrefix: String,
     val outputJavaModelNamePrefix: String,
     val outputJavaModelUseJsr305NullabilityAnnotations: Boolean,
 ) {

@@ -129,15 +129,132 @@ Additionally, if using the option `outputJavaModelUseJsr305NullabilityAnnotation
     </dependency>
 
 
+Model-only Generator
+--------------------
+
+The model-only generator generates a data model that can be serialized with Gson.
+
+For the generated data model to be serialized to JSON properly, it is necessary to register Gson as a JAX-RS MessageBodyReader and MessageBodyWriter. This
+can be done by using the class `GsonMessageBodyHandler` from the contractfirst-generator-server-support artifact.
+
+Here is an example for using the Maven plugin to generate only model files:
+
+    <plugin>
+       <artifactId>contractfirst-generator-maven-plugin</artifactId>
+       <groupId>io.github.ruedigerk.contractfirst.generator</groupId>
+       <version>1.6.0</version>
+       <executions>
+          <execution>
+             <id>generate-model-only</id>
+             <goals>
+                <goal>generate</goal>
+             </goals>
+             <configuration>
+                <generator>model-only</generator>
+                <!-- In model-only mode, inputContractFile can point to a directory which is then searched recusively for schema files ending in .json or .yaml -->
+                <inputContractFile>${project.basedir}/src/main/schema</inputContractFile>
+                <outputJavaBasePackage>my.java.pkg</outputJavaBasePackage>
+             </configuration>
+          </execution>
+       </executions>
+    </plugin>
+
+The generated model code needs the following dependencies:
+
+    <dependency>
+        <!-- BeanValidation API for the generated data model -->
+        <groupId>javax.validation</groupId>
+        <artifactId>validation-api</artifactId>
+        <version>2.0.1.Final</version>
+    </dependency>
+    <dependency>
+        <!-- Gson for serializing and deserializing the generated data model to and from JSON -->
+        <groupId>com.google.code.gson</groupId>
+        <artifactId>gson</artifactId>
+        <version>2.9.0</version>
+    </dependency>
+
+Additionally, if using the option `outputJavaModelUseJsr305NullabilityAnnotations` there needs to be a dependency for these annotations, like:
+
+    <dependency>
+        <groupId>com.google.code.findbugs</groupId>
+        <artifactId>jsr305</artifactId>
+        <version>3.0.2</version>
+    </dependency>
+
+
+Description for Maven Plugin Goal 'generate'
+--------------------------------------------
+
+Goal for generating sources from an OpenAPI contract.
+
+Available parameters:
+
+    generator
+      the type of generator to use for code generation; allowed values are: 'server', 'client', 'model-only'
+      Required: Yes
+      User property: openapi.generator.maven.plugin.generator
+    
+    inputContractFile
+      the path to the file containing the OpenAPI contract to use as input; in case of the model-only generator, 
+      this should point to a single JSON-Schema file in YAML or JSON format, or to a directory which is recursively 
+      searched for JSON-Schema files
+      Required: Yes
+      User property: openapi.generator.maven.plugin.inputContractFile
+    
+    outputContract (Default: false)
+      whether to output the parsed contract as an all-in-one contract
+      User property: openapi.generator.maven.plugin.outputContract
+    
+    outputContractFile (Default: openapi.yaml)
+      the file name of the all-in-one contract file to output; only used when outputContract is true
+      User property: openapi.generator.maven.plugin.outputContractFile
+    
+    outputDir (Default: ${project.build.directory}/generated-sources/contractfirst-generator)
+      the target directory for writing the generated sources to
+      User property: openapi.generator.maven.plugin.outputDir
+    
+    outputJavaBasePackage
+      the Java package to put generated classes into
+      Required: Yes
+      User property: openapi.generator.maven.plugin.outputJavaBasePackage
+    
+    outputJavaModelNamePrefix
+      the prefix for Java model class names; defaults to the empty String
+      User property: openapi.generator.maven.plugin.outputJavaModelNamePrefix
+    
+    outputJavaModelUseJsr305NullabilityAnnotations (Default: false)
+      whether to generate JSR-305 nullability annotations for the getter and setter methods of the model classes
+      User property:
+      openapi.generator.maven.plugin.outputJavaModelUseJsr305NullabilityAnnotations
+    
+    outputJavaPackageMirrorsSchemaDirectory (Default: false)
+      whether the Java packages of the generated model files are mirroring the directory structure of the schema files
+      User property: openapi.generator.maven.plugin.outputJavaPackageMirrorsSchemaDirectory
+    
+    outputJavaPackageSchemaDirectoryPrefix
+      the path prefix to cut from the schema file directories when determining Java packages for model files; defaults 
+      to the directory of the inputContractFile; this is only used, when outputJavaPackageMirrorsSchemaDirectory is true
+      User property: openapi.generator.maven.plugin.outputJavaPackageSchemaDirectoryPrefix
+    
+    skip (Default: false)
+      skip execution of this plugin
+      User property: openapi.generator.maven.plugin.skip
+
+
 Changelog
 ---------
 
 ### 1.6.0
 
 **Added**
-- Added `model-only` generator for only generating a Java model for a set of JSON-Schema files.
+- Added `model-only` generator type for generating a Java model for a set of JSON-Schema files.
 - New configuration option `outputJavaModelUseJsr305NullabilityAnnotations` for adding JSR-305 nullability annotations to the generated model's getter and
   setter methods.
+- New configuration option `outputJavaPackageMirrorsSchemaDirectory` for mirroring the input schema file directory structure in the package structure of 
+  generated Java model files.
+- New configuration option `outputJavaPackageSchemaDirectoryPrefix` for setting the prefix "directory" which is stripped from all input schema files when 
+  mirroring the schema directory in the Java model files. Only used if `outputJavaPackageMirrorsSchemaDirectory` is true.
 
 ### 1.5.2
 

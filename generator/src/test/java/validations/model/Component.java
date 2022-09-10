@@ -54,7 +54,7 @@ public class Component {
    * Test validation on array elements of type object.
    */
   @Valid
-  private List<@Valid ComponentValidatedObjects> validatedObjects = new ArrayList<>();
+  private List<@Valid ComponentValidatedObjectsItem> validatedObjects = new ArrayList<>();
 
   /**
    * Test validation on map values.
@@ -125,16 +125,16 @@ public class Component {
     this.validatedStrings = validatedStrings;
   }
 
-  public Component validatedObjects(List<ComponentValidatedObjects> validatedObjects) {
+  public Component validatedObjects(List<ComponentValidatedObjectsItem> validatedObjects) {
     this.validatedObjects = validatedObjects;
     return this;
   }
 
-  public List<ComponentValidatedObjects> getValidatedObjects() {
+  public List<ComponentValidatedObjectsItem> getValidatedObjects() {
     return validatedObjects;
   }
 
-  public void setValidatedObjects(List<ComponentValidatedObjects> validatedObjects) {
+  public void setValidatedObjects(List<ComponentValidatedObjectsItem> validatedObjects) {
     this.validatedObjects = validatedObjects;
   }
 

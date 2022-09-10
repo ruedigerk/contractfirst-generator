@@ -3,30 +3,18 @@ package io.github.ruedigerk.contractfirst.generator.model
 import java.math.BigDecimal
 
 /**
- * Represents any type of schema in the contract.
+ * Represents any type of schema, but not schema references.
  */
-sealed interface Schema
-
-/**
- * Represents a schema reference.
- */
-data class SchemaRef(
-    val reference: String
-) : Schema
-
-/**
- * Represents a schema that is not a schema reference, i.e. an "actual" schema.
- */
-sealed interface ActualSchema : Schema {
+sealed interface Schema {
 
   val title: String?
   val description: String?
-  val nameHint: NameHint
+  val position: Position
 
   /**
    * Is this schema embedded inline in another schema? Used for naming.
    */
-  var embeddedIn: ActualSchema?
+  var embeddedIn: Schema?
 }
 
 /**
@@ -36,10 +24,10 @@ data class ObjectSchema(
     override val title: String?,
     override val description: String?,
     val properties: List<SchemaProperty>,
-    override val nameHint: NameHint,
-) : ActualSchema {
+    override val position: Position,
+) : Schema {
 
-  override var embeddedIn: ActualSchema? = null
+  override var embeddedIn: Schema? = null
 }
 
 /**
@@ -48,7 +36,7 @@ data class ObjectSchema(
 data class SchemaProperty(
     val name: String,
     val required: Boolean,
-    val schema: Schema
+    val schema: SchemaId
 )
 
 /**
@@ -57,14 +45,14 @@ data class SchemaProperty(
 data class ArraySchema(
     override val title: String?,
     override val description: String?,
-    val itemSchema: Schema,
+    val itemSchema: SchemaId,
     val uniqueItems: Boolean,
     val minItems: Int?,
     val maxItems: Int?,
-    override val nameHint: NameHint,
-) : ActualSchema {
+    override val position: Position,
+) : Schema {
 
-  override var embeddedIn: ActualSchema? = null
+  override var embeddedIn: Schema? = null
 }
 
 /**
@@ -73,27 +61,27 @@ data class ArraySchema(
 data class MapSchema(
     override val title: String?,
     override val description: String?,
-    val valuesSchema: Schema,
+    val valuesSchema: SchemaId,
     val minItems: Int?,
     val maxItems: Int?,
-    override val nameHint: NameHint,
-) : ActualSchema {
+    override val position: Position,
+) : Schema {
 
-  override var embeddedIn: ActualSchema? = null
+  override var embeddedIn: Schema? = null
 }
 
 /**
  * Represents an enum schema.
- * Currently enums are always assumed to habe type "string".
+ * Currently, enums are always assumed to have type "string".
  */
 data class EnumSchema(
     override val title: String?,
     override val description: String?,
     val values: List<String>,
-    override val nameHint: NameHint,
-) : ActualSchema {
+    override val position: Position,
+) : Schema {
 
-  override var embeddedIn: ActualSchema? = null
+  override var embeddedIn: Schema? = null
 }
 
 /**
@@ -111,10 +99,10 @@ data class PrimitiveSchema(
     val minLength: Int?,
     val maxLength: Int?,
     val pattern: String?,
-    override val nameHint: NameHint,
-) : ActualSchema {
+    override val position: Position,
+) : Schema {
 
-  override var embeddedIn: ActualSchema? = null
+  override var embeddedIn: Schema? = null
 }
 
 /**

@@ -1,11 +1,12 @@
 package io.github.ruedigerk.contractfirst.generator
 
+import io.github.ruedigerk.contractfirst.generator.allinonecontract.SerializerException
 import io.github.ruedigerk.contractfirst.generator.java.Identifiers.toJavaTypeIdentifier
 import io.github.ruedigerk.contractfirst.generator.java.generator.ClientGenerator
 import io.github.ruedigerk.contractfirst.generator.java.generator.ServerStubGenerator
 import io.github.ruedigerk.contractfirst.generator.logging.Log
 import io.github.ruedigerk.contractfirst.generator.logging.LogAdapter
-import io.github.ruedigerk.contractfirst.generator.serializer.SerializerException
+import java.io.IOException
 
 /**
  * The Contractfirst-Generator code generator.
@@ -33,7 +34,11 @@ class ContractfirstGenerator(logAdapter: LogAdapter) {
       GeneratorType.MODEL_ONLY -> RecipeForModelOnly(log, configuration)
     }
 
-    recipe.invoke()
+    try {
+      recipe.invoke()
+    } catch (e: IOException) {
+      throw ParserIoException("IO error during parsing ${e.message}", e)
+    }
   }
 
   // TODO: also validate the other configuration parameters

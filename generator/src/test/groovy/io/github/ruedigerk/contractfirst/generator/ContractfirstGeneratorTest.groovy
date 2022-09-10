@@ -13,6 +13,8 @@ class ContractfirstGeneratorTest extends Specification {
         true,
         "openapi.yaml",
         "package",
+        true,
+        "/prefix/",
         "lowercase",
         false
     )
