@@ -116,6 +116,12 @@ The generated client code needs the following dependencies:
 Changelog
 ---------
 
+### 1.5.2
+
+**Fixed**
+- Fixed a bug that made the client return no content when the server sent a response not defined in the contract, instead of throwing 
+  ApiClientIncompatibleResponseException. This only happened when there was no "default" status code defined in the contract.
+
 ### 1.5.1
 
 **Fixed**

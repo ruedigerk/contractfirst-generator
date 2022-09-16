@@ -66,7 +66,12 @@ public class Operation {
    * null is returned. If the matching response is defined to have no content, type {@link Void#TYPE} is returned.
    */
   public Type determineMatchingResponseType(int statusCode, String contentType) {
-    List<ResponseDefinition> responseDefinitions = selectResponseDefinitionsByStatusCode(statusCode);
+    List<ResponseDefinition> responseDefinitions = selectResponseDefinitionsForStatusCode(statusCode);
+
+    // The status code is not defined in the contract
+    if (responseDefinitions.isEmpty()) {
+      return null;
+    }
 
     if (responseDefinitions.stream().allMatch(ResponseDefinition::hasNoContent)) {
       return Void.TYPE;
@@ -98,7 +103,7 @@ public class Operation {
     return null;
   }
 
-  private List<ResponseDefinition> selectResponseDefinitionsByStatusCode(int statusCode) {
+  private List<ResponseDefinition> selectResponseDefinitionsForStatusCode(int statusCode) {
     List<ResponseDefinition> responses = responseDefinitions.get(StatusCode.of(statusCode));
 
     if (responses != null) {
