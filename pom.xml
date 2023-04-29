@@ -27,8 +27,8 @@
    </developers>
 
    <scm>
-      <connection>scm:git:git://github.com/ruedigerk/contractfirst-generator.git</connection>
-      <developerConnection>scm:git:git@github.com:ruedigerk/contractfirst-generator.git</developerConnection>
+      <connection>scm:git:https://github.com/ruedigerk/contractfirst-generator.git</connection>
+      <developerConnection>scm:git:https://github.com/ruedigerk/contractfirst-generator.git</developerConnection>
       <url>https://github.com/ruedigerk/contractfirst-generator</url>
       <tag>HEAD</tag>
    </scm>
