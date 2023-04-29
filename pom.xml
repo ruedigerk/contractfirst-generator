@@ -70,6 +70,7 @@
       <maven-site-plugin.version>3.9.1</maven-site-plugin.version>
       <maven-source-plugin.version>3.2.1</maven-source-plugin.version>
       <maven-surefire-plugin.version>2.22.2</maven-surefire-plugin.version>
+      <nexus-staging-maven-plugin.version>1.6.13</nexus-staging-maven-plugin.version>
 
       <!-- Third party plugin versions -->
       <gmavenplus-plugin.version>1.13.0</gmavenplus-plugin.version>
@@ -263,7 +264,6 @@
                   </execution>
                </executions>
                <configuration>
-                  <passphrase>${env.GPG_PRIVATE_KEY_PASSPHRASE}</passphrase>
                   <passphraseServerId>gpg.passphrase</passphraseServerId>
                   <!-- Prevent gpg from using pinentry programs, see https://github.com/actions/setup-java/blob/main/docs/advanced-usage.md#extra-setup-for-pomxml -->
                   <gpgArguments>
@@ -285,6 +285,19 @@
                </configuration>
             </plugin>
 
+            <plugin>
+               <!-- For closing and releasing the Sonatype staging repository to Maven Central -->
+               <groupId>org.sonatype.plugins</groupId>
+               <artifactId>nexus-staging-maven-plugin</artifactId>
+               <version>${nexus-staging-maven-plugin.version}</version>
+               <extensions>true</extensions>
+               <configuration>
+                  <serverId>ossrh</serverId>
+                  <nexusUrl>https://s01.oss.sonatype.org</nexusUrl>
+                  <autoReleaseAfterClose>false</autoReleaseAfterClose>
+               </configuration>
+            </plugin>
+            
             <!-- Define Versions of the Apache-Maven-Plugins -->
             <plugin>
                <artifactId>maven-clean-plugin</artifactId>
@@ -328,12 +341,16 @@
 
    <profiles>
       <profile>
-         <!-- Generate GPG signatures for published artifacts. Sources and Javadocs are configured per module. -->
+         <!-- Generate GPG signatures for published artifacts. Sources and Javadocs are configured per module. Perform Sonatype release to Maven Central. -->
          <id>release</id>
          <build>
             <plugins>
                <plugin>
                   <artifactId>maven-gpg-plugin</artifactId>
+               </plugin>
+               <plugin>
+                  <groupId>org.sonatype.plugins</groupId>
+                  <artifactId>nexus-staging-maven-plugin</artifactId>
                </plugin>
             </plugins>
          </build>
