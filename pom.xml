@@ -263,7 +263,12 @@
                   </execution>
                </executions>
                <configuration>
-                  <passphraseServerId>gpg-key</passphraseServerId>
+                  <passphraseServerId>gpg.passphrase</passphraseServerId>
+                  <!-- Prevent gpg from using pinentry programs, see https://github.com/actions/setup-java/blob/main/docs/advanced-usage.md#extra-setup-for-pomxml -->
+                  <gpgArguments>
+                     <arg>--pinentry-mode</arg>
+                     <arg>loopback</arg>
+                  </gpgArguments>
                </configuration>
             </plugin>
 

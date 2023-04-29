@@ -1,0 +1,48 @@
+# Release Workflow
+# See here: https://blogs.itemis.com/en/github-actions-releasing-artifacts-into-maven-central
+# and here: https://stackoverflow.com/questions/58254332/maven-release-from-github-actions
+
+name: release-workflow
+run-name: Release run ${{ github.run_number }}, version ${{ github.event.inputs.releaseVersion }}
+on:
+  workflow_dispatch: # Only run when manually started
+    inputs:
+      branch:
+        description: "The branch to create the release from."
+        required: true
+        default: "master"
+      releaseVersion:
+        description: "The version to use for the release."
+        required: true
+        default: "X.Y.Z"
+      developmentVersion:
+        description: "The next development version to use."
+        required: true
+        default: "X.Y.Z-SNAPSHOT"
+
+jobs:
+  release: # Arbitrarily chosen
+    name: Release # Arbitrarily chosen
+    runs-on: ubuntu-22.04
+    steps:
+      - name: Checkout Sources
+        uses: actions/checkout@v3
+        with:
+          ref: ${{ github.event.inputs.branch }}
+      - name: Setup Java
+        uses: actions/setup-java@v3 # Also does set up Maven and GPG, see https://github.com/actions/setup-java
+        with:
+          distribution: 'temurin' 
+          java-version: '11'
+          cache: 'maven'
+          server-id: 'ossrh' # must match the serverId configured for the nexus-staging-maven-plugin
+          server-username: OSSRH_USERNAME # Name of the environment variable that holds your OSSRH username
+          server-password: OSSRH_PASSWORD # Name of the environment variable that holds your OSSRH password
+          gpg-private-key: ${{ secrets.GPG_PRIVATE_KEY }} # Substituted with the value stored in the referenced secret
+          gpg-passphrase: SIGN_KEY_PASS # Name of the environment variable  that holds the key's passphrase
+      - name: Build & Deploy Release
+        run: mvn release:clean release:prepare release:perform -B -DreleaseVersion=${{ github.event.inputs.releaseVersion }} -DdevelopmentVersion=${{ github.event.inputs.developmentVersion }}
+        env:
+          SIGN_KEY_PASS: ${{ secrets.GPG_PRIVATE_KEY_PASSPHRASE }}
+          OSSRH_USERNAME: ${{ secrets.OSSRH_USERNAME }}
+          OSSRH_PASSWORD: ${{ secrets.OSSRH_PASSWORD }}
