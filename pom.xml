@@ -264,7 +264,7 @@
                   </execution>
                </executions>
                <configuration>
-                  <passphraseServerId>gpg.passphrase</passphraseServerId>
+                  <passphrase>${env.GPG_PRIVATE_KEY_PASSPHRASE}</passphrase>
                   <!-- Prevent gpg from using pinentry programs, see https://github.com/actions/setup-java/blob/main/docs/advanced-usage.md#extra-setup-for-pomxml -->
                   <gpgArguments>
                      <arg>--batch</arg>
