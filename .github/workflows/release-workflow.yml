@@ -40,6 +40,10 @@ jobs:
           server-password: OSSRH_PASSWORD # Name of the environment variable that holds your OSSRH password
           gpg-private-key: ${{ secrets.GPG_PRIVATE_KEY }} # Substituted with the value stored in the referenced secret
           gpg-passphrase: SIGN_KEY_PASS # Name of the environment variable  that holds the key's passphrase
+      - name: Configure Git User
+        run: |
+          git config user.email "ruedigerkeller@mail.de"
+          git config user.name "Contractfirst-Generator Release Workflow"
       - name: Build & Deploy Release
         run: mvn release:clean release:prepare release:perform -B -DreleaseVersion=${{ github.event.inputs.releaseVersion }} -DdevelopmentVersion=${{ github.event.inputs.developmentVersion }}
         env:
