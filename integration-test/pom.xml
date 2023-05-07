@@ -23,6 +23,10 @@
       <!-- Skip install and deploy -->
       <maven.install.skip>true</maven.install.skip>
       <maven.deploy.skip>true</maven.deploy.skip>
+      <skipNexusStagingDeployMojo>true</skipNexusStagingDeployMojo>
+      
+      <!-- Skip GPG Signing -->
+      <gpg.skip>true</gpg.skip>
 
       <!-- Skip Javadoc and source JAR generation -->
       <maven.javadoc.skip>true</maven.javadoc.skip>
