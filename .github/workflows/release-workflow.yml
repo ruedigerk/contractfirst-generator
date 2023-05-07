@@ -46,7 +46,7 @@ jobs:
           git config user.email "ruedigerkeller@mail.de"
           git config user.name "Contractfirst-Generator Release Workflow"
       - name: Build & Deploy Release
-        run: mvn release:clean release:prepare release:perform -B -s .m2/settings.xml -DreleaseVersion=${{ github.event.inputs.releaseVersion }} -DdevelopmentVersion=${{ github.event.inputs.developmentVersion }}
+        run: mvn release:clean release:prepare release:perform -B -s .github/workflows/release-settings.xml -DreleaseVersion=${{ github.event.inputs.releaseVersion }} -DdevelopmentVersion=${{ github.event.inputs.developmentVersion }}
         env:
           GPG_PRIVATE_KEY_PASSPHRASE: ${{ secrets.GPG_PRIVATE_KEY_PASSPHRASE }}
           OSSRH_USERNAME: ${{ secrets.OSSRH_USERNAME }}

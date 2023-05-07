@@ -264,6 +264,7 @@
                   </execution>
                </executions>
                <configuration>
+                  <!-- The environment variable is set by the GitHub release workflow. -->
                   <passphrase>${env.GPG_PRIVATE_KEY_PASSPHRASE}</passphrase>
                   <!-- Prevent gpg from using pinentry programs, see https://github.com/actions/setup-java/blob/main/docs/advanced-usage.md#extra-setup-for-pomxml -->
                   <gpgArguments>

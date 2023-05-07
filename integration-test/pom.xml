@@ -23,8 +23,7 @@
       <!-- Skip install and deploy -->
       <maven.install.skip>true</maven.install.skip>
       <maven.deploy.skip>true</maven.deploy.skip>
-      <skipNexusStagingDeployMojo>true</skipNexusStagingDeployMojo>
-      
+
       <!-- Skip GPG Signing -->
       <gpg.skip>true</gpg.skip>
 
@@ -149,6 +148,17 @@
                      <detail>true</detail>
                      <goal>generate</goal>
                   </configuration>
+               </execution>
+            </executions>
+         </plugin>
+
+         <plugin>
+            <!-- Prevent creating a jar artifact. -->
+            <artifactId>maven-jar-plugin</artifactId>
+            <executions>
+               <execution>
+                  <id>default-jar</id>
+                  <phase>none</phase>
                </execution>
             </executions>
          </plugin>
