@@ -79,13 +79,6 @@
       <!-- ################# -->
       <dependency>
          <!-- For testing with Spock -->
-         <groupId>org.junit.jupiter</groupId>
-         <artifactId>junit-jupiter</artifactId>
-         <version>${junit5.version}</version>
-         <scope>test</scope>
-      </dependency>
-      <dependency>
-         <!-- For testing with Spock -->
          <groupId>org.codehaus.groovy</groupId>
          <artifactId>groovy</artifactId>
          <version>${groovy.version}</version>

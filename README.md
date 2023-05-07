@@ -245,6 +245,11 @@ Available parameters:
 Changelog
 ---------
 
+### 1.6.1
+
+**Changed**
+- Updated various dependencies.
+
 ### 1.6.0
 
 **Added**
