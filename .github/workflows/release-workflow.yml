@@ -49,3 +49,7 @@ jobs:
           OSSRH_PASSWORD: ${{ secrets.OSSRH_PASSWORD }}
           GITHUB_ACTOR: ${{ github.actor }}
           GITHUB_TOKEN: ${{ github.token }}
+      - name: Display staging URL
+        run: |
+          echo 'Close and release staged artifacts on Sonatype' >> $GITHUB_STEP_SUMMARY
+          echo 'https://s01.oss.sonatype.org/#stagingRepositories' >> $GITHUB_STEP_SUMMARY
