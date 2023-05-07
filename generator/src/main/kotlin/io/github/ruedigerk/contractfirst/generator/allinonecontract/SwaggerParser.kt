@@ -1,6 +1,6 @@
 package io.github.ruedigerk.contractfirst.generator.allinonecontract
 
-import io.github.ruedigerk.contractfirst.generator.ParserException
+import io.github.ruedigerk.contractfirst.generator.ParserContentException
 import io.swagger.parser.OpenAPIParser
 import io.swagger.v3.oas.models.OpenAPI
 import io.swagger.v3.parser.core.models.ParseOptions
@@ -26,7 +26,7 @@ class SwaggerParser {
 
   private fun validateResult(result: SwaggerParseResult): OpenAPI {
     if (result.messages.isNotEmpty()) {
-      throw ParserException(result.messages)
+      throw ParserContentException(result.messages.joinToString(", "))
     }
 
     return result.openAPI!!

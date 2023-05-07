@@ -3,31 +3,19 @@ package io.github.ruedigerk.contractfirst.generator
 /**
  * Thrown when the parsed contract cannot be parsed, either because it is invalid according to the OpenAPI specification, or because there was an IO error.
  */
-abstract class ParserException : RuntimeException {
+abstract class ParserException(message: String, cause: Throwable? = null) : RuntimeException(message, cause)
 
-  constructor(message: String) : super(message)
-  constructor(message: String, cause: Throwable) : super(message, cause)
+/**
+ * Thrown when there was a problem with the contents of the contract to parse.
+ */
+class ParserContentException(message: String, cause: Throwable? = null) : ParserException(message, cause)
 
-  companion object {
-    
-    operator fun invoke(messages: List<String>): ParserException = ParserContentException(messages.joinToString(", "))
-  }
-}
+/**
+ * Thrown when an IO error occurs during paring of the contract.
+ */
+open class ParserIoException(message: String, cause: Throwable? = null) : ParserException(message, cause)
 
-class ParserContentException : ParserException {
-
-  constructor(message: String) : super(message)
-  constructor(message: String, cause: Throwable) : super(message, cause)
-}
-
-open class ParserIoException : ParserException {
-
-  constructor(message: String) : super(message)
-  constructor(message: String, cause: Throwable) : super(message, cause)
-}
-
-class ParserFileNotFoundException : ParserIoException {
-
-  constructor(message: String) : super(message)
-  constructor(message: String, cause: Throwable) : super(message, cause)
-}
+/**
+ * Thrown when a referenced file was not found during parsing of the contract.
+ */
+class ParserFileNotFoundException(message: String, cause: Throwable? = null) : ParserIoException(message, cause)
