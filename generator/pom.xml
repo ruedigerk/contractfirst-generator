@@ -63,13 +63,13 @@
          <!-- For parsing OpenAPI specifications -->
          <groupId>io.swagger.parser.v3</groupId>
          <artifactId>swagger-parser</artifactId>
-         <version>2.1.13</version>
+         <version>2.1.18</version>
       </dependency>
       <dependency>
          <!-- For serializing YAML output -->
          <groupId>com.fasterxml.jackson.dataformat</groupId>
          <artifactId>jackson-dataformat-yaml</artifactId>
-         <version>2.14.2</version>
+         <version>2.16.0</version>
       </dependency>
       <dependency>
          <!-- For generating Java source files -->
