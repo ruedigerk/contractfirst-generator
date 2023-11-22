@@ -14,6 +14,7 @@ public class JaxRsExceptionMapper implements ExceptionMapper<Throwable> {
   @Override
   public Response toResponse(Throwable throwable) {
     System.out.println("SERVER: Exception " + throwable);
+    throwable.printStackTrace(System.out);
 
     if (throwable instanceof WebApplicationException) {
       return ((WebApplicationException) throwable).getResponse();

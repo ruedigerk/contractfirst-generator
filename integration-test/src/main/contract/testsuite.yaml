@@ -67,6 +67,50 @@ paths:
               schema:
                 $ref: "#/components/schemas/Failure"
 
+  /multiValuedParametersTest/{pathParam}:
+    post:
+      summary: Test for handling of multi-valued parameters.
+      operationId: multiValuedParametersTest
+      tags:
+        - MultiValuedParameters
+      parameters:
+        - name: testSelector
+          in: query
+          description: Selects the assertions to perform on the server.
+          required: true
+          schema:
+            type: string
+        - name: pathParam
+          in: path
+          description: Multi-valued path parameter.
+          required: true
+          schema:
+            type: array
+            items:
+              type: string
+        - name: queryParam
+          in: query
+          description: Multi-valued query parameter.
+          required: false
+          schema:
+            type: array
+            items:
+              $ref: "#/components/schemas/SimpleEnum"
+        - name: headerParam
+          in: header
+          description: Multi-valued header parameter.
+          required: false
+          schema:
+            type: array
+            items:
+              type: integer
+              format: int32
+      responses:
+        204:
+          description: Ok, no content
+        default:
+          $ref: "#/components/responses/DefaultFailures"
+
   /items:
     post:
       summary: Test operation for generating generic types, e.g. List of Item.
@@ -502,6 +546,13 @@ components:
             - 1
             - two-point-zero
             - three?
+    SimpleEnum:
+      description: An enum with non-problematic constant names.
+      type: string
+      enum:
+        - FIRST
+        - SECOND
+        - THIRD
   responses:
     DefaultFailures:
       description: Some other error, like 500.

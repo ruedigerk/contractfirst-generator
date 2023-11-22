@@ -6,6 +6,7 @@ import okhttp3.OkHttpClient
 import okhttp3.logging.HttpLoggingInterceptor
 import spock.lang.Shared
 import spock.lang.Specification 
+
 /**
  * Superclass for Spock tests that use an embedded JAX-RS server.
  */

@@ -7,7 +7,7 @@ Ideas and Todos
 - HTTP methods GET and HEAD do not allow a request body -> adjust parser accordingly.
 - Support parameters defined with content instead of schema.
 - Add a usage description with examples to the help Mojo of the Maven plugin and to the project Readme file.
-- Add support for $refs with description, e.g., in object schema properties (this is not supported by the JSON schema specification)???
+- Add support for $refs with description, e.g., in object schema properties (although this is not supported by the JSON schema specification).
 - Array or object type schemas in request parameters
 - Support for oneOf, allOf, anyOf in schemas
 - Using Jackson instead of Gson for Serializing JSON.

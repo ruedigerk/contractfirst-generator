@@ -3,6 +3,7 @@ package io.github.ruedigerk.contractfirst.generator.client;
 import com.google.gson.Gson;
 import com.google.gson.GsonBuilder;
 import com.google.gson.JsonParseException;
+
 import io.github.ruedigerk.contractfirst.generator.client.internal.BodyPart;
 import io.github.ruedigerk.contractfirst.generator.client.internal.MediaTypes;
 import io.github.ruedigerk.contractfirst.generator.client.internal.MultipartRequestBody;
@@ -11,16 +12,6 @@ import io.github.ruedigerk.contractfirst.generator.client.internal.OperationRequ
 import io.github.ruedigerk.contractfirst.generator.client.internal.Parameter;
 import io.github.ruedigerk.contractfirst.generator.support.gson.LocalDateGsonTypeAdapter;
 import io.github.ruedigerk.contractfirst.generator.support.gson.OffsetDateTimeGsonTypeAdapter;
-import java.io.ByteArrayOutputStream;
-import java.io.IOException;
-import java.io.InputStream;
-import java.lang.reflect.Type;
-import java.time.LocalDate;
-import java.time.OffsetDateTime;
-import java.util.List;
-import java.util.Objects;
-import java.util.stream.Collectors;
-import java.util.stream.StreamSupport;
 import okhttp3.FormBody;
 import okhttp3.Headers;
 import okhttp3.HttpUrl;
@@ -34,6 +25,20 @@ import okhttp3.RequestBody;
 import okhttp3.Response;
 import okhttp3.ResponseBody;
 import okhttp3.internal.http.HttpMethod;
+
+import java.io.ByteArrayOutputStream;
+import java.io.IOException;
+import java.io.InputStream;
+import java.lang.reflect.Type;
+import java.time.LocalDate;
+import java.time.OffsetDateTime;
+import java.util.Collection;
+import java.util.List;
+import java.util.Map;
+import java.util.Objects;
+import java.util.function.BiConsumer;
+import java.util.stream.Collectors;
+import java.util.stream.StreamSupport;
 
 /**
  * Performs HTTP requests as defined by generated client code.
@@ -169,42 +174,44 @@ public class ApiRequestExecutor {
   }
 
   private HttpUrl determineRequestUrl(Operation operation) {
-    String path = determineRequestPath(operation);
-    Builder urlBuilder = HttpUrl.get(baseUrl + path).newBuilder();
+    Builder urlBuilder = HttpUrl.get(baseUrl).newBuilder();
 
-    operation.getQueryParameters().forEach((name, parameter) -> {
-      if (parameter.getValue() != null) {
-        String value = serializeParameter(parameter.getValue());
-        urlBuilder.addQueryParameter(name, value);
-      }
-    });
+    addRequestPath(urlBuilder, operation);
+    addQueryParameters(urlBuilder, operation.getQueryParameters());
 
     return urlBuilder.build();
   }
 
-  private String determineRequestPath(Operation operation) {
+  private void addRequestPath(Builder urlBuilder, Operation operation) {
     String path = operation.getPath();
+    String[] pathSegments = path.split("/");
 
-    for (Parameter parameter : operation.getPathParameters().values()) {
-      String placeholder = "{" + parameter.getName() + "}";
-      String value = serializeParameter(parameter.getValue());
+    for (String segment : pathSegments) {
+      String resolvedSegment = segment;
 
-      path = path.replace(placeholder, value);
+      if (segment.startsWith("{") && segment.endsWith("}")) {
+        String parameterName = segment.substring(1, segment.length() - 1);
+        Parameter parameter = operation.getPathParameters().get(parameterName);
+
+        if (parameter != null) {
+          resolvedSegment = serializePathParameter(parameter.getValue());
+        }
+      }
+
+      urlBuilder.addPathSegment(resolvedSegment);
     }
+  }
 
-    return path;
+  private void addQueryParameters(Builder urlBuilder, Map<String, Parameter> queryParameters) {
+    consumeParameterMap(queryParameters, urlBuilder::addQueryParameter);
   }
 
   // This method does not need to set a Content-Type header, as that is done by OkHttp when we set the media-type on the request body.
   private Headers determineRequestHeaders(Operation operation) {
     Headers.Builder builder = new Headers.Builder();
 
-    operation.getHeaderParameters().forEach((name, parameter) -> {
-      if (parameter.getValue() != null) {
-        String value = serializeParameter(parameter.getValue());
-        builder.add(name, value);
-      }
-    });
+    // Split array-valued parameters to separate headers. This is not by the OpenAPI spec but works with JAX-RS out of the box.
+    consumeParameterMap(operation.getHeaderParameters(), builder::add);
 
     String acceptHeaderValue = operation.determineAcceptHeaderValue();
     if (!acceptHeaderValue.isEmpty()) {
@@ -214,11 +221,53 @@ public class ApiRequestExecutor {
     return builder.build();
   }
 
-  private String serializeParameter(Object value) {
+  private void consumeParameterMap(Map<String, Parameter> parameters, BiConsumer<String, String> parameterConsumer) {
+    parameters.forEach((key, parameter) -> {
+      if (parameter.getValue() instanceof Collection<?>) {
+        ((Collection<?>) parameter.getValue()).forEach(element -> consumeParameter(key, element, parameterConsumer));
+      } else {
+        consumeParameter(key, parameter.getValue(), parameterConsumer);
+      }
+    });
+  }
+
+  /**
+   * Consumes a parameter value, splitting array-valued parameter values into separate parameters, as required for query parameters.
+   */
+  private void consumeParameter(String name, Object value, BiConsumer<String, String> parameterConsumer) {
+    if (value != null) {
+      String serializedValue = serializeParameterValue(value);
+      parameterConsumer.accept(name, serializedValue);
+    }
+  }
+
+  private String serializePathParameter(Object value) {
+    if (value instanceof Collection) {
+      return serializeSimpleStyleArrayParameter((Collection<?>) value);
+    } else {
+      return serializeParameterValue(value);
+    }
+  }
+
+  /**
+   * Serializes array-valued "simple" style parameters, e.g. path parameters. Creates output like: blue,black,brown See:
+   * https://github.com/OAI/OpenAPI-Specification/blob/main/versions/3.0.0.md#parameter-object
+   */
+  private String serializeSimpleStyleArrayParameter(Collection<?> collection) {
+    return collection.stream()
+        .map(this::serializeParameterValue)
+        .collect(Collectors.joining(","));
+  }
+
+  /**
+   * Serializes a single parameter value.
+   */
+  private String serializeParameterValue(Object value) {
     if (value == null) {
       return "";
     } else {
       // LocalDate and OffsetDateTime already return the desired format in their toString methods.
+      // Objects  requiring JSON-serialization are currently not supported.
       return value.toString();
     }
   }
@@ -253,7 +302,7 @@ public class ApiRequestExecutor {
     FormBody.Builder builder = new FormBody.Builder();
 
     for (BodyPart part : bodyParts) {
-      builder.add(part.getName(), serializeParameter(part.getValue()));
+      builder.add(part.getName(), serializeParameterValue(part.getValue()));
     }
 
     return builder.build();
@@ -271,7 +320,7 @@ public class ApiRequestExecutor {
         byte[] bytes = readBytes((InputStream) part.getValue());
         builder.addPart(headers, RequestBody.create(bytes, null));
       } else {
-        builder.addPart(headers, RequestBody.create(serializeParameter(part.getValue()), null));
+        builder.addPart(headers, RequestBody.create(serializeParameterValue(part.getValue()), null));
       }
     }
 
