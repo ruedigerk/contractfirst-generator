@@ -371,32 +371,6 @@ paths:
         default:
           $ref: "#/components/responses/DefaultFailures"
 
-  /formEncodedRequestBody:
-    post:
-      description: A test case for an x-www-form-urlencoded encoded request body.
-      tags:
-        - FormEncodedRequestBody
-      operationId: formEncodedRequestBody
-      requestBody:
-        required: true
-        content:
-          application/x-www-form-urlencoded:
-            schema:
-              type: object
-              properties: 
-                fieldA:
-                  type: string
-                fieldB:
-                  type: string
-                fieldC:
-                  type: string
-                  enum:
-                    - first_value
-                    - second%value
-      responses:
-        204:
-          description: Ok.
-
   /nonJsonEntityAsJson:
     get:
       summary: Test case for an operation that declares a non-JSON entity and the server nevertheless sending the entity as JSON.
