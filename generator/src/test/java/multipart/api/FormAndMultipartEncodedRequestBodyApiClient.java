@@ -5,9 +5,12 @@ import io.github.ruedigerk.contractfirst.generator.client.ApiClientIoException;
 import io.github.ruedigerk.contractfirst.generator.client.ApiClientValidationException;
 import io.github.ruedigerk.contractfirst.generator.client.ApiRequestExecutor;
 import io.github.ruedigerk.contractfirst.generator.client.ApiResponse;
+import io.github.ruedigerk.contractfirst.generator.client.FileBodyPart;
 import io.github.ruedigerk.contractfirst.generator.client.internal.Operation;
 import io.github.ruedigerk.contractfirst.generator.client.internal.StatusCode;
+import java.util.List;
 import java.util.Objects;
+import multipart.model.MultipartRequestBodyRequestBodyMultipartFormDataObjectProperty;
 
 /**
  * Contains methods for all API operations tagged "FormAndMultipartEncodedRequestBody".
@@ -32,10 +35,12 @@ public class FormAndMultipartEncodedRequestBodyApiClient {
   /**
    * A test case for a multipart/form-data encoded request body.
    */
-  public void multipartRequestBody(String partOne, String partTwo) throws ApiClientIoException,
+  public void multipartRequestBody(String stringProperty, Long integerProperty,
+      MultipartRequestBodyRequestBodyMultipartFormDataObjectProperty objectProperty,
+      FileBodyPart firstBinary, List<FileBodyPart> additionalBinaries) throws ApiClientIoException,
       ApiClientValidationException, ApiClientIncompatibleResponseException {
 
-    MultipartRequestBodyResult result = returningResult.multipartRequestBody(partOne, partTwo);
+    MultipartRequestBodyResult result = returningResult.multipartRequestBody(stringProperty, integerProperty, objectProperty, firstBinary, additionalBinaries);
   }
 
   /**
@@ -45,13 +50,19 @@ public class FormAndMultipartEncodedRequestBodyApiClient {
     /**
      * A test case for a multipart/form-data encoded request body.
      */
-    public MultipartRequestBodyResult multipartRequestBody(String partOne, String partTwo) throws
+    public MultipartRequestBodyResult multipartRequestBody(String stringProperty,
+        Long integerProperty,
+        MultipartRequestBodyRequestBodyMultipartFormDataObjectProperty objectProperty,
+        FileBodyPart firstBinary, List<FileBodyPart> additionalBinaries) throws
         ApiClientIoException, ApiClientValidationException, ApiClientIncompatibleResponseException {
 
       Operation.Builder builder = new Operation.Builder("/multipartRequestBody", "POST");
 
-      builder.requestBodyPart("partOne", partOne);
-      builder.requestBodyPart("partTwo", partTwo);
+      builder.requestBodyPart("stringProperty", stringProperty);
+      builder.requestBodyPart("integerProperty", integerProperty);
+      builder.requestBodyPart("objectProperty", objectProperty);
+      builder.requestBodyPart("firstBinary", firstBinary);
+      builder.requestBodyPart("additionalBinaries", additionalBinaries);
       builder.multipartRequestBody("multipart/form-data");
 
       builder.response(StatusCode.of(204));

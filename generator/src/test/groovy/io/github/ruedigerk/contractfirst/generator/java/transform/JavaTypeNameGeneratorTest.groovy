@@ -4,6 +4,7 @@ import io.github.ruedigerk.contractfirst.generator.java.JavaConfiguration
 import io.github.ruedigerk.contractfirst.generator.java.model.JavaTypeName
 import io.github.ruedigerk.contractfirst.generator.logging.Log
 import io.github.ruedigerk.contractfirst.generator.logging.LogAdapter
+import io.github.ruedigerk.contractfirst.generator.model.Operation
 import io.github.ruedigerk.contractfirst.generator.model.Position
 import spock.lang.Specification
 import spock.lang.Subject
@@ -12,8 +13,8 @@ class JavaTypeNameGeneratorTest extends Specification {
 
   static final String MODEL_PACKAGE = "package.api"
 
-  Map<List<String>, String> effectiveOperationIds = [
-      ["paths", "/path/op", "GET"] : "usesOperationId"
+  Map<Operation.PathAndMethod, String> operationMethodNames = [
+      new Operation.PathAndMethod("/path/op", "GET") : "usesOperationId"
   ]
   
   JavaConfiguration configuration = new JavaConfiguration(
@@ -28,7 +29,7 @@ class JavaTypeNameGeneratorTest extends Specification {
   )
 
   @Subject
-  JavaTypeNameGenerator generator = new JavaTypeNameGenerator(new Log(Mock(LogAdapter)), configuration, effectiveOperationIds)
+  JavaTypeNameGenerator generator = new JavaTypeNameGenerator(new Log(Mock(LogAdapter)), configuration, operationMethodNames)
 
   def "works as expected"() {
     expect:

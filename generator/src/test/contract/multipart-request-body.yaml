@@ -5,6 +5,33 @@ info:
 servers:
   - url: https://example.com/multipart-request-body
 paths:
+  /formEncodedRequestBody:
+    post:
+      description: A test case for an x-www-form-urlencoded encoded request body.
+      tags:
+        - FormEncodedRequestBody
+      operationId: formEncodedRequestBody
+      requestBody:
+        required: true
+        content:
+          application/x-www-form-urlencoded:
+            schema:
+              type: object
+              properties:
+                stringProperty:
+                  type: string
+                integerProperty:
+                  type: integer
+                  format: int64
+                enumProperty:
+                  type: string
+                  enum:
+                    - first_value
+                    - second%value
+      responses:
+        204:
+          description: Ok.
+
   /multipartRequestBody:
     post:
       description: A test case for a multipart/form-data encoded request body.
@@ -18,10 +45,29 @@ paths:
             schema:
               type: object
               properties: 
-                partOne:
+                stringProperty:
                   type: string
-                partTwo:
+                integerProperty:
+                  type: integer
+                  format: int64
+                objectProperty:
+                  type: object
+                  required: 
+                    - a
+                  properties: 
+                    a:
+                      type: string
+                    b:
+                      type: integer
+                      format: int64
+                firstBinary:
                   type: string
+                  format: binary
+                additionalBinaries:
+                  type: array
+                  items:
+                    type: string
+                    format: binary
       responses:
         204:
           description: Ok.

@@ -5,25 +5,30 @@ import io.github.ruedigerk.contractfirst.generator.ParserContentException
 import io.github.ruedigerk.contractfirst.generator.model.Position
 import java.math.BigDecimal
 
+/**
+ * This class forms the basis of the contract parser. It represents a single node in a JSON file together with its position in that file. It can also represent
+ * non-existing nodes, in which case `node` is null. Instances are immutable.
+ */
 class Parseable(
     val node: JsonNode?,
     val position: Position
 ) {
-  fun addPositionHint(hint: String): Parseable = Parseable(node, position.addPathHint(hint))
+  
+  fun withPositionHint(hint: String): Parseable = Parseable(node, position.addPathHint(hint))
 
   fun optionalField(fieldName: String): Parseable {
     requireObject()
-    return navigate(node?.get(fieldName), fieldName)
+    return descend(node?.get(fieldName), fieldName)
   }
 
   fun requiredField(fieldName: String): Parseable {
     if (node == null) {
-      return navigate(null, fieldName)
+      return descend(null, fieldName)
     }
     
     requireObject()
     val child = node[fieldName]
-    return child?.let { navigate(it, fieldName) } ?: throw ParserContentException("$position has no field '$fieldName'")
+    return child?.let { descend(it, fieldName) } ?: throw ParserContentException("$position has no field '$fieldName'")
   }
 
   fun hasField(fieldName: String): Boolean = node?.has(fieldName) ?: false
@@ -99,15 +104,15 @@ class Parseable(
     return this
   }
 
-  fun fields(): List<Pair<String, Parseable>> {
+  fun properties(): List<Pair<String, Parseable>> {
     requireObject()
     val entries = node?.fields()?.asSequence() ?: emptySequence()
-    return entries.map { (name, content) -> Pair(name, navigate(content, name)) }.toList()
+    return entries.map { (name, content) -> Pair(name, descend(content, name)) }.toList()
   }
 
   fun elements(): List<Parseable> {
     requireArray()
-    return node?.mapIndexed { index, jsonNode -> navigate(jsonNode, "$index") } ?: emptyList()
+    return node?.mapIndexed { index, jsonNode -> descend(jsonNode, "$index") } ?: emptyList()
   }
   
   fun stringElements(): List<String> {
@@ -121,7 +126,7 @@ class Parseable(
     return entries.map { it.asText() }
   }
   
-  private fun navigate(jsonNode: JsonNode?, fieldName: String): Parseable = Parseable(jsonNode, position + fieldName)
+  private fun descend(jsonNode: JsonNode?, fieldName: String): Parseable = Parseable(jsonNode, position + fieldName)
   
   override fun equals(other: Any?): Boolean {
     if (this === other) return true
@@ -145,7 +150,7 @@ class Parseable(
     return "Parseable(position=$position, node=$node)"
   }
 
-  companion object {
+  private companion object {
 
     private const val DOLLAR_REF = "\$ref"    
   }

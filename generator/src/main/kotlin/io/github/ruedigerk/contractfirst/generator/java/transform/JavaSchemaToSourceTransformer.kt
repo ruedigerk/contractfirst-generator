@@ -39,10 +39,10 @@ class JavaSchemaToSourceTransformer(
   private fun toJavaProperty(property: SchemaProperty): JavaProperty {
     val type = types[property.schema]!!
 
-    val initializer = when {
-      type is JavaCollectionType && type.name.simpleName == "Set" -> JavaType("HashSet", "java.util")
-      type is JavaCollectionType -> JavaType("ArrayList", "java.util")
-      type is JavaMapType -> JavaType("HashMap", "java.util")
+    val initializer = when(type.name) {
+      JavaTypeName.SET -> JavaType(JavaTypeName.HASH_SET)
+      JavaTypeName.LIST -> JavaType(JavaTypeName.ARRAY_LIST)
+      JavaTypeName.MAP -> JavaType(JavaTypeName.HASH_MAP)
       else -> null
     }
 

@@ -6,47 +6,45 @@ import io.github.ruedigerk.contractfirst.generator.java.Identifiers.capitalize
 import io.github.ruedigerk.contractfirst.generator.java.Identifiers.toJavaIdentifier
 import io.github.ruedigerk.contractfirst.generator.java.Identifiers.toJavaTypeIdentifier
 import io.github.ruedigerk.contractfirst.generator.java.model.*
+import io.github.ruedigerk.contractfirst.generator.java.transform.OperationNaming.getJavaMethodName
 import io.github.ruedigerk.contractfirst.generator.model.*
 
 /**
  * Transforms the parsed specification into a Java-specific specification, appropriate for code generation.
  */
-class JavaOperationTransformer(
+class JavaOperationTransformer private constructor(
     private val schemas: Map<SchemaId, Schema>,
     private val types: Map<SchemaId, JavaAnyType>,
-    private val effectiveOperationIds: Map<List<String>, String>
+    private val operationMethodNames: Map<Operation.PathAndMethod, String>
 ) {
 
-  fun transform(operations: List<Operation>): List<JavaOperationGroup> = groupOperations(operations)
+  /**
+   * During the transformation, the IDs of all schemas that are used a form bodies of operations are collected here. For these schemas, no Java source files
+   * need to be generated as form body schemas are generated as addition method parameters.
+   */
+  private val formBodySchemaIds = mutableSetOf<SchemaId>()
+
+  private fun transform(operations: List<Operation>): List<JavaOperationGroup> = groupOperations(operations)
 
   private fun groupOperations(operations: List<Operation>): List<JavaOperationGroup> = operations
       .groupBy { it.tags.firstOrNull() ?: DEFAULT_TAG_NAME }
       .mapValues { it.value.map(::toJavaOperation) }
       .map { (tag, operations) -> JavaOperationGroup(tag.toJavaTypeIdentifier() + GROUP_NAME_SUFFIX, operations, tag) }
 
-  // TODO: add location suffix to parameter name, if parameter name is not unique within operation (name + location must be unique according to spec)
   private fun toJavaOperation(operation: Operation): JavaOperation {
-    val requestBodyContents = operation.requestBody?.contents
-    if (requestBodyContents != null && requestBodyContents.size != 1) {
-      throw NotSupportedException("Only operations with a single request body content definition are supported: $operation")
-    }
-
-    val requestBodyContent = requestBodyContents?.first()
-    val bodyParameters = operation.requestBody?.let { requestBodyToParameters(operation, it, requestBodyContent!!) } ?: emptyList()
+    val bodyParameters = operation.requestBody?.let { requestBodyToParameters(operation, it) } ?: emptyList()
     val parameters = toParametersWithUniqueName(operation.parameters.map(::toJavaParameter) + bodyParameters)
 
     return JavaOperation(
-        deriveMethodName(operation),
+        operationMethodNames.getJavaMethodName(operation.pathAndMethod),
         toOperationJavadoc(operation, parameters),
         operation.path,
         operation.method,
-        requestBodyContent?.mediaType,
+        operation.requestBody?.requireSingleContent(operation)?.mediaType,
         parameters,
         operation.responses.map(::toJavaResponse),
     )
   }
-
-  private fun deriveMethodName(operation: Operation) = effectiveOperationIds[operation.position.path] ?: throw IllegalStateException("No operation found with path ${operation.position.path} in $effectiveOperationIds for $operation")
 
   private fun toOperationJavadoc(operation: Operation, parameters: List<JavaParameter>): String? {
     val docComment = operation.description ?: operation.summary
@@ -63,12 +61,15 @@ class JavaOperationTransformer(
   /**
    * The request body can be transformed to multiple parameters, when the Content-Type is multipart or application/x-www-form-urlencoded.
    */
-  private fun requestBodyToParameters(operation: Operation, requestBody: RequestBody, content: Content): List<JavaParameter> {
+  private fun requestBodyToParameters(operation: Operation, requestBody: RequestBody): List<JavaParameter> {
+    val content = requestBody.requireSingleContent(operation)
+
     return if (content.mediaType == "application/x-www-form-urlencoded" || content.mediaType.startsWith("multipart/")) {
-      val actualSchema = schemaFor(content.schemaId)
-      formBodyToRequestParameters(operation, actualSchema, content.mediaType)
+      formBodySchemaIds.add(content.schemaId)
+      val schema = schemaFor(content.schemaId)
+      formBodyToRequestParameters(operation, schema, content.mediaType)
     } else {
-      listOf(toBodyParameter(requestBody))
+      listOf(toBodyParameter(operation, requestBody))
     }
   }
 
@@ -90,21 +91,23 @@ class JavaOperationTransformer(
     )
   }
 
-  private fun toBodyParameter(requestBody: RequestBody): JavaBodyParameter {
-    if (requestBody.contents.isEmpty()) {
-      throw NotSupportedException("Empty request body content is not supported: $requestBody")
-    }
-
-    // Currently, all body contents must have the same schema. This is enforced by toJavaOperation.
-    val bodyContent = requestBody.contents.first()
+  private fun toBodyParameter(operation: Operation, requestBody: RequestBody): JavaBodyParameter {
+    val content = requestBody.requireSingleContent(operation)
 
     return JavaBodyParameter(
         "requestBody",
-        requestBody.description ?: JavadocHelper.toJavadoc(schemaFor(bodyContent.schemaId)),
+        requestBody.description ?: JavadocHelper.toJavadoc(schemaFor(content.schemaId)),
         requestBody.required,
-        typeFor(bodyContent.schemaId),
-        bodyContent.mediaType
+        typeFor(content.schemaId),
+        content.mediaType
     )
+  }
+
+  private fun RequestBody.requireSingleContent(operation: Operation): Content {
+    if (contents.size != 1) {
+      throw NotSupportedException("Only operations with a single request body content definition are supported: $operation")
+    }
+    return contents.first()
   }
 
   private fun toJavaParameter(parameter: Parameter): JavaRegularParameter = JavaRegularParameter(
@@ -145,14 +148,37 @@ class JavaOperationTransformer(
       typeFor(content.schemaId)
   )
 
-  private fun typeFor(schemaId: SchemaId) = types[schemaId]!!
+  private fun typeFor(schemaId: SchemaId): JavaAnyType = types[schemaId]!!
 
-  private fun schemaFor(schemaId: SchemaId) = schemas[schemaId]!!
+  private fun schemaFor(schemaId: SchemaId): Schema = schemas[schemaId]!!
 
   companion object {
 
     private const val GROUP_NAME_SUFFIX = "Api"
     private const val DEFAULT_TAG_NAME = "Default"
+
+    fun transform(
+        schemas: Map<SchemaId, Schema>,
+        types: Map<SchemaId, JavaAnyType>,
+        operationMethodNames: Map<Operation.PathAndMethod, String>,
+        operations: List<Operation>
+    ): Result {
+      val transformer = JavaOperationTransformer(schemas, types, operationMethodNames)
+      val operationGroups = transformer.transform(operations)
+      
+      // Do not generate model files for the form body schemas. 
+      val schemasToGenerateAsFiles = schemas - transformer.formBodySchemaIds
+
+      return Result(operationGroups, schemasToGenerateAsFiles)
+    }
   }
+
+  /**
+   * The result of the Java operation transformation.
+   */
+  data class Result(
+      val operationGroups: List<JavaOperationGroup>,
+      val schemasToGenerateModelFilesFor: Map<SchemaId, Schema>,
+  )
 }
 

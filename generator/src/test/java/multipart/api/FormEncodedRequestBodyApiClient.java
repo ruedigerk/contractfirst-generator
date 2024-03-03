@@ -1,6 +1,5 @@
-package client.api;
+package multipart.api;
 
-import client.model.FormEncodedRequestBodyRequestBodyApplicationXWwwFormUrlencodedFieldC;
 import io.github.ruedigerk.contractfirst.generator.client.ApiClientIncompatibleResponseException;
 import io.github.ruedigerk.contractfirst.generator.client.ApiClientIoException;
 import io.github.ruedigerk.contractfirst.generator.client.ApiClientValidationException;
@@ -9,6 +8,7 @@ import io.github.ruedigerk.contractfirst.generator.client.ApiResponse;
 import io.github.ruedigerk.contractfirst.generator.client.internal.Operation;
 import io.github.ruedigerk.contractfirst.generator.client.internal.StatusCode;
 import java.util.Objects;
+import multipart.model.FormEncodedRequestBodyRequestBodyApplicationXWwwFormUrlencodedEnumProperty;
 
 /**
  * Contains methods for all API operations tagged "FormEncodedRequestBody".
@@ -33,11 +33,12 @@ public class FormEncodedRequestBodyApiClient {
   /**
    * A test case for an x-www-form-urlencoded encoded request body.
    */
-  public void formEncodedRequestBody(String fieldA, String fieldB,
-      FormEncodedRequestBodyRequestBodyApplicationXWwwFormUrlencodedFieldC fieldC) throws
-      ApiClientIoException, ApiClientValidationException, ApiClientIncompatibleResponseException {
+  public void formEncodedRequestBody(String stringProperty, Long integerProperty,
+      FormEncodedRequestBodyRequestBodyApplicationXWwwFormUrlencodedEnumProperty enumProperty)
+      throws ApiClientIoException, ApiClientValidationException,
+      ApiClientIncompatibleResponseException {
 
-    FormEncodedRequestBodyResult result = returningResult.formEncodedRequestBody(fieldA, fieldB, fieldC);
+    FormEncodedRequestBodyResult result = returningResult.formEncodedRequestBody(stringProperty, integerProperty, enumProperty);
   }
 
   /**
@@ -47,15 +48,17 @@ public class FormEncodedRequestBodyApiClient {
     /**
      * A test case for an x-www-form-urlencoded encoded request body.
      */
-    public FormEncodedRequestBodyResult formEncodedRequestBody(String fieldA, String fieldB,
-        FormEncodedRequestBodyRequestBodyApplicationXWwwFormUrlencodedFieldC fieldC) throws
-        ApiClientIoException, ApiClientValidationException, ApiClientIncompatibleResponseException {
+    public FormEncodedRequestBodyResult formEncodedRequestBody(String stringProperty,
+        Long integerProperty,
+        FormEncodedRequestBodyRequestBodyApplicationXWwwFormUrlencodedEnumProperty enumProperty)
+        throws ApiClientIoException, ApiClientValidationException,
+        ApiClientIncompatibleResponseException {
 
       Operation.Builder builder = new Operation.Builder("/formEncodedRequestBody", "POST");
 
-      builder.requestBodyPart("fieldA", fieldA);
-      builder.requestBodyPart("fieldB", fieldB);
-      builder.requestBodyPart("fieldC", fieldC);
+      builder.requestBodyPart("stringProperty", stringProperty);
+      builder.requestBodyPart("integerProperty", integerProperty);
+      builder.requestBodyPart("enumProperty", enumProperty);
       builder.multipartRequestBody("application/x-www-form-urlencoded");
 
       builder.response(StatusCode.of(204));

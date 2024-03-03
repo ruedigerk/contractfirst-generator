@@ -16,10 +16,10 @@ class JavaSchemaToTypeTransformer(
     private val log: Log,
     private val schemas: Map<SchemaId, Schema>,
     configuration: JavaConfiguration,
-    effectiveOperationIds: Map<List<String>, String>
+    operationMethodNames: Map<Operation.PathAndMethod, String>
 ) {
 
-  private val nameGenerator = JavaTypeNameGenerator(log, configuration, effectiveOperationIds)
+  private val nameGenerator = JavaTypeNameGenerator(log, configuration, operationMethodNames)
   private val typeNameUniquifier = TypeNameUniquifier()
   private val types = mutableMapOf<SchemaId, JavaAnyType>()
 
@@ -42,7 +42,7 @@ class JavaSchemaToTypeTransformer(
   private fun toGeneratedJavaType(schema: Schema, isEnum: Boolean): JavaType {
     // Objects without properties seem to be used in the wild. Special-case to java.lang.Object.
     if (schema is ObjectSchema && schema.properties.isEmpty()) {
-      return JavaType(JavaTypeName("java.lang", "Object"))
+      return JavaType(JavaTypeName.OBJECT)
     }
 
     val typeName = generateName(schema)
@@ -58,46 +58,46 @@ class JavaSchemaToTypeTransformer(
 
   private fun toJavaCollectionType(schema: ArraySchema): JavaCollectionType {
     val elementType = toJavaType(schema.itemSchema)
-    val typeName = if (schema.uniqueItems) "Set" else "List"
+    val typeName = if (schema.uniqueItems) JavaTypeName.SET else JavaTypeName.LIST
     val elementValidations = if (ValidatedValidation in elementType.validations) listOf(ValidatedValidation) else emptyList()
 
-    return JavaCollectionType(JavaTypeName("java.util", typeName), elementType, elementValidations + sizeValidations(schema.minItems, schema.maxItems))
+    return JavaCollectionType(typeName, elementType, elementValidations + sizeValidations(schema.minItems, schema.maxItems))
   }
 
   private fun toJavaMapType(schema: MapSchema): JavaMapType {
     val valuesType = toJavaType(schema.valuesSchema)
     val elementValidations = if (ValidatedValidation in valuesType.validations) listOf(ValidatedValidation) else emptyList()
 
-    return JavaMapType(JavaTypeName("java.util", "Map"), valuesType, elementValidations + sizeValidations(schema.minItems, schema.maxItems))
+    return JavaMapType(valuesType, elementValidations + sizeValidations(schema.minItems, schema.maxItems))
   }
 
   private fun toJavaBuiltInType(schema: PrimitiveSchema): JavaType = when (schema.type) {
 
-    BOOLEAN -> JavaType("Boolean", "java.lang")
+    BOOLEAN -> JavaType(JavaTypeName.BOOLEAN)
 
     INTEGER -> {
       val validations = integralValidations(schema)
       when (schema.format) {
-        "int32" -> JavaType("Integer", "java.lang", validations)
-        "int64" -> JavaType("Long", "java.lang", validations)
-        else -> JavaType("BigInteger", "java.math", validations)
+        "int32" -> JavaType(JavaTypeName.INTEGER, validations)
+        "int64" -> JavaType(JavaTypeName.LONG, validations)
+        else -> JavaType(JavaTypeName.BIG_INTEGER, validations)
       }
     }
 
     NUMBER -> {
       val validations = decimalValidations(schema)
       when (schema.format) {
-        "float" -> JavaType("Float", "java.lang", validations)
-        "double" -> JavaType("Double", "java.lang", validations)
-        else -> JavaType("BigDecimal", "java.math", validations)
+        "float" -> JavaType(JavaTypeName.FLOAT, validations)
+        "double" -> JavaType(JavaTypeName.DOUBLE, validations)
+        else -> JavaType(JavaTypeName.BIG_DECIMAL, validations)
       }
     }
 
     STRING -> when (schema.format) {
-      "date" -> JavaType("LocalDate", "java.time")
-      "date-time" -> JavaType("OffsetDateTime", "java.time")
-      "binary" -> JavaType("InputStream", "java.io")
-      else -> JavaType("String", "java.lang", sizeValidations(schema.minLength, schema.maxLength) + patternValidations(schema))
+      "date" -> JavaType(JavaTypeName.LOCAL_DATE)
+      "date-time" -> JavaType(JavaTypeName.OFFSET_DATE_TIME)
+      "binary" -> JavaType(JavaTypeName.INPUT_STREAM)
+      else -> JavaType(JavaTypeName.STRING, sizeValidations(schema.minLength, schema.maxLength) + patternValidations(schema))
     }
   }
 

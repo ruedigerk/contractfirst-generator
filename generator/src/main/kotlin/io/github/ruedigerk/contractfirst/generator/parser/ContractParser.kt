@@ -37,7 +37,7 @@ class ContractParser(private val log: Log) {
   }
 
   private fun toOperations(parseable: Parseable): List<Operation> {
-    return parseable.fields().flatMap { (path, pathItem) -> toOperations(path, pathItem) }
+    return parseable.properties().flatMap { (path, pathItem) -> toOperations(path, pathItem) }
   }
 
   private fun toOperations(path: String, pathItemOrReference: Parseable): List<Operation> {
@@ -50,7 +50,7 @@ class ContractParser(private val log: Log) {
         .elements()
         .map { toParameter(it) }
 
-    return pathItem.fields()
+    return pathItem.properties()
         .filter { (method, _) -> method in METHOD_NAMES }
         .map { (method, operation) -> toOperation(path, method, operation.requireObject(), commonParameters) }
   }
@@ -110,7 +110,7 @@ class ContractParser(private val log: Log) {
     val parameterUnnamed = parseableCache.resolveWhileReference(parameterUnnamedOrReference)
     
     val name = parameterUnnamed.requiredField("name").string()!!
-    val parameter = parameterUnnamed.addPositionHint(name)
+    val parameter = parameterUnnamed.withPositionHint(name)
 
     if (!parameter.hasField("schema")) {
       throw NotSupportedException("Parameters without schema are not supported at ${parameter.position}")
@@ -151,7 +151,7 @@ class ContractParser(private val log: Log) {
     }
   }
 
-  private fun toResponses(responses: Parseable): List<Response> = responses.fields().map { (statusCode, response) ->
+  private fun toResponses(responses: Parseable): List<Response> = responses.properties().map { (statusCode, response) ->
     val status = toStatusCode(statusCode, response.position)
     Response(status, toResponseContents(status, response.requireObject()))
   }
@@ -175,13 +175,13 @@ class ContractParser(private val log: Log) {
     }
   }
 
-  private fun toContents(content: Parseable): List<Content> = content.fields().mapNotNull { (mediaType, content) ->
+  private fun toContents(content: Parseable): List<Content> = content.properties().mapNotNull { (mediaType, content) ->
     content.takeIf { it.hasField("schema") }?.let {
       Content(mediaType, dereferenceAndRememberSchema(content.requiredField("schema")))
     }
   }
 
-  companion object {
+  private companion object {
 
     private val METHOD_NAMES = setOf("get", "put", "post", "delete", "options", "head", "patch", "trace")
   }

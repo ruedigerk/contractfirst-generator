@@ -4,7 +4,9 @@ import io.github.ruedigerk.contractfirst.generator.java.Identifiers.toJavaIdenti
 import io.github.ruedigerk.contractfirst.generator.java.Identifiers.toJavaTypeIdentifier
 import io.github.ruedigerk.contractfirst.generator.java.JavaConfiguration
 import io.github.ruedigerk.contractfirst.generator.java.model.JavaTypeName
+import io.github.ruedigerk.contractfirst.generator.java.transform.OperationNaming.getJavaMethodName
 import io.github.ruedigerk.contractfirst.generator.logging.Log
+import io.github.ruedigerk.contractfirst.generator.model.Operation
 import io.github.ruedigerk.contractfirst.generator.model.Position
 import java.io.File
 
@@ -14,7 +16,7 @@ import java.io.File
 class JavaTypeNameGenerator(
     private val log: Log,
     private val configuration: JavaConfiguration,
-    private val effectiveOperationIds: Map<List<String>, String>
+    private val operationMethodNames: Map<Operation.PathAndMethod, String>
 ) {
 
   private val strippedSchemaDirPrefix: String? =
@@ -111,20 +113,20 @@ class JavaTypeNameGenerator(
     val rawTypeName: String = when (matcherName) {
       "componentSchema" -> result["typeName"]!!
       "pathParameter" -> result["path"] + " Parameter " + result["parameterName"]
-      "operationParameter" -> lookupOperationId(result["path"]!!, result["method"]!!) + " Parameter " + result["parameterName"]
-      "requestBody" -> lookupOperationId(result["path"]!!, result["method"]!!) + " RequestBody " + result["mediaType"]
-      "response" -> lookupOperationId(result["path"]!!, result["method"]!!) + " Response " + result["statusCode"] + " " + result["mediaType"]
+      "operationParameter" -> lookupOperationMethodName(result["path"]!!, result["method"]!!) + " Parameter " + result["parameterName"]
+      "requestBody" -> lookupOperationMethodName(result["path"]!!, result["method"]!!) + " RequestBody " + result["mediaType"]
+      "response" -> lookupOperationMethodName(result["path"]!!, result["method"]!!) + " Response " + result["statusCode"] + " " + result["mediaType"]
       else -> throw IllegalArgumentException("Unknown matcherName $matcherName")
     }
     return typeNameFor(configuration.modelPackage, rawTypeName.toJavaTypeIdentifier())
   }
 
-  private fun lookupOperationId(path: String, method: String): String {
-    val pathOfOperation = listOf("paths", path, method)
-    return effectiveOperationIds[pathOfOperation] ?: throw IllegalStateException("No operation found with path $pathOfOperation in $effectiveOperationIds")
+  private fun lookupOperationMethodName(path: String, method: String): String {
+    val pathAndMethod = Operation.PathAndMethod(path, method)
+    return operationMethodNames.getJavaMethodName(pathAndMethod)
   }
 
-  companion object {
+  private companion object {
 
     private val pathMatchers = mapOf(
         "componentSchema" to PositionPathMatcher.of("components,schemas,<typeName>"),

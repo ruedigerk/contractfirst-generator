@@ -25,6 +25,8 @@ class ResolvingSchemaParser(
     while (schemasToParse.isNotEmpty()) {
       val parseable = schemasToParse.removeFirst()
       val id = SchemaId(parseable)
+      
+      // Enter the schema ID in visitedSchemas before parsing it, to avoid adding it to schemasToParse again during parsing.
       visitedSchemas.add(id)
 
       val schema = parseSchema(parseable)
@@ -147,7 +149,7 @@ class ResolvingSchemaParser(
 
   private fun toObjectSchema(parseable: Parseable): ObjectSchema {
     val requiredProperties = parseable.optionalField("required").stringElements().toSet()
-    val properties: List<SchemaProperty> = parseable.optionalField("properties").fields().map { (name, propertySchemaParseable) ->
+    val properties: List<SchemaProperty> = parseable.optionalField("properties").properties().map { (name, propertySchemaParseable) ->
       val propertySchema = dereferenceAndRememberSchema(propertySchemaParseable)
       SchemaProperty(name, requiredProperties.contains(name), propertySchema)
     }

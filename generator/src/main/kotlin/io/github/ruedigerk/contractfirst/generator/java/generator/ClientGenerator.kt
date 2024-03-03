@@ -167,12 +167,14 @@ class ClientGenerator(configuration: JavaConfiguration) : (JavaSpecification) ->
             param.required,
             param.javaParameterName
         )
+
         is JavaBodyParameter -> codeBuilder.addStatement(
             "builder.requestBody(\$S, \$L, \$N)",
             param.mediaType,
             param.required,
             param.javaParameterName
         )
+
         is JavaMultipartBodyParameter -> codeBuilder.addStatement(
             "builder.requestBodyPart(\$S, \$N)",
             param.originalName,
@@ -250,7 +252,28 @@ class ClientGenerator(configuration: JavaConfiguration) : (JavaSpecification) ->
   }
 
   private fun toParameterSpec(parameter: JavaParameter): ParameterSpec {
-    return ParameterSpec.builder(parameter.javaType.toTypeName(), parameter.javaParameterName).build()
+    val parameterType = when (parameter) {
+      is JavaBodyParameter, is JavaRegularParameter -> parameter.javaType
+      is JavaMultipartBodyParameter -> toMultipartFileParameterType(parameter)
+    }
+
+    return ParameterSpec.builder(parameterType.toTypeName(), parameter.javaParameterName).build()
+  }
+
+  /**
+   * Rewrite file/binary body parts to use type FileBodyPart instead of InputStream.
+   */
+  private fun toMultipartFileParameterType(parameter: JavaMultipartBodyParameter): JavaAnyType {
+    val type = parameter.javaType
+
+    return when {
+      type is JavaType && type.name == JavaTypeName.INPUT_STREAM -> type.copy(name = FILE_BODY_PART_JAVA_TYPE_NAME)
+      
+      type is JavaCollectionType && type.elementType is JavaType && type.elementType.name == JavaTypeName.INPUT_STREAM ->
+        type.copy(elementType = type.elementType.copy(name = FILE_BODY_PART_JAVA_TYPE_NAME))
+
+      else -> parameter.javaType
+    }
   }
 
   private fun createCodeOfSimplifiedMethod(operation: JavaOperation): CodeBlock {
@@ -275,6 +298,7 @@ class ClientGenerator(configuration: JavaConfiguration) : (JavaSpecification) ->
         codeBuilder.add("\n")
         codeBuilder.addStatement("return result")
       }
+
       operation.successTypes.size == 1 -> when (operation.allReturnTypes.size) {
         // Return the one entity type that all successful responses use.
         1 -> {
@@ -282,12 +306,14 @@ class ClientGenerator(configuration: JavaConfiguration) : (JavaSpecification) ->
           codeBuilder.add("\n")
           codeBuilder.addStatement("return result.getEntity()")
         }
+
         else -> {
           // There are success and failure types, so use type-specific entity accessor method. 
           codeBuilder.add("\n")
           codeBuilder.addStatement("return result.\$N()", nameForMethodGetEntityAs(operation.successTypes.first()))
         }
       }
+
       else -> {
         // No operation success types -> successful responses all have no content, so method returns nothing.
       }
@@ -510,20 +536,22 @@ class ClientGenerator(configuration: JavaConfiguration) : (JavaSpecification) ->
 
   object SupportTypes {
 
+    val ApiClientErrorWithEntityException = "$SUPPORT_PACKAGE.ApiClientErrorWithEntityException".toClassName()
+    val ApiClientIncompatibleResponseException = "$SUPPORT_PACKAGE.ApiClientIncompatibleResponseException".toClassName()
+    val ApiClientIoException = "$SUPPORT_PACKAGE.ApiClientIoException".toClassName()
+    val ApiClientValidationException = "$SUPPORT_PACKAGE.ApiClientValidationException".toClassName()
+    val ApiRequestExecutor = "$SUPPORT_PACKAGE.ApiRequestExecutor".toClassName()
     val ApiResponse = "$SUPPORT_PACKAGE.ApiResponse".toClassName()
     val OperationBuilder = "$SUPPORT_PACKAGE.internal.Operation.Builder".toClassName()
     val ParameterLocation = "$SUPPORT_PACKAGE.internal.ParameterLocation".toClassName()
-    val ApiRequestExecutor = "$SUPPORT_PACKAGE.ApiRequestExecutor".toClassName()
     val StatusCode = "$SUPPORT_PACKAGE.internal.StatusCode".toClassName()
-    val ApiClientErrorWithEntityException = "$SUPPORT_PACKAGE.ApiClientErrorWithEntityException".toClassName()
-    val ApiClientIoException = "$SUPPORT_PACKAGE.ApiClientIoException".toClassName()
-    val ApiClientValidationException = "$SUPPORT_PACKAGE.ApiClientValidationException".toClassName()
-    val ApiClientIncompatibleResponseException = "$SUPPORT_PACKAGE.ApiClientIncompatibleResponseException".toClassName()
   }
 
   companion object {
 
     const val SUPPORT_PACKAGE = "io.github.ruedigerk.contractfirst.generator.client"
     const val CLIENT_CLASS_NAME_SUFFIX = "Client"
+    
+    val FILE_BODY_PART_JAVA_TYPE_NAME = JavaTypeName(SUPPORT_PACKAGE, "FileBodyPart")
   }
 }

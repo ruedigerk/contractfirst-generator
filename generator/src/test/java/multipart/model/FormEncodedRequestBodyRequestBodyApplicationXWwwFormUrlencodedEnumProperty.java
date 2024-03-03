@@ -1,8 +1,8 @@
-package client_jsr305.model;
+package multipart.model;
 
 import com.google.gson.annotations.SerializedName;
 
-public enum FormEncodedRequestBodyRequestBodyApplicationXWwwFormUrlencodedFieldC {
+public enum FormEncodedRequestBodyRequestBodyApplicationXWwwFormUrlencodedEnumProperty {
   @SerializedName("first_value")
   FIRST_VALUE("first_value"),
 
@@ -11,7 +11,8 @@ public enum FormEncodedRequestBodyRequestBodyApplicationXWwwFormUrlencodedFieldC
 
   private final String serializedName;
 
-  FormEncodedRequestBodyRequestBodyApplicationXWwwFormUrlencodedFieldC(String serializedName) {
+  FormEncodedRequestBodyRequestBodyApplicationXWwwFormUrlencodedEnumProperty(
+      String serializedName) {
     this.serializedName = serializedName;
   }
 

@@ -7,8 +7,6 @@ package io.github.ruedigerk.contractfirst.generator.java.model
 sealed interface JavaAnyType {
 
   val name: JavaTypeName
-
-  /** Returns whether this is a type that needs to be validated. */
   val validations: List<TypeValidation>
 
   val isGenericType: Boolean
@@ -24,12 +22,6 @@ data class JavaType(
 ) : JavaAnyType {
 
   override fun toString(): String = "$name"
-
-  companion object {
-
-    operator fun invoke(typeName: String, packageName: String, validations: List<TypeValidation> = emptyList()): JavaType = 
-        JavaType(JavaTypeName(packageName, typeName), validations)
-  }
 }
 
 /**
@@ -45,13 +37,15 @@ data class JavaCollectionType(
 }
 
 /**
- * Represent a collection of type Map.
+ * Represent a collection of type Map, with the keys having type String and the values having the specified type.
  */
 data class JavaMapType(
-    override val name: JavaTypeName,
     val valuesType: JavaAnyType,
     override val validations: List<TypeValidation>
 ) : JavaAnyType {
+
+  override val name: JavaTypeName
+    get() = JavaTypeName.MAP
 
   override fun toString(): String = "$name<String, $valuesType>"
 }

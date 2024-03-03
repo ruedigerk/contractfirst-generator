@@ -1,10 +1,8 @@
 package io.github.ruedigerk.contractfirst.generator.java.transform
 
-import io.github.ruedigerk.contractfirst.generator.java.Identifiers.toJavaIdentifier
 import io.github.ruedigerk.contractfirst.generator.java.JavaConfiguration
 import io.github.ruedigerk.contractfirst.generator.java.model.JavaSpecification
 import io.github.ruedigerk.contractfirst.generator.logging.Log
-import io.github.ruedigerk.contractfirst.generator.model.Operation
 import io.github.ruedigerk.contractfirst.generator.model.Specification
 
 /**
@@ -16,25 +14,12 @@ class JavaTransformer(
 ) {
 
   fun transform(specification: Specification): JavaSpecification {
-    val effectiveOperationIds = computeEffectiveOperationIds(specification.operations)
+    val operationMethodNames = OperationNaming.determineMethodNames(specification.operations)
+    val types = JavaSchemaToTypeTransformer(log, specification.schemas, configuration, operationMethodNames).transform()
+    val operationTransformerResult = JavaOperationTransformer.transform(specification.schemas, types, operationMethodNames, specification.operations)
+    val javaModelFiles = JavaSchemaToSourceTransformer(operationTransformerResult.schemasToGenerateModelFilesFor, types).transform()
 
-    val types = JavaSchemaToTypeTransformer(log, specification.schemas, configuration, effectiveOperationIds).transform()
-    val javaModelFiles = JavaSchemaToSourceTransformer(specification.schemas, types).transform()
-    val operationGroups = JavaOperationTransformer(specification.schemas, types, effectiveOperationIds).transform(specification.operations)
-
-    return JavaSpecification(operationGroups, javaModelFiles)
+    return JavaSpecification(operationTransformerResult.operationGroups, javaModelFiles)
   }
-
-  /**
-   * This computes the effective operationIds, as they are optional in the contract. This generates IDs from the path and method of operations missing an
-   * operationId.
-   */
-  private fun computeEffectiveOperationIds(operations: List<Operation>): Map<List<String>, String> {
-    return operations
-        .associateBy { it.position.path }
-        .mapValues { (_, operation) -> operation.operationId ?: deriveOperationId(operation) }
-  }
-
-  private fun deriveOperationId(operation: Operation) = (operation.method.lowercase() + " " + operation.path).toJavaIdentifier()
 }
 
