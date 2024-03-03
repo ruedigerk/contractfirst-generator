@@ -1,6 +1,7 @@
 package io.github.ruedigerk.contractfirst.generator.java.model
 
 import io.github.ruedigerk.contractfirst.generator.model.DefaultStatusCode
+import io.github.ruedigerk.contractfirst.generator.model.HttpMethod
 import io.github.ruedigerk.contractfirst.generator.model.StatusCode
 
 /**
@@ -10,7 +11,7 @@ data class JavaOperation(
     val javaMethodName: String,
     val javadoc: String?,
     val path: String,
-    val httpMethod: String,
+    val httpMethod: HttpMethod,
     val requestBodyMediaType: String?,
     val parameters: List<JavaParameter>,
     val responses: List<JavaResponse>

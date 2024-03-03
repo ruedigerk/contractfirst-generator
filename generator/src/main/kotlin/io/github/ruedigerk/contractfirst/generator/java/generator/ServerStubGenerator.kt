@@ -13,6 +13,7 @@ import io.github.ruedigerk.contractfirst.generator.java.generator.TypeNames.toCl
 import io.github.ruedigerk.contractfirst.generator.java.generator.TypeNames.toTypeName
 import io.github.ruedigerk.contractfirst.generator.java.model.*
 import io.github.ruedigerk.contractfirst.generator.model.DefaultStatusCode
+import io.github.ruedigerk.contractfirst.generator.model.HttpMethod
 import io.github.ruedigerk.contractfirst.generator.model.ParameterLocation.*
 import io.github.ruedigerk.contractfirst.generator.model.StatusCode
 import java.io.File
@@ -96,7 +97,7 @@ class ServerStubGenerator(private val configuration: JavaConfiguration) : (JavaS
 
   private fun pathAnnotation(path: String) = toAnnotation("javax.ws.rs.Path", path)
 
-  private fun httpMethodAnnotation(method: String) = toAnnotation("javax.ws.rs.${method.uppercase()}")
+  private fun httpMethodAnnotation(method: HttpMethod) = toAnnotation("javax.ws.rs.${method.name.uppercase()}")
 
   private fun producesAnnotation(responses: List<JavaResponse>): AnnotationSpec {
     val mediaTypes = responses.flatMap { response -> response.contents.map { it.mediaType } }

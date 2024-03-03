@@ -19,7 +19,7 @@ object OperationNaming {
   }
 
   private fun determineOperationName(operation: Operation) = when (operation.operationId) {
-    null -> (operation.method.lowercase() + " " + operation.path).toJavaIdentifier()
+    null -> (operation.method.name.lowercase() + " " + operation.path).toJavaIdentifier()
     else -> operation.operationId.toJavaIdentifier()
   }
   

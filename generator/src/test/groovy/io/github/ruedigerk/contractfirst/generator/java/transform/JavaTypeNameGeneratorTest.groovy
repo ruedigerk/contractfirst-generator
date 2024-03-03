@@ -4,6 +4,7 @@ import io.github.ruedigerk.contractfirst.generator.java.JavaConfiguration
 import io.github.ruedigerk.contractfirst.generator.java.model.JavaTypeName
 import io.github.ruedigerk.contractfirst.generator.logging.Log
 import io.github.ruedigerk.contractfirst.generator.logging.LogAdapter
+import io.github.ruedigerk.contractfirst.generator.model.HttpMethod
 import io.github.ruedigerk.contractfirst.generator.model.Operation
 import io.github.ruedigerk.contractfirst.generator.model.Position
 import spock.lang.Specification
@@ -14,7 +15,7 @@ class JavaTypeNameGeneratorTest extends Specification {
   static final String MODEL_PACKAGE = "package.api"
 
   Map<Operation.PathAndMethod, String> operationMethodNames = [
-      new Operation.PathAndMethod("/path/op", "GET") : "usesOperationId"
+      new Operation.PathAndMethod("/path/op", HttpMethod.GET): "usesOperationId"
   ]
   
   JavaConfiguration configuration = new JavaConfiguration(

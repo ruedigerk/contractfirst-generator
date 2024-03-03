@@ -50,14 +50,14 @@ class ContractParser(private val log: Log) {
         .elements()
         .map { toParameter(it) }
 
-    return pathItem.properties()
-        .filter { (method, _) -> method in METHOD_NAMES }
-        .map { (method, operation) -> toOperation(path, method, operation.requireObject(), commonParameters) }
+    return pathItem.properties().mapNotNull { (methodName, operation) ->
+      HttpMethod.of(methodName)?.let { method -> toOperation(path, method, operation.requireObject(), commonParameters) }
+    }
   }
 
   private fun toOperation(
       path: String,
-      method: String,
+      method: HttpMethod,
       operation: Parseable,
       commonParameters: List<Parameter>
   ): Operation {
@@ -66,7 +66,7 @@ class ContractParser(private val log: Log) {
 
     return Operation(
         path,
-        method.uppercase(),
+        method,
         operation.optionalField("tags").stringElements(),
         operation.optionalField("summary").string().normalize(),
         operation.optionalField("description").string().normalize(),
@@ -80,7 +80,6 @@ class ContractParser(private val log: Log) {
 
   private fun toRequestBody(requestBodyOrReference: Parseable): RequestBody {
     val requestBody = parseableCache.resolveWhileReference(requestBodyOrReference)
-    
     val contents = toContents(requestBody.requiredField("content"))
 
     if (contents.isEmpty()) {
@@ -108,7 +107,7 @@ class ContractParser(private val log: Log) {
 
   private fun toParameter(parameterUnnamedOrReference: Parseable): Parameter {
     val parameterUnnamed = parseableCache.resolveWhileReference(parameterUnnamedOrReference)
-    
+
     val name = parameterUnnamed.requiredField("name").string()!!
     val parameter = parameterUnnamed.withPositionHint(name)
 
@@ -122,7 +121,7 @@ class ContractParser(private val log: Log) {
     val location = toParameterLocation(parameter.requiredField("in"))
 
     val requiredField = parameter.optionalField("required")
-    
+
     // Path parameters are always required, ignore definition in contract
     val required: Boolean = (location == ParameterLocation.PATH) || requiredField.boolean() ?: false
 
@@ -171,7 +170,7 @@ class ContractParser(private val log: Log) {
       emptyList()
     } else {
       val response = parseableCache.resolveWhileReference(responseOrReference)
-      return if(!response.hasField("content")) emptyList() else toContents(response.requiredField("content"))
+      return if (!response.hasField("content")) emptyList() else toContents(response.requiredField("content"))
     }
   }
 
@@ -179,10 +178,5 @@ class ContractParser(private val log: Log) {
     content.takeIf { it.hasField("schema") }?.let {
       Content(mediaType, dereferenceAndRememberSchema(content.requiredField("schema")))
     }
-  }
-
-  private companion object {
-
-    private val METHOD_NAMES = setOf("get", "put", "post", "delete", "options", "head", "patch", "trace")
   }
 }

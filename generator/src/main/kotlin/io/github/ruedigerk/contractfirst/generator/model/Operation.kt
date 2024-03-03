@@ -5,9 +5,7 @@ package io.github.ruedigerk.contractfirst.generator.model
  */
 data class Operation(
     val path: String,
-
-    /** The HTTP method of the operation in upper case (ensured by the parser). */
-    val method: String,
+    val method: HttpMethod,
     val tags: List<String>,
     val summary: String?,
     val description: String?,
@@ -26,11 +24,11 @@ data class Operation(
   /**
    * The combination of a path and an HTTP method uniquely identifies an operation in a contract.
    */
-  data class PathAndMethod private constructor(val path: String, val method: String) {
+  data class PathAndMethod(val path: String, val method: HttpMethod) {
 
     companion object {
       
-      operator fun invoke(path: String, method: String): PathAndMethod = PathAndMethod(path, method.uppercase())
+      operator fun invoke(path: String, method: String): PathAndMethod = PathAndMethod(path, HttpMethod(method))
     }
   }
 }
