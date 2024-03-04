@@ -24,7 +24,7 @@ data class JavaConfiguration(
     val outputJavaPackageMirrorsSchemaDirectory: Boolean,
     val outputJavaPackageSchemaDirectoryPrefix: String,
     val modelNamePrefix: String,
-    val useJsr305NullabilityAnnotations: Boolean
+    val useJsr305NullabilityAnnotations: Boolean,
 ) {
 
   companion object {
@@ -37,7 +37,7 @@ data class JavaConfiguration(
         configuration.outputJavaPackageMirrorsSchemaDirectory,
         configuration.outputJavaPackageSchemaDirectoryPrefix,
         configuration.outputJavaModelNamePrefix,
-        configuration.outputJavaModelUseJsr305NullabilityAnnotations
+        configuration.outputJavaModelUseJsr305NullabilityAnnotations,
     )
 
     fun forModelOnly(configuration: Configuration) = JavaConfiguration(

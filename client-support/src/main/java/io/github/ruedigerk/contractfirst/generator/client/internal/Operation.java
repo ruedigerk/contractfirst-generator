@@ -1,5 +1,7 @@
 package io.github.ruedigerk.contractfirst.generator.client.internal;
 
+import okhttp3.MediaType;
+
 import java.lang.reflect.Type;
 import java.util.ArrayList;
 import java.util.Collections;
@@ -10,7 +12,6 @@ import java.util.Optional;
 import java.util.function.Function;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
-import okhttp3.MediaType;
 
 /**
  * Represents the definition of an API operation, and the data that is transferred within it.
@@ -197,10 +198,10 @@ public class Operation {
     }
 
     /**
-     * Defines a form field or part of the request body for this operation.
+     * Defines a form field of an x-www-form-urlencoded request body, or a part of a multipart request body.
      */
-    public void requestBodyPart(String name, Object value) {
-      bodyParts.add(new BodyPart(name, value));
+    public void requestBodyPart(BodyPart.Type type, String name, Object value) {
+      bodyParts.add(new BodyPart(type, name, value));
     }
 
     /**

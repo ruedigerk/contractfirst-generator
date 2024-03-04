@@ -30,7 +30,7 @@ paths:
         "204":
           description: Ok.
       tags:
-      - FormEncodedRequestBody
+      - MultipartRequestBody
   /multipartRequestBody:
     post:
       description: A test case for a multipart/form-data encoded request body.
@@ -69,4 +69,4 @@ paths:
         "204":
           description: Ok.
       tags:
-      - FormAndMultipartEncodedRequestBody
+      - MultipartRequestBody

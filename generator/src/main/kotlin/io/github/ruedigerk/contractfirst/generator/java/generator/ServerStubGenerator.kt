@@ -1,7 +1,11 @@
 package io.github.ruedigerk.contractfirst.generator.java.generator
 
-import com.squareup.javapoet.*
-import io.github.ruedigerk.contractfirst.generator.NotSupportedException
+import com.squareup.javapoet.AnnotationSpec
+import com.squareup.javapoet.ClassName
+import com.squareup.javapoet.JavaFile
+import com.squareup.javapoet.MethodSpec
+import com.squareup.javapoet.ParameterSpec
+import com.squareup.javapoet.TypeSpec
 import io.github.ruedigerk.contractfirst.generator.java.Identifiers.capitalize
 import io.github.ruedigerk.contractfirst.generator.java.Identifiers.mediaTypeToJavaIdentifier
 import io.github.ruedigerk.contractfirst.generator.java.JavaConfiguration
@@ -11,18 +15,35 @@ import io.github.ruedigerk.contractfirst.generator.java.generator.JavapoetExtens
 import io.github.ruedigerk.contractfirst.generator.java.generator.JavapoetExtensions.doIfNotNull
 import io.github.ruedigerk.contractfirst.generator.java.generator.TypeNames.toClassName
 import io.github.ruedigerk.contractfirst.generator.java.generator.TypeNames.toTypeName
-import io.github.ruedigerk.contractfirst.generator.java.model.*
+import io.github.ruedigerk.contractfirst.generator.java.model.JavaContent
+import io.github.ruedigerk.contractfirst.generator.java.model.JavaMultipartBodyParameter
+import io.github.ruedigerk.contractfirst.generator.java.model.JavaOperation
+import io.github.ruedigerk.contractfirst.generator.java.model.JavaOperationGroup
+import io.github.ruedigerk.contractfirst.generator.java.model.JavaParameter
+import io.github.ruedigerk.contractfirst.generator.java.model.JavaRegularParameter
+import io.github.ruedigerk.contractfirst.generator.java.model.JavaResponse
+import io.github.ruedigerk.contractfirst.generator.java.model.JavaSpecification
+import io.github.ruedigerk.contractfirst.generator.logging.Log
 import io.github.ruedigerk.contractfirst.generator.model.DefaultStatusCode
 import io.github.ruedigerk.contractfirst.generator.model.HttpMethod
-import io.github.ruedigerk.contractfirst.generator.model.ParameterLocation.*
+import io.github.ruedigerk.contractfirst.generator.model.ParameterLocation.COOKIE
+import io.github.ruedigerk.contractfirst.generator.model.ParameterLocation.HEADER
+import io.github.ruedigerk.contractfirst.generator.model.ParameterLocation.PATH
+import io.github.ruedigerk.contractfirst.generator.model.ParameterLocation.QUERY
 import io.github.ruedigerk.contractfirst.generator.model.StatusCode
 import java.io.File
-import javax.lang.model.element.Modifier.*
+import javax.lang.model.element.Modifier.ABSTRACT
+import javax.lang.model.element.Modifier.PRIVATE
+import javax.lang.model.element.Modifier.PUBLIC
+import javax.lang.model.element.Modifier.STATIC
 
 /**
  * Generates the code for the server stubs.
  */
-class ServerStubGenerator(private val configuration: JavaConfiguration) : (JavaSpecification) -> Unit {
+class ServerStubGenerator(
+    private val configuration: JavaConfiguration,
+    private val log: Log
+) : (JavaSpecification) -> Unit {
 
   private val outputDir = File(configuration.outputDir)
   private val apiPackage = configuration.apiPackage
@@ -38,7 +59,7 @@ class ServerStubGenerator(private val configuration: JavaConfiguration) : (JavaS
 
   private fun toJavaInterface(operationGroup: JavaOperationGroup): JavaFile {
     val operationsToTypesafeResponseClass = operationGroup.operations.associateWith(::toTypesafeResponseClass)
-    val methodSpecs = operationsToTypesafeResponseClass.map { (operation, typesafeClass) -> toOperationMethod(operation, typesafeClass) }
+    val methodSpecs = operationsToTypesafeResponseClass.mapNotNull { (operation, typesafeClass) -> toOperationMethod(operation, typesafeClass) }
 
     val interfaceSpec = TypeSpec.interfaceBuilder(operationGroup.javaIdentifier)
         .addModifiers(PUBLIC)
@@ -52,9 +73,10 @@ class ServerStubGenerator(private val configuration: JavaConfiguration) : (JavaS
         .build()
   }
 
-  private fun toOperationMethod(operation: JavaOperation, typesafeResponseClass: TypeSpec): MethodSpec {
+  private fun toOperationMethod(operation: JavaOperation, typesafeResponseClass: TypeSpec): MethodSpec? {
     if (operation.requestBodyMediaType?.startsWith("multipart/") == true) {
-      throw NotSupportedException("Request body media type ${operation.requestBodyMediaType} is not supported in the server generator")
+      log.warn { "Request body media type ${operation.requestBodyMediaType} is not supported in the server generator for operation '${operation.httpMethod} ${operation.path}'." }
+      return null
     }
 
     val parameters = operation.parameters.map(::toParameterSpec)

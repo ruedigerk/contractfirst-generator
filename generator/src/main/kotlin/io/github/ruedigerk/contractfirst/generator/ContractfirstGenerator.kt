@@ -2,8 +2,6 @@ package io.github.ruedigerk.contractfirst.generator
 
 import io.github.ruedigerk.contractfirst.generator.allinonecontract.SerializerException
 import io.github.ruedigerk.contractfirst.generator.java.Identifiers.toJavaTypeIdentifier
-import io.github.ruedigerk.contractfirst.generator.java.generator.ClientGenerator
-import io.github.ruedigerk.contractfirst.generator.java.generator.ServerStubGenerator
 import io.github.ruedigerk.contractfirst.generator.logging.Log
 import io.github.ruedigerk.contractfirst.generator.logging.LogAdapter
 import java.io.IOException
@@ -29,8 +27,7 @@ class ContractfirstGenerator(logAdapter: LogAdapter) {
     validateConfiguration(configuration)
 
     val recipe = when (configuration.generator) {
-      GeneratorType.CLIENT -> RecipeForFullSpecification(log, configuration, ::ClientGenerator)
-      GeneratorType.SERVER -> RecipeForFullSpecification(log, configuration, ::ServerStubGenerator)
+      GeneratorType.CLIENT, GeneratorType.SERVER -> RecipeForFullSpecification(log, configuration)
       GeneratorType.MODEL_ONLY -> RecipeForModelOnly(log, configuration)
     }
 

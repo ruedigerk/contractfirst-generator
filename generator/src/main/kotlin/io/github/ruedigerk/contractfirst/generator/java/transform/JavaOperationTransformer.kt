@@ -5,14 +5,39 @@ import io.github.ruedigerk.contractfirst.generator.ParserContentException
 import io.github.ruedigerk.contractfirst.generator.java.Identifiers.capitalize
 import io.github.ruedigerk.contractfirst.generator.java.Identifiers.toJavaIdentifier
 import io.github.ruedigerk.contractfirst.generator.java.Identifiers.toJavaTypeIdentifier
-import io.github.ruedigerk.contractfirst.generator.java.model.*
+import io.github.ruedigerk.contractfirst.generator.java.model.JavaAnyType
+import io.github.ruedigerk.contractfirst.generator.java.model.JavaBodyParameter
+import io.github.ruedigerk.contractfirst.generator.java.model.JavaContent
+import io.github.ruedigerk.contractfirst.generator.java.model.JavaMultipartBodyParameter
+import io.github.ruedigerk.contractfirst.generator.java.model.JavaMultipartBodyParameter.BodyPartType
+import io.github.ruedigerk.contractfirst.generator.java.model.JavaMultipartBodyParameter.BodyPartType.ATTACHMENT
+import io.github.ruedigerk.contractfirst.generator.java.model.JavaMultipartBodyParameter.BodyPartType.COMPLEX
+import io.github.ruedigerk.contractfirst.generator.java.model.JavaMultipartBodyParameter.BodyPartType.PRIMITIVE
+import io.github.ruedigerk.contractfirst.generator.java.model.JavaOperation
+import io.github.ruedigerk.contractfirst.generator.java.model.JavaOperationGroup
+import io.github.ruedigerk.contractfirst.generator.java.model.JavaParameter
+import io.github.ruedigerk.contractfirst.generator.java.model.JavaRegularParameter
+import io.github.ruedigerk.contractfirst.generator.java.model.JavaResponse
 import io.github.ruedigerk.contractfirst.generator.java.transform.OperationNaming.getJavaMethodName
-import io.github.ruedigerk.contractfirst.generator.model.*
+import io.github.ruedigerk.contractfirst.generator.model.ArraySchema
+import io.github.ruedigerk.contractfirst.generator.model.Content
+import io.github.ruedigerk.contractfirst.generator.model.DataType.BINARY
+import io.github.ruedigerk.contractfirst.generator.model.EnumSchema
+import io.github.ruedigerk.contractfirst.generator.model.MapSchema
+import io.github.ruedigerk.contractfirst.generator.model.ObjectSchema
+import io.github.ruedigerk.contractfirst.generator.model.Operation
+import io.github.ruedigerk.contractfirst.generator.model.Parameter
+import io.github.ruedigerk.contractfirst.generator.model.PrimitiveSchema
+import io.github.ruedigerk.contractfirst.generator.model.RequestBody
+import io.github.ruedigerk.contractfirst.generator.model.Response
+import io.github.ruedigerk.contractfirst.generator.model.Schema
+import io.github.ruedigerk.contractfirst.generator.model.SchemaId
+import io.github.ruedigerk.contractfirst.generator.model.SchemaProperty
 
 /**
  * Transforms the parsed specification into a Java-specific specification, appropriate for code generation.
  */
-class JavaOperationTransformer private constructor(
+class JavaOperationTransformer(
     private val schemas: Map<SchemaId, Schema>,
     private val types: Map<SchemaId, JavaAnyType>,
     private val operationMethodNames: Map<Operation.PathAndMethod, String>
@@ -20,11 +45,18 @@ class JavaOperationTransformer private constructor(
 
   /**
    * During the transformation, the IDs of all schemas that are used a form bodies of operations are collected here. For these schemas, no Java source files
-   * need to be generated as form body schemas are generated as addition method parameters.
+   * need to be generated as form body schemas are generated as additional method parameters.
    */
   private val formBodySchemaIds = mutableSetOf<SchemaId>()
 
-  private fun transform(operations: List<Operation>): List<JavaOperationGroup> = groupOperations(operations)
+  fun transform(operations: List<Operation>): Result {
+    val operationGroups = groupOperations(operations)
+
+    // Do not generate model files for form body schemas.
+    val schemasToGenerateAsFiles = schemas - formBodySchemaIds
+
+    return Result(operationGroups, schemasToGenerateAsFiles)
+  }
 
   private fun groupOperations(operations: List<Operation>): List<JavaOperationGroup> = operations
       .groupBy { it.tags.firstOrNull() ?: DEFAULT_TAG_NAME }
@@ -67,13 +99,13 @@ class JavaOperationTransformer private constructor(
     return if (content.mediaType == "application/x-www-form-urlencoded" || content.mediaType.startsWith("multipart/")) {
       formBodySchemaIds.add(content.schemaId)
       val schema = schemaFor(content.schemaId)
-      formBodyToRequestParameters(operation, schema, content.mediaType)
+      multipartBodyToRequestParameters(operation, schema, content.mediaType)
     } else {
       listOf(toBodyParameter(operation, requestBody))
     }
   }
 
-  private fun formBodyToRequestParameters(operation: Operation, schema: Schema, mediaType: String): List<JavaMultipartBodyParameter> {
+  private fun multipartBodyToRequestParameters(operation: Operation, schema: Schema, mediaType: String): List<JavaMultipartBodyParameter> {
     if (schema !is ObjectSchema) {
       throw ParserContentException("For request bodies of media type $mediaType the schema must be an object schema, but was ${schema::class.simpleName} in operation at ${operation.position}")
     }
@@ -88,7 +120,32 @@ class JavaOperationTransformer private constructor(
         property.required,
         typeFor(property.schema),
         property.name,
+        determineBodyPartType(property)
     )
+  }
+
+  /**
+   * Determines the type of the body part parameter, i.e. one of: primitive, complex or attachment.
+   *
+   * See: https://spec.openapis.org/oas/v3.0.3#special-considerations-for-multipart-content
+   * See: https://swagger.io/docs/specification/describing-request-body/multipart-requests/
+   */
+  private fun determineBodyPartType(property: SchemaProperty): BodyPartType {
+    return when (val schema = schemaFor(property.schema)) {
+      is PrimitiveSchema -> if (schema.dataType == BINARY) ATTACHMENT else PRIMITIVE
+      is EnumSchema -> PRIMITIVE
+      is ObjectSchema -> COMPLEX
+      is MapSchema -> COMPLEX
+      is ArraySchema -> {
+        when (val itemSchema = schemaFor(schema.itemSchema)) {
+          is PrimitiveSchema -> if (itemSchema.dataType == BINARY) ATTACHMENT else PRIMITIVE
+          is EnumSchema -> PRIMITIVE
+          is ObjectSchema -> COMPLEX
+          is MapSchema -> COMPLEX
+          is ArraySchema -> COMPLEX
+        }
+      }
+    }
   }
 
   private fun toBodyParameter(operation: Operation, requestBody: RequestBody): JavaBodyParameter {
@@ -148,30 +205,9 @@ class JavaOperationTransformer private constructor(
       typeFor(content.schemaId)
   )
 
-  private fun typeFor(schemaId: SchemaId): JavaAnyType = types[schemaId]!!
+  private fun typeFor(schemaId: SchemaId): JavaAnyType = types[schemaId] ?: error("Unknown schema ID: $schemaId")
 
-  private fun schemaFor(schemaId: SchemaId): Schema = schemas[schemaId]!!
-
-  companion object {
-
-    private const val GROUP_NAME_SUFFIX = "Api"
-    private const val DEFAULT_TAG_NAME = "Default"
-
-    fun transform(
-        schemas: Map<SchemaId, Schema>,
-        types: Map<SchemaId, JavaAnyType>,
-        operationMethodNames: Map<Operation.PathAndMethod, String>,
-        operations: List<Operation>
-    ): Result {
-      val transformer = JavaOperationTransformer(schemas, types, operationMethodNames)
-      val operationGroups = transformer.transform(operations)
-      
-      // Do not generate model files for the form body schemas. 
-      val schemasToGenerateAsFiles = schemas - transformer.formBodySchemaIds
-
-      return Result(operationGroups, schemasToGenerateAsFiles)
-    }
-  }
+  private fun schemaFor(schemaId: SchemaId): Schema = schemas[schemaId] ?: error("Unknown schema ID: $schemaId")
 
   /**
    * The result of the Java operation transformation.
@@ -180,5 +216,11 @@ class JavaOperationTransformer private constructor(
       val operationGroups: List<JavaOperationGroup>,
       val schemasToGenerateModelFilesFor: Map<SchemaId, Schema>,
   )
+
+  private companion object {
+
+    private const val GROUP_NAME_SUFFIX = "Api"
+    private const val DEFAULT_TAG_NAME = "Default"
+  }
 }
 

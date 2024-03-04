@@ -16,7 +16,7 @@ class JavaTransformer(
   fun transform(specification: Specification): JavaSpecification {
     val operationMethodNames = OperationNaming.determineMethodNames(specification.operations)
     val types = JavaSchemaToTypeTransformer(log, specification.schemas, configuration, operationMethodNames).transform()
-    val operationTransformerResult = JavaOperationTransformer.transform(specification.schemas, types, operationMethodNames, specification.operations)
+    val operationTransformerResult = JavaOperationTransformer(specification.schemas, types, operationMethodNames).transform(specification.operations)
     val javaModelFiles = JavaSchemaToSourceTransformer(operationTransformerResult.schemasToGenerateModelFilesFor, types).transform()
 
     return JavaSpecification(operationTransformerResult.operationGroups, javaModelFiles)

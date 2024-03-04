@@ -5,20 +5,24 @@ import io.github.ruedigerk.contractfirst.generator.client.ApiClientIoException;
 import io.github.ruedigerk.contractfirst.generator.client.ApiClientValidationException;
 import io.github.ruedigerk.contractfirst.generator.client.ApiRequestExecutor;
 import io.github.ruedigerk.contractfirst.generator.client.ApiResponse;
+import io.github.ruedigerk.contractfirst.generator.client.Attachment;
+import io.github.ruedigerk.contractfirst.generator.client.internal.BodyPart;
 import io.github.ruedigerk.contractfirst.generator.client.internal.Operation;
 import io.github.ruedigerk.contractfirst.generator.client.internal.StatusCode;
+import java.util.List;
 import java.util.Objects;
 import multipart.model.FormEncodedRequestBodyRequestBodyApplicationXWwwFormUrlencodedEnumProperty;
+import multipart.model.MultipartRequestBodyRequestBodyMultipartFormDataObjectProperty;
 
 /**
- * Contains methods for all API operations tagged "FormEncodedRequestBody".
+ * Contains methods for all API operations tagged "MultipartRequestBody".
  */
-public class FormEncodedRequestBodyApiClient {
+public class MultipartRequestBodyApiClient {
   private final ApiRequestExecutor requestExecutor;
 
   private final ReturningResult returningResult;
 
-  public FormEncodedRequestBodyApiClient(ApiRequestExecutor requestExecutor) {
+  public MultipartRequestBodyApiClient(ApiRequestExecutor requestExecutor) {
     this.requestExecutor = requestExecutor;
     this.returningResult = new ReturningResult();
   }
@@ -42,6 +46,17 @@ public class FormEncodedRequestBodyApiClient {
   }
 
   /**
+   * A test case for a multipart/form-data encoded request body.
+   */
+  public void multipartRequestBody(String stringProperty, Long integerProperty,
+      MultipartRequestBodyRequestBodyMultipartFormDataObjectProperty objectProperty,
+      Attachment firstBinary, List<Attachment> additionalBinaries) throws ApiClientIoException,
+      ApiClientValidationException, ApiClientIncompatibleResponseException {
+
+    MultipartRequestBodyResult result = returningResult.multipartRequestBody(stringProperty, integerProperty, objectProperty, firstBinary, additionalBinaries);
+  }
+
+  /**
    * Contains methods returning operation specific result classes, allowing inspection of the operations' responses.
    */
   public class ReturningResult {
@@ -56,9 +71,9 @@ public class FormEncodedRequestBodyApiClient {
 
       Operation.Builder builder = new Operation.Builder("/formEncodedRequestBody", "POST");
 
-      builder.requestBodyPart("stringProperty", stringProperty);
-      builder.requestBodyPart("integerProperty", integerProperty);
-      builder.requestBodyPart("enumProperty", enumProperty);
+      builder.requestBodyPart(BodyPart.Type.PRIMITIVE, "stringProperty", stringProperty);
+      builder.requestBodyPart(BodyPart.Type.PRIMITIVE, "integerProperty", integerProperty);
+      builder.requestBodyPart(BodyPart.Type.PRIMITIVE, "enumProperty", enumProperty);
       builder.multipartRequestBody("application/x-www-form-urlencoded");
 
       builder.response(StatusCode.of(204));
@@ -66,6 +81,31 @@ public class FormEncodedRequestBodyApiClient {
       ApiResponse response = requestExecutor.executeRequest(builder.build());
 
       return new FormEncodedRequestBodyResult(response);
+    }
+
+    /**
+     * A test case for a multipart/form-data encoded request body.
+     */
+    public MultipartRequestBodyResult multipartRequestBody(String stringProperty,
+        Long integerProperty,
+        MultipartRequestBodyRequestBodyMultipartFormDataObjectProperty objectProperty,
+        Attachment firstBinary, List<Attachment> additionalBinaries) throws ApiClientIoException,
+        ApiClientValidationException, ApiClientIncompatibleResponseException {
+
+      Operation.Builder builder = new Operation.Builder("/multipartRequestBody", "POST");
+
+      builder.requestBodyPart(BodyPart.Type.PRIMITIVE, "stringProperty", stringProperty);
+      builder.requestBodyPart(BodyPart.Type.PRIMITIVE, "integerProperty", integerProperty);
+      builder.requestBodyPart(BodyPart.Type.COMPLEX, "objectProperty", objectProperty);
+      builder.requestBodyPart(BodyPart.Type.ATTACHMENT, "firstBinary", firstBinary);
+      builder.requestBodyPart(BodyPart.Type.ATTACHMENT, "additionalBinaries", additionalBinaries);
+      builder.multipartRequestBody("multipart/form-data");
+
+      builder.response(StatusCode.of(204));
+
+      ApiResponse response = requestExecutor.executeRequest(builder.build());
+
+      return new MultipartRequestBodyResult(response);
     }
   }
 
@@ -125,6 +165,65 @@ public class FormEncodedRequestBodyApiClient {
       StringBuilder builder = new StringBuilder();
       builder.append(", response=").append(response);
       return builder.replace(0, 2, "FormEncodedRequestBodyResult{").append('}').toString();
+    }
+  }
+
+  /**
+   * Represents the result of calling operation multipartRequestBody.
+   */
+  public static class MultipartRequestBodyResult {
+    private final ApiResponse response;
+
+    public MultipartRequestBodyResult(ApiResponse response) {
+      this.response = response;
+    }
+
+    /**
+     * Returns the ApiResponse instance with the details of the operation's HTTP response.
+     */
+    public ApiResponse getResponse() {
+      return response;
+    }
+
+    /**
+     * Returns the HTTP status code of the operation's response.
+     */
+    public int getStatus() {
+      return response.getStatusCode();
+    }
+
+    /**
+     * Returns whether the response has a status code in the range 200 to 299.
+     */
+    public boolean isSuccessful() {
+      return response.isSuccessful();
+    }
+
+    /**
+     * Returns whether the response's status code is 204, while the response has no entity.
+     */
+    public boolean isStatus204WithoutEntity() {
+      return response.getStatusCode() == 204;
+    }
+
+    @Override
+    public boolean equals(Object other) {
+      if (other == this) return true;
+      if (other == null || getClass() != other.getClass()) return false;
+      MultipartRequestBodyResult o = (MultipartRequestBodyResult) other;
+      return Objects.equals(response, o.response);
+    }
+
+    @Override
+    public int hashCode() {
+      return Objects.hash(response);
+    }
+
+    @Override
+    public String toString() {
+      StringBuilder builder = new StringBuilder();
+      builder.append(", response=").append(response);
+      return builder.replace(0, 2, "MultipartRequestBodyResult{").append('}').toString();
     }
   }
 }

@@ -1,6 +1,14 @@
 package io.github.ruedigerk.contractfirst.generator.java.generator
 
-import com.squareup.javapoet.*
+import com.squareup.javapoet.ClassName
+import com.squareup.javapoet.CodeBlock
+import com.squareup.javapoet.FieldSpec
+import com.squareup.javapoet.JavaFile
+import com.squareup.javapoet.MethodSpec
+import com.squareup.javapoet.ParameterSpec
+import com.squareup.javapoet.ParameterizedTypeName
+import com.squareup.javapoet.TypeName
+import com.squareup.javapoet.TypeSpec
 import io.github.ruedigerk.contractfirst.generator.java.Identifiers.toJavaConstant
 import io.github.ruedigerk.contractfirst.generator.java.Identifiers.toJavaTypeIdentifier
 import io.github.ruedigerk.contractfirst.generator.java.JavaConfiguration
@@ -9,11 +17,23 @@ import io.github.ruedigerk.contractfirst.generator.java.generator.JavapoetExtens
 import io.github.ruedigerk.contractfirst.generator.java.generator.JavapoetExtensions.doIfNotNull
 import io.github.ruedigerk.contractfirst.generator.java.generator.TypeNames.toClassName
 import io.github.ruedigerk.contractfirst.generator.java.generator.TypeNames.toTypeName
-import io.github.ruedigerk.contractfirst.generator.java.model.*
+import io.github.ruedigerk.contractfirst.generator.java.model.JavaAnyType
+import io.github.ruedigerk.contractfirst.generator.java.model.JavaBodyParameter
+import io.github.ruedigerk.contractfirst.generator.java.model.JavaCollectionType
+import io.github.ruedigerk.contractfirst.generator.java.model.JavaMapType
+import io.github.ruedigerk.contractfirst.generator.java.model.JavaMultipartBodyParameter
+import io.github.ruedigerk.contractfirst.generator.java.model.JavaMultipartBodyParameter.BodyPartType.ATTACHMENT
+import io.github.ruedigerk.contractfirst.generator.java.model.JavaOperation
+import io.github.ruedigerk.contractfirst.generator.java.model.JavaOperationGroup
+import io.github.ruedigerk.contractfirst.generator.java.model.JavaParameter
+import io.github.ruedigerk.contractfirst.generator.java.model.JavaRegularParameter
+import io.github.ruedigerk.contractfirst.generator.java.model.JavaSpecification
+import io.github.ruedigerk.contractfirst.generator.java.model.JavaType
+import io.github.ruedigerk.contractfirst.generator.java.model.JavaTypeName
 import io.github.ruedigerk.contractfirst.generator.model.DefaultStatusCode
 import io.github.ruedigerk.contractfirst.generator.model.StatusCode
 import java.io.File
-import java.util.*
+import java.util.Optional
 import javax.lang.model.element.Modifier
 
 /**
@@ -157,28 +177,30 @@ class ClientGenerator(configuration: JavaConfiguration) : (JavaSpecification) ->
     codeBuilder.add("\n")
 
     // Add all parameters to the operation builder.
-    operation.parameters.forEach { param ->
-      when (param) {
+    operation.parameters.forEach { parameter ->
+      when (parameter) {
         is JavaRegularParameter -> codeBuilder.addStatement(
             "builder.parameter(\$S, \$T.\$L, \$L, \$N)",
-            param.originalName,
+            parameter.originalName,
             SupportTypes.ParameterLocation,
-            param.location.name,
-            param.required,
-            param.javaParameterName
+            parameter.location.name,
+            parameter.required,
+            parameter.javaParameterName
         )
 
         is JavaBodyParameter -> codeBuilder.addStatement(
             "builder.requestBody(\$S, \$L, \$N)",
-            param.mediaType,
-            param.required,
-            param.javaParameterName
+            parameter.mediaType,
+            parameter.required,
+            parameter.javaParameterName
         )
 
         is JavaMultipartBodyParameter -> codeBuilder.addStatement(
-            "builder.requestBodyPart(\$S, \$N)",
-            param.originalName,
-            param.javaParameterName
+            "builder.requestBodyPart(\$T.\$L, \$S, \$N)",
+            SupportTypes.BodyPartType,
+            parameter.bodyPartType.name,
+            parameter.originalName,
+            parameter.javaParameterName
         )
       }
     }
@@ -261,19 +283,11 @@ class ClientGenerator(configuration: JavaConfiguration) : (JavaSpecification) ->
   }
 
   /**
-   * Rewrite file/binary body parts to use type FileBodyPart instead of InputStream.
+   * Rewrite attachment type body parts to use type Java type Attachment instead of InputStream.
    */
-  private fun toMultipartFileParameterType(parameter: JavaMultipartBodyParameter): JavaAnyType {
-    val type = parameter.javaType
-
-    return when {
-      type is JavaType && type.name == JavaTypeName.INPUT_STREAM -> type.copy(name = FILE_BODY_PART_JAVA_TYPE_NAME)
-      
-      type is JavaCollectionType && type.elementType is JavaType && type.elementType.name == JavaTypeName.INPUT_STREAM ->
-        type.copy(elementType = type.elementType.copy(name = FILE_BODY_PART_JAVA_TYPE_NAME))
-
-      else -> parameter.javaType
-    }
+  private fun toMultipartFileParameterType(parameter: JavaMultipartBodyParameter): JavaAnyType = when {
+    parameter.bodyPartType == ATTACHMENT -> parameter.javaType.rewriteSimpleType(JavaTypeName.INPUT_STREAM, AttachmentJavaTypeName)
+    else -> parameter.javaType
   }
 
   private fun createCodeOfSimplifiedMethod(operation: JavaOperation): CodeBlock {
@@ -534,7 +548,7 @@ class ClientGenerator(configuration: JavaConfiguration) : (JavaSpecification) ->
 
   private fun nameForMethodGetEntityAs(type: JavaAnyType) = "getEntityAs${methodNameForEntityType(type)}"
 
-  object SupportTypes {
+  private object SupportTypes {
 
     val ApiClientErrorWithEntityException = "$SUPPORT_PACKAGE.ApiClientErrorWithEntityException".toClassName()
     val ApiClientIncompatibleResponseException = "$SUPPORT_PACKAGE.ApiClientIncompatibleResponseException".toClassName()
@@ -542,6 +556,7 @@ class ClientGenerator(configuration: JavaConfiguration) : (JavaSpecification) ->
     val ApiClientValidationException = "$SUPPORT_PACKAGE.ApiClientValidationException".toClassName()
     val ApiRequestExecutor = "$SUPPORT_PACKAGE.ApiRequestExecutor".toClassName()
     val ApiResponse = "$SUPPORT_PACKAGE.ApiResponse".toClassName()
+    val BodyPartType = "$SUPPORT_PACKAGE.internal.BodyPart.Type".toClassName()
     val OperationBuilder = "$SUPPORT_PACKAGE.internal.Operation.Builder".toClassName()
     val ParameterLocation = "$SUPPORT_PACKAGE.internal.ParameterLocation".toClassName()
     val StatusCode = "$SUPPORT_PACKAGE.internal.StatusCode".toClassName()
@@ -551,7 +566,10 @@ class ClientGenerator(configuration: JavaConfiguration) : (JavaSpecification) ->
 
     const val SUPPORT_PACKAGE = "io.github.ruedigerk.contractfirst.generator.client"
     const val CLIENT_CLASS_NAME_SUFFIX = "Client"
-    
-    val FILE_BODY_PART_JAVA_TYPE_NAME = JavaTypeName(SUPPORT_PACKAGE, "FileBodyPart")
+
+    /**
+     * The Attachment class is used for file/binary body parts of multipart bodies. It contains the content, file name and media type of the body part.
+     */
+    val AttachmentJavaTypeName = JavaTypeName(SUPPORT_PACKAGE, "Attachment")
   }
 }

@@ -11,6 +11,15 @@ sealed interface JavaAnyType {
 
   val isGenericType: Boolean
     get() = this !is JavaType
+
+  /**
+   * Rewrites a JavaType or the element type of a JavaCollectionType if the existing type name matches.
+   */
+  fun rewriteSimpleType(replacedType: JavaTypeName, replacementType: JavaTypeName): JavaAnyType = when {
+    this is JavaType && name == replacedType -> copy(name = replacementType)
+    this is JavaCollectionType && elementType is JavaType && elementType.name == replacedType -> copy(elementType = elementType.copy(name = replacementType))
+    else -> this
+  }
 }
 
 /**

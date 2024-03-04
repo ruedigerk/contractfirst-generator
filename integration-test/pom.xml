@@ -254,6 +254,13 @@
          <version>${jersey.version}</version>
          <scope>test</scope>
       </dependency>
+      <dependency>
+         <!-- So that Jersey is able to handle multipart requests -->
+         <groupId>org.glassfish.jersey.media</groupId>
+         <artifactId>jersey-media-multipart</artifactId>
+         <version>${jersey.version}</version>
+         <scope>test</scope>
+      </dependency>
    </dependencies>
 
 </project>

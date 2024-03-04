@@ -27,6 +27,7 @@ import okhttp3.ResponseBody;
 import okhttp3.internal.http.HttpMethod;
 
 import java.io.ByteArrayOutputStream;
+import java.io.File;
 import java.io.IOException;
 import java.io.InputStream;
 import java.lang.reflect.Type;
@@ -267,7 +268,7 @@ public class ApiRequestExecutor {
       return "";
     } else {
       // LocalDate and OffsetDateTime already return the desired format in their toString methods.
-      // Objects  requiring JSON-serialization are currently not supported.
+      // Objects requiring JSON-serialization are currently not supported.
       return value.toString();
     }
   }
@@ -298,6 +299,10 @@ public class ApiRequestExecutor {
     return RequestBody.create(new byte[0], null);
   }
 
+  /**
+   * Support for x-www-form-urlencoded request bodies is limited. Array-valued and complex form fields are not serialized as per the specification. See:
+   * https://spec.openapis.org/oas/v3.0.3#support-for-x-www-form-urlencoded-request-bodies See: https://www.rfc-editor.org/rfc/rfc1866#section-8.2.1
+   */
   private RequestBody createFormRequestBody(List<BodyPart> bodyParts) {
     FormBody.Builder builder = new FormBody.Builder();
 
@@ -308,23 +313,59 @@ public class ApiRequestExecutor {
     return builder.build();
   }
 
+  /**
+   * See: https://spec.openapis.org/oas/v3.0.3#special-considerations-for-multipart-content
+   */
   private RequestBody createMultipartRequestBody(List<BodyPart> bodyParts) throws IOException {
     MultipartBody.Builder builder = new MultipartBody.Builder().setType(MultipartBody.FORM);
 
     for (BodyPart part : bodyParts) {
-      Headers headers = new Headers.Builder().add("Content-Disposition", "form-data; name=\"" + part.getName() + "\"").build();
-
-      if (part.getValue() instanceof byte[]) {
-        builder.addPart(headers, RequestBody.create((byte[]) part.getValue(), null));
-      } else if (part.getValue() instanceof InputStream) {
-        byte[] bytes = readBytes((InputStream) part.getValue());
-        builder.addPart(headers, RequestBody.create(bytes, null));
+      if (part.getType() == BodyPart.Type.ATTACHMENT) {
+        addAttachmentBodyParts(builder, part);
+      } else if (part.getType() == BodyPart.Type.COMPLEX) {
+        String content = gson.toJson(part.getValue());
+        RequestBody body = RequestBody.create(content, MediaType.get("application/json"));
+        builder.addFormDataPart(part.getName(), null, body);
       } else {
-        builder.addPart(headers, RequestBody.create(serializeParameterValue(part.getValue()), null));
+        builder.addFormDataPart(part.getName(), serializeParameterValue(part.getValue()));
       }
     }
 
     return builder.build();
+  }
+
+  private void addAttachmentBodyParts(MultipartBody.Builder builder, BodyPart part) throws IOException {
+    if (part.getValue() instanceof Attachment) {
+      addAttachmentBodyPart(builder, part.getName(), (Attachment) part.getValue());
+    } else if (part.getValue() instanceof Collection) {
+      @SuppressWarnings("unchecked")
+      Collection<Attachment> attachments = (Collection<Attachment>) part.getValue();
+      for (Attachment attachment : attachments) {
+        addAttachmentBodyPart(builder, part.getName(), attachment);
+      }
+    } else {
+      String type = part.getValue() == null ? "null" : part.getValue().getClass().getName();
+      throw new IllegalStateException("Body part value not of type attachment or list of attachment: " + type);
+    }
+  }
+
+  private void addAttachmentBodyPart(MultipartBody.Builder builder, String partName, Attachment attachment) throws IOException {
+    MediaType contentType = MediaType.get(attachment.getMediaType());
+
+    RequestBody body;
+    if (attachment.getContent() instanceof byte[]) {
+      body = RequestBody.create((byte[]) attachment.getContent(), contentType);
+    } else if (attachment.getContent() instanceof InputStream) {
+      byte[] bytes = readBytes((InputStream) attachment.getContent());
+      body = RequestBody.create(bytes, contentType);
+    } else if (attachment.getContent() instanceof File) {
+      body = RequestBody.create((File) attachment.getContent(), contentType);
+    } else {
+      String type = attachment.getContent() == null ? "null" : attachment.getContent().getClass().getName();
+      throw new IllegalStateException("Unsupported attachment content type: " + type);
+    }
+
+    builder.addFormDataPart(partName, attachment.getFileName(), body);
   }
 
   private RequestBody createEntityRequestBody(OperationRequestBody requestBody) throws IOException {
@@ -489,8 +530,8 @@ public class ApiRequestExecutor {
   }
 
   /**
-   * OkHttp interceptor for accessing the final request. This is necessary, because the application can use interceptors that add or modify headers, and we want
-   * to report the final set of headers used.
+   * OkHttp interceptor for accessing the final request. This is necessary, because the application can use interceptors that add or modify headers, and we
+   * want to report the final set of headers used.
    */
   private static class RequestAccessInterceptor implements Interceptor {
 

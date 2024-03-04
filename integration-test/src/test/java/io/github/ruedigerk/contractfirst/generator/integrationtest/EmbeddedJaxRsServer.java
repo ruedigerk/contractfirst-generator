@@ -1,15 +1,18 @@
 package io.github.ruedigerk.contractfirst.generator.integrationtest;
 
+import org.glassfish.grizzly.http.server.HttpServer;
+import org.glassfish.jersey.grizzly2.httpserver.GrizzlyHttpServerFactory;
+import org.glassfish.jersey.media.multipart.MultiPartFeature;
+import org.glassfish.jersey.server.ResourceConfig;
+import org.slf4j.bridge.SLF4JBridgeHandler;
+
 import io.github.ruedigerk.contractfirst.generator.server.DateFormatsParamConverterProvider;
 import io.github.ruedigerk.contractfirst.generator.server.GsonMessageBodyHandler;
+
 import java.net.URI;
 import java.util.List;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
-import org.glassfish.grizzly.http.server.HttpServer;
-import org.glassfish.jersey.grizzly2.httpserver.GrizzlyHttpServerFactory;
-import org.glassfish.jersey.server.ResourceConfig;
-import org.slf4j.bridge.SLF4JBridgeHandler;
 
 /**
  * Used for starting and stopping an embedded JAX-RS enabled server.
@@ -52,6 +55,7 @@ public class EmbeddedJaxRsServer {
     resourceConfig.register(GsonMessageBodyHandler.class);
     resourceConfig.register(DateFormatsParamConverterProvider.class);
     resourceConfig.register(JaxRsExceptionMapper.class);
+    resourceConfig.register(MultiPartFeature.class);
 
     // Register resource classes
     jaxRsResourceClasses.forEach(resourceConfig::register);

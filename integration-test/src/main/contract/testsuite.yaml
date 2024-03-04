@@ -389,32 +389,6 @@ paths:
         default:
           $ref: "#/components/responses/DefaultFailures"
 
-  /formEncodedRequestBody:
-    post:
-      description: A test case for an x-www-form-urlencoded encoded request body.
-      tags:
-        - FormEncodedRequestBody
-      operationId: formEncodedRequestBody
-      requestBody:
-        required: true
-        content:
-          application/x-www-form-urlencoded:
-            schema:
-              type: object
-              properties: 
-                fieldA:
-                  type: string
-                fieldB:
-                  type: string
-                fieldC:
-                  type: string
-                  enum:
-                    - first_value
-                    - second%value
-      responses:
-        204:
-          description: Ok.
-
   /nonJsonEntityAsJson:
     get:
       summary: Test case for an operation that declares a non-JSON entity and the server nevertheless sending the entity as JSON.
@@ -428,6 +402,72 @@ paths:
             application/xml:
               schema:
                 $ref: "#/components/schemas/Item"
+  /formEncodedRequestBody:
+    post:
+      description: A test case for an x-www-form-urlencoded encoded request body.
+      tags:
+        - MultipartRequestBody
+      operationId: formEncodedRequestBody
+      requestBody:
+        required: true
+        content:
+          application/x-www-form-urlencoded:
+            schema:
+              type: object
+              properties:
+                stringProperty:
+                  type: string
+                integerProperty:
+                  type: integer
+                  format: int64
+                enumProperty:
+                  type: string
+                  enum:
+                    - first_value
+                    - second%value
+      responses:
+        204:
+          description: Ok.
+
+  /multipartRequestBody:
+    post:
+      description: A test case for a multipart/form-data encoded request body.
+      tags:
+        - MultipartRequestBody
+      operationId: multipartRequestBody
+      requestBody:
+        required: true
+        content:
+          multipart/form-data:
+            schema:
+              type: object
+              properties:
+                stringProperty:
+                  type: string
+                integerProperty:
+                  type: integer
+                  format: int64
+                objectProperty:
+                  type: object
+                  required:
+                    - a
+                  properties:
+                    a:
+                      type: string
+                    b:
+                      type: integer
+                      format: int64
+                firstBinary:
+                  type: string
+                  format: binary
+                additionalBinaries:
+                  type: array
+                  items:
+                    type: string
+                    format: binary
+      responses:
+        204:
+          description: Ok.
 
 components:
   schemas:

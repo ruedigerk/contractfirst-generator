@@ -9,7 +9,7 @@ paths:
     post:
       description: A test case for an x-www-form-urlencoded encoded request body.
       tags:
-        - FormEncodedRequestBody
+        - MultipartRequestBody
       operationId: formEncodedRequestBody
       requestBody:
         required: true
@@ -36,7 +36,7 @@ paths:
     post:
       description: A test case for a multipart/form-data encoded request body.
       tags:
-        - FormAndMultipartEncodedRequestBody
+        - MultipartRequestBody
       operationId: multipartRequestBody
       requestBody:
         required: true

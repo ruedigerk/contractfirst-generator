@@ -5,6 +5,7 @@ import io.github.ruedigerk.contractfirst.generator.client.ApiClientIoException;
 import io.github.ruedigerk.contractfirst.generator.client.ApiClientValidationException;
 import io.github.ruedigerk.contractfirst.generator.client.ApiRequestExecutor;
 import io.github.ruedigerk.contractfirst.generator.client.ApiResponse;
+import io.github.ruedigerk.contractfirst.generator.client.internal.BodyPart;
 import io.github.ruedigerk.contractfirst.generator.client.internal.Operation;
 import io.github.ruedigerk.contractfirst.generator.client.internal.ParameterLocation;
 import io.github.ruedigerk.contractfirst.generator.client.internal.StatusCode;
@@ -57,8 +58,8 @@ public class EquallyNamedParametersApiClient {
       builder.parameter("theParameter", ParameterLocation.HEADER, false, theParameterInHeader);
       builder.parameter("theParameter", ParameterLocation.PATH, true, theParameterInPath);
       builder.parameter("theParameter", ParameterLocation.QUERY, false, theParameterInQuery);
-      builder.requestBodyPart("theParameter", theParameterInBody);
-      builder.requestBodyPart("other", other);
+      builder.requestBodyPart(BodyPart.Type.PRIMITIVE, "theParameter", theParameterInBody);
+      builder.requestBodyPart(BodyPart.Type.PRIMITIVE, "other", other);
       builder.multipartRequestBody("application/x-www-form-urlencoded");
 
       builder.response(StatusCode.of(204));

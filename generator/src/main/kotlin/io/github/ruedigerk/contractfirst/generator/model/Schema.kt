@@ -103,12 +103,38 @@ data class PrimitiveSchema(
 ) : Schema {
 
   override var embeddedIn: Schema? = null
+
+  val dataType: DataType = when (type) {
+    PrimitiveType.BOOLEAN -> DataType.BOOLEAN
+    PrimitiveType.INTEGER -> {
+      when (format) {
+        "int32" -> DataType.INT_32
+        "int64" -> DataType.INT_64
+        else -> DataType.INTEGER
+      }
+    }
+
+    PrimitiveType.NUMBER -> {
+      when (format) {
+        "float" -> DataType.FLOAT
+        "double" -> DataType.DOUBLE
+        else -> DataType.NUMBER
+      }
+    }
+
+    PrimitiveType.STRING -> when (format) {
+      "date" -> DataType.DATE
+      "date-time" -> DataType.DATE_TIME
+      "binary" -> DataType.BINARY
+      else -> DataType.STRING
+    }
+  }
 }
 
 /**
- * Represents the type of primitive schema.
- * 
- * Type "null" is currently not supported.
+ * Represents the type of primitive JSON schemas.
+ *
+ * Type "null" is currently not supported by OAS, see: https://spec.openapis.org/oas/v3.0.3#data-types
  */
 enum class PrimitiveType {
 
@@ -116,4 +142,28 @@ enum class PrimitiveType {
   INTEGER,
   NUMBER,
   STRING
+}
+
+/**
+ * Represents the known and supported combinations of the type and the format of a primitive schema according to OAS.
+ *
+ * See: https://spec.openapis.org/oas/v3.0.3#data-types
+ */
+enum class DataType {
+
+  BINARY,
+  BOOLEAN,
+
+  DATE,
+  DATE_TIME,
+
+  FLOAT,
+  DOUBLE,
+  NUMBER,
+
+  INT_32,
+  INT_64,
+  INTEGER,
+
+  STRING,
 }

@@ -1,7 +1,9 @@
 package io.github.ruedigerk.contractfirst.generator
 
 import io.github.ruedigerk.contractfirst.generator.java.JavaConfiguration
+import io.github.ruedigerk.contractfirst.generator.java.generator.ClientGenerator
 import io.github.ruedigerk.contractfirst.generator.java.generator.ModelGenerator
+import io.github.ruedigerk.contractfirst.generator.java.generator.ServerStubGenerator
 import io.github.ruedigerk.contractfirst.generator.java.model.JavaSpecification
 import io.github.ruedigerk.contractfirst.generator.java.transform.JavaTransformer
 import io.github.ruedigerk.contractfirst.generator.logging.Log
@@ -13,20 +15,26 @@ import io.github.ruedigerk.contractfirst.generator.parser.ContractParser
 class RecipeForFullSpecification(
     private val log: Log,
     private val configuration: Configuration,
-    private val javaGenerator: (JavaConfiguration) -> (JavaSpecification) -> Unit
 ) : () -> Unit {
 
   override operator fun invoke() {
     val specification = ContractParser(log).toSpecification(configuration.inputContractFile)
     val javaConfiguration = JavaConfiguration.forFullSpecification(configuration, apiPackagePrefix(configuration))
     val javaSpecification = JavaTransformer(log, javaConfiguration).transform(specification)
-    
-    javaGenerator(javaConfiguration)(javaSpecification)
+
+    val generator = getGenerator(javaConfiguration)
+    generator(javaSpecification)
     ModelGenerator(javaConfiguration).generateCode(javaSpecification.modelFiles)
 
     if (configuration.outputContract) {
       RecipeForAllInOneContract(log, configuration).invoke()
     }
+  }
+
+  private fun getGenerator(javaConfiguration: JavaConfiguration): (JavaSpecification) -> Unit = when (configuration.generator) {
+    GeneratorType.CLIENT -> ClientGenerator(javaConfiguration)
+    GeneratorType.SERVER -> ServerStubGenerator(javaConfiguration, log)
+    GeneratorType.MODEL_ONLY -> error("Illegal generator type: ${configuration.generator}")
   }
 
   private fun apiPackagePrefix(configuration: Configuration): String = when (configuration.generator) {

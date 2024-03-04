@@ -11,7 +11,7 @@ sealed interface JavaParameter {
   val javadoc: String?
   val required: Boolean
   val javaType: JavaAnyType
-  
+
   fun isCookieParameter(): Boolean = this is JavaRegularParameter && this.location == ParameterLocation.COOKIE
 }
 
@@ -47,4 +47,20 @@ data class JavaMultipartBodyParameter(
     override val required: Boolean,
     override val javaType: JavaAnyType,
     val originalName: String,
-) : JavaParameter
+    val bodyPartType: BodyPartType,
+) : JavaParameter {
+
+  /**
+   * This needs to be in sync with enum "BodyPart.Type" of the client support module!
+   *
+   * See: https://spec.openapis.org/oas/v3.0.3#special-considerations-for-multipart-content
+   */
+  enum class BodyPartType {
+
+    PRIMITIVE,
+    COMPLEX,
+    ATTACHMENT
+  }
+}
+
+
