@@ -27,7 +27,7 @@ Here is an example for using the Maven plugin to generate server stubs:
     <plugin>
        <artifactId>contractfirst-generator-maven-plugin</artifactId>
        <groupId>io.github.ruedigerk.contractfirst.generator</groupId>
-       <version>1.7.0</version>
+       <version>1.8.0</version>
        <executions>
           <execution>
              <id>generate-server</id>
@@ -49,7 +49,7 @@ The generated server code needs the following dependencies:
         <!-- Contains a JAX-RS ParamConverterProvider and a Gson MessageBodyHandler to support LocalDate and OffsetDateTime -->
         <groupId>io.github.ruedigerk.contractfirst.generator</groupId>
         <artifactId>contractfirst-generator-server-support</artifactId>
-        <version>1.7.0</version>
+        <version>1.8.0</version>
     </dependency>
     <dependency>
         <!-- BeanValidation API for the generated data model -->
@@ -83,7 +83,7 @@ Here is an example for using the Maven plugin to generate an API client:
     <plugin>
        <artifactId>contractfirst-generator-maven-plugin</artifactId>
        <groupId>io.github.ruedigerk.contractfirst.generator</groupId>
-       <version>1.7.0</version>
+       <version>1.8.0</version>
        <executions>
           <execution>
              <id>generate-client</id>
@@ -105,7 +105,7 @@ The generated client code needs the following dependencies:
         <!-- Support module for the generated client code -->
         <groupId>io.github.ruedigerk.contractfirst.generator</groupId>
         <artifactId>contractfirst-generator-client-support</artifactId>
-        <version>1.7.0</version>
+        <version>1.8.0</version>
     </dependency>
     <dependency>
         <!-- BeanValidation API for the generated data model -->
@@ -142,7 +142,7 @@ Here is an example for using the Maven plugin to generate only model files:
     <plugin>
        <artifactId>contractfirst-generator-maven-plugin</artifactId>
        <groupId>io.github.ruedigerk.contractfirst.generator</groupId>
-       <version>1.7.0</version>
+       <version>1.8.0</version>
        <executions>
           <execution>
              <id>generate-model-only</id>
@@ -190,67 +190,95 @@ Goal for generating sources from an OpenAPI contract.
 
 Available parameters:
 
+    addAsTestSource (Default: false)
+      whether to add the generated sources directory as a test source directory
+      instead of a main compile source directory; defaults to false
+      User property: openapi.generator.maven.plugin.add-as-test-source
+
     generator
-      the type of generator to use for code generation; allowed values are: 'server', 'client', 'model-only'
+      the type of generator to use for code generation; allowed values are:
+      "server", "client", "model-only"
       Required: Yes
       User property: openapi.generator.maven.plugin.generator
-    
+
     inputContractFile
-      the path to the file containing the OpenAPI contract to use as input; in case of the model-only generator, 
-      this should point to a single JSON-Schema file in YAML or JSON format, or to a directory which is recursively 
-      searched for JSON-Schema files
+      the path to the file containing the OpenAPI contract to use as input; in
+      case of the model-only generator, this should point to a single
+      JSON-Schema file in YAML or JSON format, or to a directory which is
+      recursively searched for JSON-Schema files
       Required: Yes
       User property: openapi.generator.maven.plugin.inputContractFile
-    
+
     outputContract (Default: false)
       whether to output the parsed contract as an all-in-one contract
       User property: openapi.generator.maven.plugin.outputContract
-    
+
     outputContractFile (Default: openapi.yaml)
-      the file name of the all-in-one contract file to output; only used when outputContract is true
+      the file name of the all-in-one contract file to output; only used when
+      outputContract is true
       User property: openapi.generator.maven.plugin.outputContractFile
-    
-    outputDir (Default: ${project.build.directory}/generated-sources/contractfirst-generator)
+
+    outputDir (Default:
+    ${project.build.directory}/generated-sources/contractfirst-generator)
       the target directory for writing the generated sources to
       User property: openapi.generator.maven.plugin.outputDir
-    
+
     outputJavaBasePackage
       the Java package to put generated classes into
       Required: Yes
       User property: openapi.generator.maven.plugin.outputJavaBasePackage
-    
+
     outputJavaModelNamePrefix
       the prefix for Java model class names; defaults to the empty String
       User property: openapi.generator.maven.plugin.outputJavaModelNamePrefix
-    
+
     outputJavaModelUseJsr305NullabilityAnnotations (Default: false)
-      whether to generate JSR-305 nullability annotations for the getter and setter methods of the model classes
+      whether to generate JSR-305 nullability annotations for the getter and
+      setter methods of the model classes
       User property:
       openapi.generator.maven.plugin.outputJavaModelUseJsr305NullabilityAnnotations
-    
+
     outputJavaPackageMirrorsSchemaDirectory (Default: false)
-      whether the Java packages of the generated model files are mirroring the directory structure of the schema files
-      User property: openapi.generator.maven.plugin.outputJavaPackageMirrorsSchemaDirectory
-    
+      whether the Java packages of the generated model files are mirroring the
+      directory structure of the schema files
+      User property:
+      openapi.generator.maven.plugin.outputJavaPackageMirrorsSchemaDirectory
+
     outputJavaPackageSchemaDirectoryPrefix
-      the path prefix to cut from the schema file directories when determining Java packages for model files; defaults 
-      to the directory of the inputContractFile; this is only used, when outputJavaPackageMirrorsSchemaDirectory is true
-      User property: openapi.generator.maven.plugin.outputJavaPackageSchemaDirectoryPrefix
-    
+      the path prefix to cut from the schema file directories when determining
+      Java packages for model files; defaults to the directory of the
+      inputContractFile; this is only used, when
+      outputJavaPackageMirrorsSchemaDirectory is true
+      User property:
+      openapi.generator.maven.plugin.outputJavaPackageSchemaDirectoryPrefix
+
     skip (Default: false)
-      skip execution of this plugin
+      skip execution of this plugin; defaults to false
       User property: openapi.generator.maven.plugin.skip
 
 
 Changelog
 ---------
 
+### 1.8.0
+
+**Added**
+- Added a new configuration option `addAsTestSource` for the Maven plugin, which allows adding the directory with the generated sources as a test source 
+  root instead of a regular source root.
+
+**Changed**
+- The method signatures generated for multipart request bodies for the client have changed.
+- Updated language dependencies.
+
+**Fixed**
+- The generated client is now able to properly handle multipart request bodies, and to properly upload files in multipart requests.
+
 ### 1.7.0
 
 **Changed**
 - Enabled serialization of array-valued parameters on the client. See [OpenAPI 3.0.3 Parameter Object](https://github.com/OAI/OpenAPI-Specification/blob/main/versions/3.0.0.md#parameter-object)
   - Query parameters are serialized in "form" style. 
-  - Header parameters are serialized in "form" style (this is in violation with the OpenAPI Spec but works with JAX-RS). 
+  - Header parameters are serialized in "form" style (this is in violation with the OpenAPI specification but works with JAX-RS out of the box). 
   - Path parameters are serialized in "simple" style (comma-separated lists).
 - Updated dependencies.
 

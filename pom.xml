@@ -81,6 +81,7 @@
       <byte-buddy.version>1.14.9</byte-buddy.version>
       <gson.version>2.10.1</gson.version>
       <jax-rs.version>2.1.1</jax-rs.version>
+      <jersey.version>2.39.1</jersey.version>
       <objenesis.version>3.3</objenesis.version>
       <slf4j.version>1.7.36</slf4j.version>
       <spock.version>2.3-groovy-3.0</spock.version>
@@ -89,6 +90,7 @@
    <modules>
       <module>client-support</module>
       <module>command-line-interface</module>
+      <module>compat-1.7-test</module>
       <module>generator</module>
       <module>gson-date-time-support</module>
       <module>integration-test</module>

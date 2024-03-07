@@ -75,7 +75,10 @@ class ServerStubGenerator(
 
   private fun toOperationMethod(operation: JavaOperation, typesafeResponseClass: TypeSpec): MethodSpec? {
     if (operation.requestBodyMediaType?.startsWith("multipart/") == true) {
-      log.warn { "Request body media type ${operation.requestBodyMediaType} is not supported in the server generator for operation '${operation.httpMethod} ${operation.path}'." }
+      log.warn {
+        "Request body media type ${operation.requestBodyMediaType} is not supported in the server generator for operation " +
+            "'${operation.httpMethod} ${operation.path}'. No method will be generated."
+      }
       return null
     }
 

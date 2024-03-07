@@ -320,7 +320,12 @@ public class ApiRequestExecutor {
     MultipartBody.Builder builder = new MultipartBody.Builder().setType(MultipartBody.FORM);
 
     for (BodyPart part : bodyParts) {
-      if (part.getType() == BodyPart.Type.ATTACHMENT) {
+      // BACKWARDS_COMPATIBILITY(1.7) START
+      if (part.getType() == null) {
+        addLegacyBodyPart(builder, part);
+      }
+      // BACKWARDS_COMPATIBILITY(1.7) END
+      else if (part.getType() == BodyPart.Type.ATTACHMENT) {
         addAttachmentBodyParts(builder, part);
       } else if (part.getType() == BodyPart.Type.COMPLEX) {
         String content = gson.toJson(part.getValue());
@@ -332,6 +337,22 @@ public class ApiRequestExecutor {
     }
 
     return builder.build();
+  }
+
+  /**
+   * BACKWARDS_COMPATIBILITY(1.7): This method exists only for backwards compatibility with version 1.7 of the generator.
+   */
+  private void addLegacyBodyPart(MultipartBody.Builder builder, BodyPart part) throws IOException {
+    Headers headers = new Headers.Builder().add("Content-Disposition", "form-data; name=\"" + part.getName() + "\"").build();
+
+    if (part.getValue() instanceof byte[]) {
+      builder.addPart(headers, RequestBody.create((byte[]) part.getValue(), null));
+    } else if (part.getValue() instanceof InputStream) {
+      byte[] bytes = readBytes((InputStream) part.getValue());
+      builder.addPart(headers, RequestBody.create(bytes, null));
+    } else {
+      builder.addPart(headers, RequestBody.create(serializeParameterValue(part.getValue()), null));
+    }
   }
 
   private void addAttachmentBodyParts(MultipartBody.Builder builder, BodyPart part) throws IOException {

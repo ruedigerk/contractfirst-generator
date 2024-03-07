@@ -2,12 +2,11 @@
 <project xmlns="http://maven.apache.org/POM/4.0.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/maven-v4_0_0.xsd">
    <modelVersion>4.0.0</modelVersion>
 
-   <artifactId>contractfirst-generator-integration-test</artifactId>
+   <artifactId>contractfirst-generator-compat-1.7-test</artifactId>
 
    <description>
-      This module is used as an integration test of the generator. The Maven plugin is
-      used to generate client and server and the generated code is test via an embedded
-      JAX-RS server implementation.
+      This module contains backwards compatibility tests for the generator, i.e. tests that the code generated with version 1.7
+      of the generator runs with the latest version of the client-support JAR.
    </description>
 
    <parent>
@@ -43,119 +42,26 @@
          </plugin>
 
          <plugin>
-            <!-- Skip creating a JAR file, as this module contains only test code -->
-            <artifactId>maven-jar-plugin</artifactId>
-            <configuration>
-               <skipIfEmpty>true</skipIfEmpty>
-            </configuration>
-         </plugin>
-
-         <plugin>
-            <!-- The generator in the latest version -->
+            <!-- The generator in version 1.7 for testing backwards compatibility of the client-support JAR -->
+            <!-- Unfortunately, this version of the generator wasn't able to   -->
             <artifactId>contractfirst-generator-maven-plugin</artifactId>
             <groupId>io.github.ruedigerk.contractfirst.generator</groupId>
-            <version>${project.version}</version>
+            <version>1.7.0</version>
             <executions>
                <execution>
-                  <id>generate-testsuite-server-code</id>
-                  <goals>
-                     <goal>generate</goal>
-                  </goals>
-                  <configuration>
-                     <generator>server</generator>
-                     <inputContractFile>${project.basedir}/src/test/contract/testsuite.yaml</inputContractFile>
-                     <outputDir>${project.build.directory}/generated-sources/integrationtest</outputDir>
-                     <outputJavaBasePackage>io.github.ruedigerk.contractfirst.generator.integrationtest.generated.server</outputJavaBasePackage>
-                     <outputJavaModelNamePrefix>S</outputJavaModelNamePrefix>
-                  </configuration>
-               </execution>
-               <execution>
-                  <id>generate-testsuite-client-code</id>
+                  <id>generate-testsuite-client-code-compat-1.7</id>
                   <goals>
                      <goal>generate</goal>
                   </goals>
                   <configuration>
                      <generator>client</generator>
-                     <inputContractFile>${project.basedir}/src/test/contract/testsuite.yaml</inputContractFile>
-                     <outputDir>${project.build.directory}/generated-sources/integrationtest</outputDir>
-                     <outputJavaBasePackage>io.github.ruedigerk.contractfirst.generator.integrationtest.generated.client</outputJavaBasePackage>
+                     <inputContractFile>${project.basedir}/src/main/contract/testsuite.yaml</inputContractFile>
+                     <outputDir>${project.build.directory}/generated-sources/compat-1.7</outputDir>
+                     <outputJavaBasePackage>io.github.ruedigerk.contractfirst.generator.integrationtest.generated.compat_1_7.client</outputJavaBasePackage>
                      <outputJavaModelNamePrefix>C</outputJavaModelNamePrefix>
-                  </configuration>
-               </execution>
-               <execution>
-                  <id>generate-content-type-combinations-server-code</id>
-                  <goals>
-                     <goal>generate</goal>
-                  </goals>
-                  <configuration>
-                     <generator>server</generator>
-                     <inputContractFile>${project.basedir}/src/test/contract/content-type-combinations.yaml</inputContractFile>
-                     <outputDir>${project.build.directory}/generated-sources/integrationtest</outputDir>
-                     <outputJavaBasePackage>io.github.ruedigerk.contractfirst.generator.combinations.generated.server</outputJavaBasePackage>
-                     <outputJavaModelNamePrefix>S</outputJavaModelNamePrefix>
-                  </configuration>
-               </execution>
-               <execution>
-                  <id>generate-content-type-combinations-client-code</id>
-                  <goals>
-                     <goal>generate</goal>
-                  </goals>
-                  <configuration>
-                     <generator>client</generator>
-                     <inputContractFile>${project.basedir}/src/test/contract/content-type-combinations.yaml</inputContractFile>
-                     <outputDir>${project.build.directory}/generated-sources/integrationtest</outputDir>
-                     <outputJavaBasePackage>io.github.ruedigerk.contractfirst.generator.combinations.generated.client</outputJavaBasePackage>
-                     <outputJavaModelNamePrefix>C</outputJavaModelNamePrefix>
-                  </configuration>
-               </execution>
-
-               <execution>
-                  <!-- TODO: write test to verify the expected files are generated -->
-                  <id>test-plugin-parameter-defaults</id>
-                  <goals>
-                     <goal>generate</goal>
-                  </goals>
-                  <configuration>
-                     <generator>server</generator>
-                     <inputContractFile>${project.basedir}/src/test/contract/minimal.yaml</inputContractFile>
-                     <outputJavaBasePackage>io.github.ruedigerk.contractfirst.generator.mojotest.defaults</outputJavaBasePackage>
-                  </configuration>
-               </execution>
-               <execution>
-                  <!-- TODO: write test to verify the expected files are generated -->
-                  <id>test-model-only-generation</id>
-                  <goals>
-                     <goal>generate</goal>
-                  </goals>
-                  <configuration>
-                     <generator>model-only</generator>
-                     <inputContractFile>src/test/contract/modelOnlySchemas</inputContractFile>
-                     <outputJavaBasePackage>io.github.ruedigerk.contractfirst.generator.mojotest.modelonly</outputJavaBasePackage>
-                     <outputJavaModelUseJsr305NullabilityAnnotations>true</outputJavaModelUseJsr305NullabilityAnnotations>
-                  </configuration>
-               </execution>
-               <execution>
-                  <id>test-help-mojo</id>
-                  <goals>
-                     <goal>help</goal>
-                  </goals>
-                  <phase>generate-sources</phase>
-               </execution>
-               <execution>
-                  <id>test-help-mojo-generate-details</id>
-                  <goals>
-                     <goal>help</goal>
-                  </goals>
-                  <phase>generate-sources</phase>
-                  <configuration>
-                     <detail>true</detail>
-                     <goal>generate</goal>
                   </configuration>
                </execution>
             </executions>
-            <configuration>
-               <addAsTestSource>true</addAsTestSource>
-            </configuration>
          </plugin>
       </plugins>
    </build>

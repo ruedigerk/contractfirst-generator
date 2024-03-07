@@ -199,6 +199,15 @@ public class Operation {
 
     /**
      * Defines a form field of an x-www-form-urlencoded request body, or a part of a multipart request body.
+     *
+     * BACKWARDS_COMPATIBILITY(1.7): This method exists only for backwards compatibility with version 1.7 of the generator.
+     */
+    public void requestBodyPart(String name, Object value) {
+      bodyParts.add(new BodyPart(null, name, value));
+    }
+
+    /**
+     * Defines a form field of an x-www-form-urlencoded request body, or a part of a multipart request body.
      */
     public void requestBodyPart(BodyPart.Type type, String name, Object value) {
       bodyParts.add(new BodyPart(type, name, value));
