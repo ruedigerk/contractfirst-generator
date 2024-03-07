@@ -95,7 +95,13 @@ public class CodeGeneratorMojo extends AbstractMojo {
   private boolean outputJavaModelUseJsr305NullabilityAnnotations = false;
 
   /**
-   * skip execution of this plugin
+   * whether to add the generated sources directory as a test source directory instead of a main compile source directory; defaults to false
+   */
+  @Parameter(name = "addAsTestSource", property = "openapi.generator.maven.plugin.add-as-test-source", defaultValue = "false")
+  private boolean addAsTestSource = false;
+
+  /**
+   * skip execution of this plugin; defaults to false
    */
   @Parameter(name = "skip", property = "openapi.generator.maven.plugin.skip", defaultValue = "false")
   private boolean skip = false;
@@ -197,7 +203,11 @@ public class CodeGeneratorMojo extends AbstractMojo {
   }
 
   private void addGeneratedSourcesRoot(Configuration config) {
-    project.addCompileSourceRoot(config.getOutputDir());
+    if (addAsTestSource) {
+      project.addTestCompileSourceRoot(config.getOutputDir());
+    } else {
+      project.addCompileSourceRoot(config.getOutputDir());
+    }
   }
 
   private void runGenerator(Configuration config) throws MojoFailureException {
