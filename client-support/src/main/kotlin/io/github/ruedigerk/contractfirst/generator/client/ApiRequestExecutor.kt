@@ -4,6 +4,7 @@ import com.google.gson.Gson
 import com.google.gson.GsonBuilder
 import com.google.gson.JsonParseException
 import io.github.ruedigerk.contractfirst.generator.client.internal.*
+import io.github.ruedigerk.contractfirst.generator.client.internal.Traversal.traverse
 import io.github.ruedigerk.contractfirst.generator.support.gson.LocalDateGsonTypeAdapter
 import io.github.ruedigerk.contractfirst.generator.support.gson.OffsetDateTimeGsonTypeAdapter
 import okhttp3.*
@@ -215,7 +216,29 @@ class ApiRequestExecutor(httpClient: OkHttpClient, baseUrl: String) {
     val builder = FormBody.Builder()
 
     for (part in bodyParts) {
-      builder.add(part.name, ParameterSerialization.serializePrimitiveParameterValue(part.value))
+      when (part.type) {
+        // BACKWARDS_COMPATIBILITY(1.7) START
+        null -> builder.add(part.name, ParameterSerialization.serializePrimitiveParameterValue(part.value))
+        // BACKWARDS_COMPATIBILITY(1.7) END
+
+        BodyPart.Type.ATTACHMENT -> traverse(part.value) { attachment ->
+          check(attachment is Attachment) { "Body part ${part.name} not of type Attachment or List<Attachment>: ${part.value.javaClass.name}" }
+
+          val bytes = when (val content = attachment.content) {
+            is ByteArray -> content
+            is InputStream -> content.use { it.readBytes() }
+            is File -> content.readBytes()
+            else -> error("Unsupported attachment content type: ${content.javaClass.name}")
+          }
+          builder.add(part.name, Base64.getEncoder().encodeToString(bytes))
+        }
+
+        BodyPart.Type.COMPLEX -> builder.add(part.name, gson.toJson(part.value))
+
+        BodyPart.Type.PRIMITIVE -> traverse(part.value) {
+          builder.add(part.name, ParameterSerialization.serializePrimitiveParameterValue(part.value))
+        }
+      }
     }
 
     return builder.build()
@@ -234,7 +257,10 @@ class ApiRequestExecutor(httpClient: OkHttpClient, baseUrl: String) {
         null -> addLegacyBodyPart(builder, part)
         // BACKWARDS_COMPATIBILITY(1.7) END
 
-        BodyPart.Type.ATTACHMENT -> addAttachmentBodyParts(builder, part)
+        BodyPart.Type.ATTACHMENT -> traverse(part.value) {
+          check(it is Attachment) { "Body part ${part.name} not of type Attachment or List<Attachment>: ${part.value.javaClass.name}" }
+          addAttachmentBodyPart(builder, part.name, it)
+        }
 
         BodyPart.Type.COMPLEX -> {
           val content = gson.toJson(part.value)
@@ -242,7 +268,9 @@ class ApiRequestExecutor(httpClient: OkHttpClient, baseUrl: String) {
           builder.addFormDataPart(part.name, null, body)
         }
 
-        BodyPart.Type.PRIMITIVE -> builder.addFormDataPart(part.name, ParameterSerialization.serializePrimitiveParameterValue(part.value))
+        BodyPart.Type.PRIMITIVE -> traverse(part.value) {
+          builder.addFormDataPart(part.name, ParameterSerialization.serializePrimitiveParameterValue(part.value))
+        }
       }
     }
 
@@ -276,36 +304,13 @@ class ApiRequestExecutor(httpClient: OkHttpClient, baseUrl: String) {
   }
 
   @Throws(IOException::class)
-  private fun addAttachmentBodyParts(builder: MultipartBody.Builder, part: BodyPart) {
-    when (part.value) {
-      is Attachment -> addAttachmentBodyPart(builder, part.name, part.value)
-
-      is Collection<*> -> {
-        @Suppress("UNCHECKED_CAST")
-        val attachments = part.value as Collection<Attachment>
-        for (attachment in attachments) {
-          addAttachmentBodyPart(builder, part.name, attachment)
-        }
-      }
-
-      else -> error("Body part value not of type Attachment or List<Attachment>: ${part.value.javaClass.name}")
-    }
-  }
-
-  @Throws(IOException::class)
   private fun addAttachmentBodyPart(builder: MultipartBody.Builder, partName: String, attachment: Attachment) {
     val contentType: MediaType = attachment.mediaType.toMediaType()
 
-    val body = when (attachment.content) {
-      is ByteArray -> attachment.content.toRequestBody(contentType)
-
-      is InputStream -> {
-        val bytes = attachment.content.use { it.readBytes() }
-        bytes.toRequestBody(contentType)
-      }
-
-      is File -> attachment.content.asRequestBody(contentType)
-
+    val body = when (val content = attachment.content) {
+      is ByteArray -> content.toRequestBody(contentType)
+      is InputStream -> content.use { it.readBytes() }.toRequestBody(contentType)
+      is File -> content.asRequestBody(contentType)
       else -> error("Unsupported attachment content type: ${attachment.content.javaClass.name}")
     }
 
@@ -436,7 +441,7 @@ class ApiRequestExecutor(httpClient: OkHttpClient, baseUrl: String) {
       private val statusCode: Int,
       private val httpStatusMessage: String,
       private val contentType: String?,
-      headers: Headers
+      headers: Headers,
   ) {
 
     private val headers = headers.toList()

@@ -1,13 +1,17 @@
 package io.github.ruedigerk.contractfirst.generator.client.internal
 
-import java.util.function.BiConsumer
+import io.github.ruedigerk.contractfirst.generator.client.internal.ParameterSerialization.serializeFormStyleParameter
+import io.github.ruedigerk.contractfirst.generator.client.internal.Traversal.traverse
 
 /**
- * Performs HTTP requests as defined by generated client code.
+ * Helper functions for serializing parameters.
  */
 internal object ParameterSerialization {
 
-  fun serializeFormStyleParameters(parameters: Map<String, Parameter>, parameterConsumer: BiConsumer<String, String>) {
+  /**
+   * Serializes a map of "form" style parameters, like query parameters. See [serializeFormStyleParameter] for how the individual parameters are serialized.
+   */
+  fun serializeFormStyleParameters(parameters: Map<String, Parameter>, parameterConsumer: (String, String) -> Unit) {
     parameters.forEach { (name, parameter) -> serializeFormStyleParameter(name, parameter.value, parameterConsumer) }
   }
 
@@ -20,18 +24,9 @@ internal object ParameterSerialization {
    *
    * See: https://spec.openapis.org/oas/v3.0.3#style-examples
    */
-  fun serializeFormStyleParameter(name: String, value: Any?, parameterConsumer: BiConsumer<String, String>) {
-    if (value is Collection<*>) {
-      value.filterNotNull().forEach { element -> serializeSingleFormStyleParameter(name, element, parameterConsumer) }
-    } else {
-      serializeSingleFormStyleParameter(name, value, parameterConsumer)
-    }
-  }
-
-  private fun serializeSingleFormStyleParameter(name: String, value: Any?, parameterConsumer: BiConsumer<String, String>) {
-    if (value != null) {
-      val serializedValue = serializePrimitiveParameterValue(value)
-      parameterConsumer.accept(name, serializedValue)
+  fun serializeFormStyleParameter(name: String, value: Any?, parameterConsumer: (String, String) -> Unit) {
+    traverse(value) {
+      parameterConsumer(name, serializePrimitiveParameterValue(it))
     }
   }
 
