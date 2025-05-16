@@ -33,17 +33,6 @@
       <tag>HEAD</tag>
    </scm>
 
-   <distributionManagement>
-      <snapshotRepository>
-         <id>ossrh</id>
-         <url>https://s01.oss.sonatype.org/content/repositories/snapshots</url>
-      </snapshotRepository>
-      <repository>
-         <id>ossrh</id>
-         <url>https://s01.oss.sonatype.org/service/local/staging/deploy/maven2/</url>
-      </repository>
-   </distributionManagement>
-
    <properties>
       <!-- Build setup -->
       <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
@@ -286,7 +275,24 @@
                   <releaseProfiles>release</releaseProfiles>
                </configuration>
             </plugin>
-
+            
+            <plugin>
+               <!-- For publishing to the Sonatype Central Publisher Portal -->
+               <!-- See: https://central.sonatype.org/publish/publish-portal-maven/ -->
+               <groupId>org.sonatype.central</groupId>
+               <artifactId>central-publishing-maven-plugin</artifactId>
+               <version>0.7.0</version>
+               <extensions>true</extensions>
+               <configuration>
+                  <!-- The ID of the server entry in the settings.xml that contains the User Token credentials to authenticate with. -->
+                  <publishingServerId>central</publishingServerId>
+                  <excludeArtifacts>
+                     <excludeArtifact>contractfirst-generator-integration-test</excludeArtifact>
+                     <excludeArtifact>contractfirst-generator-compat-1.7-test</excludeArtifact>
+                  </excludeArtifacts>
+               </configuration>
+            </plugin>
+            
             <!-- Define Versions of the Apache-Maven-Plugins -->
             <plugin>
                <artifactId>maven-clean-plugin</artifactId>
@@ -330,12 +336,18 @@
 
    <profiles>
       <profile>
-         <!-- Generate GPG signatures for published artifacts. Sources and Javadocs are configured per module. Perform Sonatype release to Maven Central. -->
+         <!-- For performing a release to Maven Central. -->
          <id>release</id>
          <build>
             <plugins>
                <plugin>
+                  <!-- Generate GPG signatures for published artifacts. Sources and Javadocs are configured per module. -->
                   <artifactId>maven-gpg-plugin</artifactId>
+               </plugin>
+               <plugin>
+                  <!-- For publishing to the Sonatype Central Publisher Portal -->
+                  <groupId>org.sonatype.central</groupId>
+                  <artifactId>central-publishing-maven-plugin</artifactId>
                </plugin>
             </plugins>
          </build>
