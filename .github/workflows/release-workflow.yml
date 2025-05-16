@@ -49,7 +49,7 @@ jobs:
           GITHUB_TOKEN: ${{ github.token }}
           CENTRAL_USER_TOKEN_USERNAME: ${{ secrets.CENTRAL_USER_TOKEN_USERNAME }}
           CENTRAL_USER_TOKEN_PASSWORD: ${{ secrets.CENTRAL_USER_TOKEN_PASSWORD }}
-      - name: Display staging URL
+      - name: Display publishing URL
         run: |
-          echo 'Close and release staged artifacts on Sonatype' >> $GITHUB_STEP_SUMMARY
-          echo 'https://s01.oss.sonatype.org/#stagingRepositories' >> $GITHUB_STEP_SUMMARY
+          echo 'Release artifacts should be published automatically. Otherwise, look at:' >> $GITHUB_STEP_SUMMARY
+          echo 'https://central.sonatype.com/publishing/deployments' >> $GITHUB_STEP_SUMMARY
