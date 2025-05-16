@@ -45,8 +45,6 @@ jobs:
         run: mvn release:clean release:prepare release:perform -B -s .github/workflows/release-settings.xml -DreleaseVersion=${{ github.event.inputs.releaseVersion }} -DdevelopmentVersion=${{ github.event.inputs.developmentVersion }}
         env:
           GPG_PRIVATE_KEY_PASSPHRASE: ${{ secrets.GPG_PRIVATE_KEY_PASSPHRASE }}
-          OSSRH_USERNAME: ${{ secrets.OSSRH_USERNAME }}
-          OSSRH_PASSWORD: ${{ secrets.OSSRH_PASSWORD }}
           GITHUB_ACTOR: ${{ github.actor }}
           GITHUB_TOKEN: ${{ github.token }}
       - name: Display staging URL

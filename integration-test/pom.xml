@@ -3,6 +3,7 @@
    <modelVersion>4.0.0</modelVersion>
 
    <artifactId>contractfirst-generator-integration-test</artifactId>
+   <packaging>pom</packaging>
 
    <description>
       This module is used as an integration test of the generator. The Maven plugin is

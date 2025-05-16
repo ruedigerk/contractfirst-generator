@@ -3,6 +3,7 @@
    <modelVersion>4.0.0</modelVersion>
 
    <artifactId>contractfirst-generator-compat-1.7-test</artifactId>
+   <packaging>pom</packaging>
 
    <description>
       This module contains backwards compatibility tests for the generator, i.e. tests that the code generated with version 1.7
