@@ -27,7 +27,7 @@ Here is an example for using the Maven plugin to generate server stubs:
     <plugin>
        <artifactId>contractfirst-generator-maven-plugin</artifactId>
        <groupId>io.github.ruedigerk.contractfirst.generator</groupId>
-       <version>1.8.0</version>
+       <version>1.9.0</version>
        <executions>
           <execution>
              <id>generate-server</id>
@@ -49,7 +49,7 @@ The generated server code needs the following dependencies:
         <!-- Contains a JAX-RS ParamConverterProvider and a Gson MessageBodyHandler to support LocalDate and OffsetDateTime -->
         <groupId>io.github.ruedigerk.contractfirst.generator</groupId>
         <artifactId>contractfirst-generator-server-support</artifactId>
-        <version>1.8.0</version>
+        <version>1.9.0</version>
     </dependency>
     <dependency>
         <!-- BeanValidation API for the generated data model -->
@@ -83,7 +83,7 @@ Here is an example for using the Maven plugin to generate an API client:
     <plugin>
        <artifactId>contractfirst-generator-maven-plugin</artifactId>
        <groupId>io.github.ruedigerk.contractfirst.generator</groupId>
-       <version>1.8.0</version>
+       <version>1.9.0</version>
        <executions>
           <execution>
              <id>generate-client</id>
@@ -105,7 +105,7 @@ The generated client code needs the following dependencies:
         <!-- Support module for the generated client code -->
         <groupId>io.github.ruedigerk.contractfirst.generator</groupId>
         <artifactId>contractfirst-generator-client-support</artifactId>
-        <version>1.8.0</version>
+        <version>1.9.0</version>
     </dependency>
     <dependency>
         <!-- BeanValidation API for the generated data model -->
@@ -142,7 +142,7 @@ Here is an example for using the Maven plugin to generate only model files:
     <plugin>
        <artifactId>contractfirst-generator-maven-plugin</artifactId>
        <groupId>io.github.ruedigerk.contractfirst.generator</groupId>
-       <version>1.8.0</version>
+       <version>1.9.0</version>
        <executions>
           <execution>
              <id>generate-model-only</id>
@@ -265,6 +265,7 @@ Changelog
 **Added**
 - Support optional body parts for multipart bodies.
 - Support Collection-typed values for request bodies.
+- Ignore enum definitions with a different type than string.
 
 ### 1.8.0
 

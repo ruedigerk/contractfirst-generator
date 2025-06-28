@@ -25,7 +25,7 @@ class ResolvingSchemaParser(
     while (schemasToParse.isNotEmpty()) {
       val parseable = schemasToParse.removeFirst()
       val id = SchemaId(parseable)
-      
+
       // Enter the schema ID in visitedSchemas before parsing it, to avoid adding it to schemasToParse again during parsing.
       visitedSchemas.add(id)
 
@@ -43,7 +43,7 @@ class ResolvingSchemaParser(
     if (id !in visitedSchemas) {
       schemasToParse.addLast(schema)
     }
-    
+
     return id
   }
 
@@ -57,11 +57,19 @@ class ResolvingSchemaParser(
       throw IllegalArgumentException("Parseable supplied to parseSchema must not be a schema reference, but was ${parseable.getReference()} at ${parseable.position}")
     }
 
-    if (parseable.optionalField("enum").isPresent()) {
-      return toEnumSchema(parseable)
+    val type = parseable.optionalField("type").string()
+
+    if (isEnum(parseable)) {
+      if (type == null || type == "string") {
+        // Assume type is meant to be string if the type is omitted.
+        return toEnumOfStringSchema(parseable)
+      } else {
+        // Enums that are not of type string are ignored.
+        log.warn { "Only enums of type string are supported, generating non-enum type for ${parseable.position} of type $type." }
+      }
     }
 
-    return when (val type = parseable.optionalField("type").string()) {
+    return when (type) {
       "array" -> toArraySchema(parseable)
       "boolean", "integer", "number", "string" -> toPrimitiveSchema(PrimitiveType.valueOf(type.uppercase()), parseable)
       "object", null -> toObjectOrMapSchema(parseable)
@@ -69,19 +77,17 @@ class ResolvingSchemaParser(
     }
   }
 
-  private fun toEnumSchema(parseable: Parseable): EnumSchema {
-    val type = parseable.optionalField("type").string()
+  private fun isEnum(parseable: Parseable): Boolean {
+    return parseable.optionalField("enum").isPresent()
+  }
 
-    if (type != null && type != "string") {
-      throw NotSupportedException("Currently only enum schemas of type 'string' are supported, type is '$type' at ${parseable.position}")
-    }
-
+  private fun toEnumOfStringSchema(parseable: Parseable): EnumSchema {
     val enumValues = parseable.requiredField("enum").requireArray().requireNonEmpty().stringElements()
 
     return EnumSchema(
         parseable.optionalField("title").string().normalize(),
         parseable.optionalField("description").string().normalize(),
-        enumValues.map { it },
+        enumValues,
         parseable.position
     )
   }
