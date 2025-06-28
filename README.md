@@ -260,6 +260,12 @@ Available parameters:
 Changelog
 ---------
 
+### 1.9.0
+
+**Added**
+- Support optional body parts for multipart bodies.
+- Support Collection-typed values in query parameters, header parameters, and request bodies.
+
 ### 1.8.0
 
 **Added**

@@ -222,7 +222,7 @@ class ApiRequestExecutor(httpClient: OkHttpClient, baseUrl: String) {
         // BACKWARDS_COMPATIBILITY(1.7) END
 
         BodyPart.Type.ATTACHMENT -> traverse(part.value) { attachment ->
-          check(attachment is Attachment) { "Body part ${part.name} not of type Attachment or List<Attachment>: ${part.value.javaClass.name}" }
+          check(attachment is Attachment) { "Body part ${part.name} not of type Attachment or Collection<Attachment>: ${attachment.javaClass.name}" }
 
           val bytes = when (val content = attachment.content) {
             is ByteArray -> content
@@ -257,9 +257,9 @@ class ApiRequestExecutor(httpClient: OkHttpClient, baseUrl: String) {
         null -> addLegacyBodyPart(builder, part)
         // BACKWARDS_COMPATIBILITY(1.7) END
 
-        BodyPart.Type.ATTACHMENT -> traverse(part.value) {
-          check(it is Attachment) { "Body part ${part.name} not of type Attachment or List<Attachment>: ${part.value.javaClass.name}" }
-          addAttachmentBodyPart(builder, part.name, it)
+        BodyPart.Type.ATTACHMENT -> traverse(part.value) { attachment ->
+          check(attachment is Attachment) { "Body part ${part.name} not of type Attachment or Collection<Attachment>: ${attachment.javaClass.name}" }
+          addAttachmentBodyPart(builder, part.name, attachment)
         }
 
         BodyPart.Type.COMPLEX -> {

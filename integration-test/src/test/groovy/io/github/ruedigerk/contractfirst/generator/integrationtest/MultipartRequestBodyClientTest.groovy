@@ -11,7 +11,8 @@ import org.glassfish.jersey.media.multipart.FormDataParam
 import spock.lang.Subject
 
 import javax.ws.rs.*
-import javax.ws.rs.core.MediaType 
+import javax.ws.rs.core.MediaType
+
 /**
  * Tests serialization of form encoded request bodies.
  */
@@ -55,20 +56,20 @@ class MultipartRequestBodyClientTest extends EmbeddedJaxRsServerSpecification {
     result.isStatus204WithoutEntity()
   }
 
-//  def "Test multipart form data request body with optional parameters not supplied"() {
-//    when:
-//    def result = apiClient.returningResult().multipartRequestBody(
-//        "optionalParametersMissing",
-//        null,
-//        null,
-//        null,
-//        null,
-//        []
-//    )
-//
-//    then:
-//    result.isStatus204WithoutEntity()
-//  }
+  def "Test multipart form data request body with optional parameters not supplied"() {
+    when:
+    def result = apiClient.returningResult().multipartRequestBody(
+        "optionalParametersMissing",
+        null,
+        null,
+        null,
+        null,
+        []
+    )
+
+    then:
+    result.isStatus204WithoutEntity()
+  }
 
   static private InputStream getSamplePdfAsInputStream() {
     MultipartRequestBodyClientTest.getResourceAsStream("/sample.pdf")
@@ -108,7 +109,7 @@ class MultipartRequestBodyClientTest extends EmbeddedJaxRsServerSpecification {
         assert stringProperty == null
         assert integerProperty == null
         assert objectProperty == null
-//        assert firstBinary == null
+        assert firstBinary == null
         assert additionalBinaries == null
       } else {
         assert stringProperty == "a&1"

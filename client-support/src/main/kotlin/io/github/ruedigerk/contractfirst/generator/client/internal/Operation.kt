@@ -151,7 +151,7 @@ class Operation private constructor(builder: Builder) {
     /**
      * Defines a form field of an x-www-form-urlencoded request body, or a part of a multipart request body.
      */
-    fun requestBodyPart(type: BodyPart.Type?, name: String, value: Any) {
+    fun requestBodyPart(type: BodyPart.Type?, name: String, value: Any?) {
       bodyParts.add(BodyPart(type, name, value))
     }
 
