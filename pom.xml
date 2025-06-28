@@ -258,8 +258,8 @@
                      <excludeArtifact>contractfirst-generator-integration-test</excludeArtifact>
                      <excludeArtifact>contractfirst-generator-compat-1.7-test</excludeArtifact>
                   </excludeArtifacts>
-                  <autoPublish>true</autoPublish>
-                  <waitUntil>published</waitUntil>
+                  <autoPublish>false</autoPublish>
+                  <waitUntil>validated</waitUntil>
                </configuration>
             </plugin>
             

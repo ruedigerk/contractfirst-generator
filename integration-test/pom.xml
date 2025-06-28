@@ -16,19 +16,6 @@
       <version>1.8.1-SNAPSHOT</version>
    </parent>
 
-   <properties>
-      <!-- Skip install and deploy -->
-      <maven.install.skip>true</maven.install.skip>
-      <maven.deploy.skip>true</maven.deploy.skip>
-
-      <!-- Skip GPG Signing -->
-      <gpg.skip>true</gpg.skip>
-
-      <!-- Skip Javadoc and source JAR generation -->
-      <maven.javadoc.skip>true</maven.javadoc.skip>
-      <maven.source.skip>true</maven.source.skip>
-   </properties>
-
    <build>
       <plugins>
          <plugin>
@@ -63,7 +50,7 @@
                   </goals>
                   <configuration>
                      <generator>server</generator>
-                     <inputContractFile>${project.basedir}/src/test/contract/testsuite.yaml</inputContractFile>
+                     <inputContractFile>${project.basedir}/src/main/contract/testsuite.yaml</inputContractFile>
                      <outputDir>${project.build.directory}/generated-sources/integrationtest</outputDir>
                      <outputJavaBasePackage>io.github.ruedigerk.contractfirst.generator.integrationtest.generated.server</outputJavaBasePackage>
                      <outputJavaModelNamePrefix>S</outputJavaModelNamePrefix>
@@ -76,7 +63,7 @@
                   </goals>
                   <configuration>
                      <generator>client</generator>
-                     <inputContractFile>${project.basedir}/src/test/contract/testsuite.yaml</inputContractFile>
+                     <inputContractFile>${project.basedir}/src/main/contract/testsuite.yaml</inputContractFile>
                      <outputDir>${project.build.directory}/generated-sources/integrationtest</outputDir>
                      <outputJavaBasePackage>io.github.ruedigerk.contractfirst.generator.integrationtest.generated.client</outputJavaBasePackage>
                      <outputJavaModelNamePrefix>C</outputJavaModelNamePrefix>
@@ -89,7 +76,7 @@
                   </goals>
                   <configuration>
                      <generator>server</generator>
-                     <inputContractFile>${project.basedir}/src/test/contract/content-type-combinations.yaml</inputContractFile>
+                     <inputContractFile>${project.basedir}/src/main/contract/content-type-combinations.yaml</inputContractFile>
                      <outputDir>${project.build.directory}/generated-sources/integrationtest</outputDir>
                      <outputJavaBasePackage>io.github.ruedigerk.contractfirst.generator.combinations.generated.server</outputJavaBasePackage>
                      <outputJavaModelNamePrefix>S</outputJavaModelNamePrefix>
@@ -102,7 +89,7 @@
                   </goals>
                   <configuration>
                      <generator>client</generator>
-                     <inputContractFile>${project.basedir}/src/test/contract/content-type-combinations.yaml</inputContractFile>
+                     <inputContractFile>${project.basedir}/src/main/contract/content-type-combinations.yaml</inputContractFile>
                      <outputDir>${project.build.directory}/generated-sources/integrationtest</outputDir>
                      <outputJavaBasePackage>io.github.ruedigerk.contractfirst.generator.combinations.generated.client</outputJavaBasePackage>
                      <outputJavaModelNamePrefix>C</outputJavaModelNamePrefix>
@@ -117,7 +104,7 @@
                   </goals>
                   <configuration>
                      <generator>server</generator>
-                     <inputContractFile>${project.basedir}/src/test/contract/minimal.yaml</inputContractFile>
+                     <inputContractFile>${project.basedir}/src/main/contract/minimal.yaml</inputContractFile>
                      <outputJavaBasePackage>io.github.ruedigerk.contractfirst.generator.mojotest.defaults</outputJavaBasePackage>
                   </configuration>
                </execution>
@@ -129,7 +116,7 @@
                   </goals>
                   <configuration>
                      <generator>model-only</generator>
-                     <inputContractFile>src/test/contract/modelOnlySchemas</inputContractFile>
+                     <inputContractFile>src/main/contract/modelOnlySchemas</inputContractFile>
                      <outputJavaBasePackage>io.github.ruedigerk.contractfirst.generator.mojotest.modelonly</outputJavaBasePackage>
                      <outputJavaModelUseJsr305NullabilityAnnotations>true</outputJavaModelUseJsr305NullabilityAnnotations>
                   </configuration>
@@ -153,9 +140,6 @@
                   </configuration>
                </execution>
             </executions>
-            <configuration>
-               <addAsTestSource>true</addAsTestSource>
-            </configuration>
          </plugin>
       </plugins>
    </build>

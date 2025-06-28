@@ -51,5 +51,5 @@ jobs:
           CENTRAL_USER_TOKEN_PASSWORD: ${{ secrets.CENTRAL_USER_TOKEN_PASSWORD }}
       - name: Display publishing URL
         run: |
-          echo 'Release artifacts should be published automatically. Otherwise, look at:' >> $GITHUB_STEP_SUMMARY
+          echo 'Release artifacts must be published manually.' >> $GITHUB_STEP_SUMMARY
           echo 'https://central.sonatype.com/publishing/deployments' >> $GITHUB_STEP_SUMMARY

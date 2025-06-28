@@ -3,6 +3,7 @@
    <modelVersion>4.0.0</modelVersion>
 
    <artifactId>contractfirst-generator-maven-plugin</artifactId>
+   <name>${project.artifactId}</name>
    <packaging>maven-plugin</packaging>
 
    <parent>
