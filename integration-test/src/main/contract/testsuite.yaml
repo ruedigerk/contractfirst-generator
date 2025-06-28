@@ -67,7 +67,7 @@ paths:
               schema:
                 $ref: "#/components/schemas/Failure"
 
-  /multiValuedParametersTest/{pathParam}:
+  /multiValuedParametersTest/{pathParam}/{pathSetParam}:
     post:
       summary: Test for handling of multi-valued parameters.
       operationId: multiValuedParametersTest
@@ -102,6 +102,34 @@ paths:
           required: false
           schema:
             type: array
+            items:
+              type: integer
+              format: int32
+        - name: pathSetParam
+          in: path
+          description: Multi-valued path parameter.
+          required: true
+          schema:
+            type: array
+            uniqueItems: true
+            items:
+              type: string
+        - name: querySetParam
+          in: query
+          description: Multi-valued query parameter.
+          required: false
+          schema:
+            type: array
+            uniqueItems: true
+            items:
+              $ref: "#/components/schemas/SimpleEnum"
+        - name: headerSetParam
+          in: header
+          description: Multi-valued header parameter.
+          required: false
+          schema:
+            type: array
+            uniqueItems: true
             items:
               type: integer
               format: int32

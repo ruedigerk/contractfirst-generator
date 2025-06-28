@@ -264,7 +264,7 @@ Changelog
 
 **Added**
 - Support optional body parts for multipart bodies.
-- Support Collection-typed values in query parameters, header parameters, and request bodies.
+- Support Collection-typed values for request bodies.
 
 ### 1.8.0
 
