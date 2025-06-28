@@ -249,7 +249,7 @@
                <!-- See: https://central.sonatype.org/publish/publish-portal-maven/ -->
                <groupId>org.sonatype.central</groupId>
                <artifactId>central-publishing-maven-plugin</artifactId>
-               <version>0.7.0</version>
+               <version>0.8.0</version>
                <extensions>true</extensions>
                <configuration>
                   <!-- The ID of the server entry in the settings.xml that contains the User Token credentials to authenticate with. -->
