@@ -265,6 +265,7 @@ Changelog
 **Added**
 - Support optional body parts for multipart bodies.
 - Support Collection-typed values for request bodies.
+- Ignore enum definitions with a different type than string.
 
 ### 1.8.0
 

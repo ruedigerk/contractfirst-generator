@@ -395,6 +395,24 @@ paths:
         204:
           description: Ok.
 
+  /nonStringEnumTypeIsIgnored:
+    post:
+      description: Testing that enums of a type different from string are supported by ignoring the enum part of the type.
+      operationId: nonStringEnumTypeIsIgnored
+      tags:
+        - testcases
+      parameters:
+        - name: booleanEnum
+          in: query
+          schema:
+            type: boolean
+            enum:
+              - true
+              - false
+      responses:
+        204:
+          description: Ok.
+
   /nonJavaPropertyNames:
     post:
       description: A test case for a JSON model with properties that are not legal Java identifiers.
@@ -430,6 +448,7 @@ paths:
             application/xml:
               schema:
                 $ref: "#/components/schemas/Item"
+                
   /formEncodedRequestBody:
     post:
       description: A test case for an x-www-form-urlencoded encoded request body.
