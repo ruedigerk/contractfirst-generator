@@ -21,7 +21,7 @@ paths:
           content:
             application/json:
               schema:
-                $ref: '#/components/schemas/Book'
+                $ref: "#/components/schemas/Book"
           description: The one response definition with status "default".
       summary: Test case for only having a response with status code "default".
       tags:
@@ -34,7 +34,7 @@ paths:
           content:
             application/json:
               schema:
-                $ref: '#/components/schemas/Book'
+                $ref: "#/components/schemas/Book"
           description: "The single response, successful."
       summary: Test case for only having a single successful response.
       tags:
@@ -47,7 +47,7 @@ paths:
           content:
             application/json:
               schema:
-                $ref: '#/components/schemas/CtcError'
+                $ref: "#/components/schemas/CtcError"
           description: "The single response, being a failure."
       summary: Test case for only having a single failure response.
       tags:
@@ -68,13 +68,13 @@ paths:
           content:
             application/json:
               schema:
-                $ref: '#/components/schemas/Book'
+                $ref: "#/components/schemas/Book"
           description: Success is a book.
         default:
           content:
             application/json:
               schema:
-                $ref: '#/components/schemas/CtcError'
+                $ref: "#/components/schemas/CtcError"
           description: Default is failure.
       summary: Test case for having one successful response with an entity and a default for all errors.
       tags:
@@ -95,13 +95,13 @@ paths:
           content:
             application/json:
               schema:
-                $ref: '#/components/schemas/Book'
+                $ref: "#/components/schemas/Book"
           description: Success is a book.
         "201":
           content:
             application/json:
               schema:
-                $ref: '#/components/schemas/CtcError'
+                $ref: "#/components/schemas/CtcError"
           description: Success is also a failure.
       summary: Test case for having multiple success entity types.
       tags:
@@ -141,19 +141,19 @@ paths:
           content:
             application/json:
               schema:
-                $ref: '#/components/schemas/Book'
+                $ref: "#/components/schemas/Book"
           description: Success is a book.
         "400":
           content:
             application/json:
               schema:
-                $ref: '#/components/schemas/CtcError'
+                $ref: "#/components/schemas/CtcError"
           description: Error with CtcError entity.
         "500":
           content:
             application/json:
               schema:
-                $ref: '#/components/schemas/SevereCtcError'
+                $ref: "#/components/schemas/SevereCtcError"
           description: Error with SevereCtcError entity.
       summary: Test case for having multiple error entity types.
       tags:
@@ -166,7 +166,7 @@ paths:
           content:
             application/json:
               schema:
-                $ref: '#/components/schemas/Book'
+                $ref: "#/components/schemas/Book"
           description: "Status 204, returning content."
       summary: Test case for returning content with status code 204.
       tags:
@@ -177,7 +177,7 @@ components:
       content:
         application/json:
           schema:
-            $ref: '#/components/schemas/CtcError'
+            $ref: "#/components/schemas/CtcError"
       description: "Some other error, like 500."
   schemas:
     Book:

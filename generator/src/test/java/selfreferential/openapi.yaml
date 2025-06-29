@@ -13,7 +13,7 @@ paths:
           content:
             application/json:
               schema:
-                $ref: '#/components/schemas/Model'
+                $ref: "#/components/schemas/Model"
           description: Returned component.
       summary: "Get component. Also, test escaping of JavaPoet placeholders: $L $1N $%."
       tags:
@@ -27,4 +27,4 @@ components:
           description: "The name. Also, test escaping of JavaPoet placeholders: $L $1N $%."
           type: string
         next:
-          $ref: '#/components/schemas/Model'
+          $ref: "#/components/schemas/Model"

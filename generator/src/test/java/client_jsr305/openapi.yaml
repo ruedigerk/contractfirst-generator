@@ -46,14 +46,14 @@ paths:
         content:
           application/json:
             schema:
-              $ref: '#/components/schemas/Item'
+              $ref: "#/components/schemas/Item"
         required: true
       responses:
         "200":
           content:
             application/json:
               schema:
-                $ref: '#/components/schemas/Item'
+                $ref: "#/components/schemas/Item"
           description: Return created item
         "201":
           description: "Accepted, also empty response."
@@ -63,13 +63,13 @@ paths:
           content:
             application/json:
               schema:
-                $ref: '#/components/schemas/Failure'
+                $ref: "#/components/schemas/Failure"
           description: "Error, customer ID unknown"
         default:
           content:
             application/json:
               schema:
-                $ref: '#/components/schemas/Failure'
+                $ref: "#/components/schemas/Failure"
           description: "Some other error, like 500."
       summary: Test for the various parameter locations and for serializing request and response body entities.
       tags:
@@ -82,7 +82,7 @@ paths:
           application/json:
             schema:
               items:
-                $ref: '#/components/schemas/Item'
+                $ref: "#/components/schemas/Item"
               type: array
         required: true
       responses:
@@ -91,15 +91,11 @@ paths:
             application/json:
               schema:
                 items:
-                  $ref: '#/components/schemas/Item'
+                  $ref: "#/components/schemas/Item"
                 type: array
           description: Returned filtered items.
         default:
-          content:
-            application/json:
-              schema:
-                $ref: '#/components/schemas/Failure'
-          description: "Some other error, like 500."
+          $ref: "#/components/responses/DefaultFailures"
       summary: "Test operation for generating generic types, e.g. List of Item."
       tags:
       - PayloadVariants
@@ -111,7 +107,7 @@ paths:
           application/json:
             schema:
               items:
-                $ref: '#/components/schemas/Item'
+                $ref: "#/components/schemas/Item"
               type: array
         required: true
       responses:
@@ -120,15 +116,11 @@ paths:
             application/json:
               schema:
                 items:
-                  $ref: '#/components/schemas/Item'
+                  $ref: "#/components/schemas/Item"
                 type: array
           description: Returned filtered items.
         default:
-          content:
-            application/json:
-              schema:
-                $ref: '#/components/schemas/Failure'
-          description: "Some other error, like 500."
+          $ref: "#/components/responses/DefaultFailures"
       summary: "Second test operation for generic types, using the same generic return type as the other operation (test for bug in the generator)."
       tags:
       - PayloadVariants
@@ -139,17 +131,13 @@ paths:
         content:
           application/json:
             schema:
-              $ref: '#/components/schemas/Item'
+              $ref: "#/components/schemas/Item"
         required: true
       responses:
         "204":
           description: Ok
         default:
-          content:
-            application/json:
-              schema:
-                $ref: '#/components/schemas/Failure'
-          description: "Some other error, like 500."
+          $ref: "#/components/responses/DefaultFailures"
       summary: Test for 204 response.
       tags:
       - PayloadVariants
@@ -171,11 +159,7 @@ paths:
                 type: string
           description: Returned binary data.
         default:
-          content:
-            application/json:
-              schema:
-                $ref: '#/components/schemas/Failure'
-          description: "Some other error, like 500."
+          $ref: "#/components/responses/DefaultFailures"
       summary: Test binary input and output.
       tags:
       - PayloadVariants
@@ -196,7 +180,7 @@ paths:
           content:
             application/json:
               schema:
-                $ref: '#/components/schemas/Manual'
+                $ref: "#/components/schemas/Manual"
             application/pdf:
               schema:
                 format: binary
@@ -211,11 +195,7 @@ paths:
         "204":
           description: Return nothing.
         default:
-          content:
-            application/json:
-              schema:
-                $ref: '#/components/schemas/Failure'
-          description: "Some other error, like 500."
+          $ref: "#/components/responses/DefaultFailures"
       summary: Test case for multiple response content types with different schemas.
       tags:
       - MultipleContentTypes
@@ -243,11 +223,7 @@ paths:
                 type: string
           description: Returned some content.
         default:
-          content:
-            application/json:
-              schema:
-                $ref: '#/components/schemas/Failure'
-          description: "Some other error, like 500."
+          $ref: "#/components/responses/DefaultFailures"
       summary: Test wildcard response content types.
       tags:
       - WildcardContentTypes
@@ -299,21 +275,17 @@ paths:
         content:
           application/json:
             schema:
-              $ref: '#/components/schemas/Clock'
+              $ref: "#/components/schemas/Clock"
         required: true
       responses:
         "200":
           content:
             application/json:
               schema:
-                $ref: '#/components/schemas/ClockResponse'
+                $ref: "#/components/schemas/ClockResponse"
           description: Returned a clock.
         default:
-          content:
-            application/json:
-              schema:
-                $ref: '#/components/schemas/Failure'
-          description: "Some other error, like 500."
+          $ref: "#/components/responses/DefaultFailures"
       summary: For testing handling of date and date-time formats.
       tags:
       - time
@@ -337,11 +309,7 @@ paths:
                 type: number
           description: Returned decimal number.
         default:
-          content:
-            application/json:
-              schema:
-                $ref: '#/components/schemas/Failure'
-          description: "Some other error, like 500."
+          $ref: "#/components/responses/DefaultFailures"
       summary: Test serialization of schema type number as BigDecimal.
       tags:
       - BigDecimals
@@ -362,11 +330,7 @@ paths:
                 type: array
           description: Return an object embedded inline in an array.
         default:
-          content:
-            application/json:
-              schema:
-                $ref: '#/components/schemas/Failure'
-          description: "Some other error, like 500."
+          $ref: "#/components/responses/DefaultFailures"
       tags:
       - testcases
   /postWithoutBody/post:
@@ -404,21 +368,17 @@ paths:
         content:
           application/json:
             schema:
-              $ref: '#/components/schemas/ProblematicName'
+              $ref: "#/components/schemas/ProblematicName"
         required: true
       responses:
         "200":
           content:
             application/json:
               schema:
-                $ref: '#/components/schemas/ProblematicName'
+                $ref: "#/components/schemas/ProblematicName"
           description: Return object as received.
         default:
-          content:
-            application/json:
-              schema:
-                $ref: '#/components/schemas/Failure'
-          description: "Some other error, like 500."
+          $ref: "#/components/responses/DefaultFailures"
       tags:
       - NonJavaPropertyNames
   /nonJsonEntityAsJson:
@@ -429,7 +389,7 @@ paths:
           content:
             application/xml:
               schema:
-                $ref: '#/components/schemas/Item'
+                $ref: "#/components/schemas/Item"
           description: "Response defined with content type XML, but server sends JSON anyway."
       summary: Test case for an operation that declares a non-JSON entity and the server nevertheless sending the entity as JSON.
       tags:
@@ -440,7 +400,7 @@ components:
       content:
         application/json:
           schema:
-            $ref: '#/components/schemas/Failure'
+            $ref: "#/components/schemas/Failure"
       description: "Some other error, like 500."
   schemas:
     Item:
@@ -463,7 +423,7 @@ components:
         name:
           type: string
         type:
-          $ref: '#/components/schemas/ComponentType'
+          $ref: "#/components/schemas/ComponentType"
         multiplier:
           enum:
           - "1"
@@ -488,7 +448,7 @@ components:
       type: string
     Components:
       items:
-        $ref: '#/components/schemas/Component'
+        $ref: "#/components/schemas/Component"
       type: array
     Manual:
       properties:
