@@ -61,7 +61,7 @@ The generated server code needs the following dependencies:
         <!-- Gson for serializing and deserializing the generated data model to and from JSON -->
         <groupId>com.google.code.gson</groupId>
         <artifactId>gson</artifactId>
-        <version>2.9.0</version>
+        <version>2.13.2</version>
     </dependency>
 
 Additionally, if using the option `outputJavaModelUseJsr305NullabilityAnnotations` there needs to be a dependency for these annotations, like:
@@ -117,7 +117,7 @@ The generated client code needs the following dependencies:
         <!-- Gson for serializing and deserializing the generated data model to and from JSON -->
         <groupId>com.google.code.gson</groupId>
         <artifactId>gson</artifactId>
-        <version>2.9.0</version>
+        <version>2.13.2</version>
     </dependency>
 
 Additionally, if using the option `outputJavaModelUseJsr305NullabilityAnnotations` there needs to be a dependency for these annotations, like:
@@ -171,7 +171,7 @@ The generated model code needs the following dependencies:
         <!-- Gson for serializing and deserializing the generated data model to and from JSON -->
         <groupId>com.google.code.gson</groupId>
         <artifactId>gson</artifactId>
-        <version>2.9.0</version>
+        <version>2.13.2</version>
     </dependency>
 
 Additionally, if using the option `outputJavaModelUseJsr305NullabilityAnnotations` there needs to be a dependency for these annotations, like:

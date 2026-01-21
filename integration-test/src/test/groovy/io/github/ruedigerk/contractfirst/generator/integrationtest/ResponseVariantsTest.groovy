@@ -10,9 +10,8 @@ import io.github.ruedigerk.contractfirst.generator.integrationtest.generated.ser
 import io.github.ruedigerk.contractfirst.generator.integrationtest.generated.server.model.SItem
 import io.github.ruedigerk.contractfirst.generator.integrationtest.generated.server.resources.ResponseVariantsApi
 import io.github.ruedigerk.contractfirst.generator.integrationtest.spec.EmbeddedJaxRsServerSpecification
+import jakarta.ws.rs.core.Response
 import spock.lang.Subject
-
-import javax.ws.rs.core.Response
 
 /**
  * Tests different variants of responses that a server can respond with.
@@ -49,7 +48,7 @@ class ResponseVariantsTest extends EmbeddedJaxRsServerSpecification {
         new Header("Host", HOST),
         new Header("Connection", "Keep-Alive"),
         new Header("Accept-Encoding", "gzip"),
-        new Header("User-Agent", "okhttp/4.12.0"),
+        new Header("User-Agent", "okhttp/5.3.2"),
     ]
     response.statusCode == 200
     response.httpStatusMessage == "OK"
@@ -79,7 +78,7 @@ class ResponseVariantsTest extends EmbeddedJaxRsServerSpecification {
         new Header("Host", HOST),
         new Header("Connection", "Keep-Alive"),
         new Header("Accept-Encoding", "gzip"),
-        new Header("User-Agent", "okhttp/4.12.0"),
+        new Header("User-Agent", "okhttp/5.3.2"),
     ]
     response.statusCode == 201
     response.httpStatusMessage == "Created"
@@ -108,7 +107,7 @@ class ResponseVariantsTest extends EmbeddedJaxRsServerSpecification {
         new Header("Host", HOST),
         new Header("Connection", "Keep-Alive"),
         new Header("Accept-Encoding", "gzip"),
-        new Header("User-Agent", "okhttp/4.12.0"),
+        new Header("User-Agent", "okhttp/5.3.2"),
     ]
     response.statusCode == 204
     response.httpStatusMessage == "No Content"
@@ -148,7 +147,7 @@ class ResponseVariantsTest extends EmbeddedJaxRsServerSpecification {
         new Header("Host", HOST),
         new Header("Connection", "Keep-Alive"),
         new Header("Accept-Encoding", "gzip"),
-        new Header("User-Agent", "okhttp/4.12.0"),
+        new Header("User-Agent", "okhttp/5.3.2"),
     ]
     response.statusCode == 400
     response.httpStatusMessage == "Bad Request"
@@ -190,7 +189,7 @@ class ResponseVariantsTest extends EmbeddedJaxRsServerSpecification {
         new Header("Host", HOST),
         new Header("Connection", "Keep-Alive"),
         new Header("Accept-Encoding", "gzip"),
-        new Header("User-Agent", "okhttp/4.12.0"),
+        new Header("User-Agent", "okhttp/5.3.2"),
     ]
     response.statusCode == 500
     response.httpStatusMessage == "Internal Server Error"
@@ -227,7 +226,7 @@ class ResponseVariantsTest extends EmbeddedJaxRsServerSpecification {
         new Header("Host", HOST),
         new Header("Connection", "Keep-Alive"),
         new Header("Accept-Encoding", "gzip"),
-        new Header("User-Agent", "okhttp/4.12.0"),
+        new Header("User-Agent", "okhttp/5.3.2"),
     ]
     response.headers == [
         new Header("Content-Type","text/plain"),
@@ -257,7 +256,7 @@ class ResponseVariantsTest extends EmbeddedJaxRsServerSpecification {
         new Header("Host", HOST),
         new Header("Connection", "Keep-Alive"),
         new Header("Accept-Encoding", "gzip"),
-        new Header("User-Agent", "okhttp/4.12.0"),
+        new Header("User-Agent", "okhttp/5.3.2"),
     ]
     e.response.statusCode == 500
     e.response.httpStatusMessage == "Internal Server Error"

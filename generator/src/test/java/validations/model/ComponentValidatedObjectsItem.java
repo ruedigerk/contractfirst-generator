@@ -1,7 +1,7 @@
 package validations.model;
 
+import jakarta.validation.constraints.Pattern;
 import java.util.Objects;
-import javax.validation.constraints.Pattern;
 
 public class ComponentValidatedObjectsItem {
   @Pattern(

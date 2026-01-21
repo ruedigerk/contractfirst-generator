@@ -1,11 +1,11 @@
 package server_jsr305.resources;
 
+import jakarta.ws.rs.GET;
+import jakarta.ws.rs.HeaderParam;
+import jakarta.ws.rs.Path;
+import jakarta.ws.rs.Produces;
+import jakarta.ws.rs.core.Response;
 import java.io.InputStream;
-import javax.ws.rs.GET;
-import javax.ws.rs.HeaderParam;
-import javax.ws.rs.Path;
-import javax.ws.rs.Produces;
-import javax.ws.rs.core.Response;
 import server_jsr305.model.Failure;
 import server_jsr305.model.Manual;
 import server_jsr305.resources.support.ResponseWrapper;

@@ -1,9 +1,9 @@
 package model_only.types;
 
+import jakarta.validation.Valid;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Objects;
-import javax.validation.Valid;
 import model_only.sibling.Sibling;
 
 /**

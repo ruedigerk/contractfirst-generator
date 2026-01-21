@@ -1,7 +1,7 @@
 package multipart.model;
 
+import jakarta.validation.constraints.NotNull;
 import java.util.Objects;
-import javax.validation.constraints.NotNull;
 
 public class MultipartRequestBodyRequestBodyMultipartFormDataObjectProperty {
   @NotNull

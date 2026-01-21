@@ -51,8 +51,11 @@ class MultipartRequestBodyClientCompat_1_7Test extends EmbeddedJaxRsServerSpecif
   /**
    * JAX-RS resource implementation used in this test.
    *
-   * See here, how Jersey handles multipart request bodies (unfortunately, multipart request bodies are not handled by the JAX-RS spec):
+   * See here, how Jersey 2 handles multipart request bodies:
    * https://eclipse-ee4j.github.io/jersey.github.io/documentation/latest/media.html#multipart
+   * 
+   * Unfortunately, multipart request bodies are only available from JAX-RS 3.1 onward, not supported by version 1.7 of the generator.
+   * JAX-RS 3.1 Spec: https://jakarta.ee/specifications/restful-ws/3.1/jakarta-restful-ws-spec-3.1.html#consuming_multipart_formdata
    */
   @Path("")
   static class EmbeddedServerResource {

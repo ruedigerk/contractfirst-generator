@@ -11,13 +11,13 @@ import java.math.BigInteger
  */
 object Annotations {
 
-  private const val BEAN_VALIDATION_PACKAGE = "javax.validation.constraints"
+  private const val BEAN_VALIDATION_PACKAGE = "jakarta.validation.constraints"
 
-  private val VALID_ANNOTATION: AnnotationSpec = toAnnotation("javax.validation.Valid")
+  private val VALID_ANNOTATION: AnnotationSpec = toAnnotation("jakarta.validation.Valid")
   private val JSR305_NULLABLE_ANNOTATION: AnnotationSpec = toAnnotation("javax.annotation.Nullable")
   private val JSR305_NONNULL_ANNOTATION: AnnotationSpec = toAnnotation("javax.annotation.Nonnull")
 
-  val NOT_NULL_ANNOTATION: AnnotationSpec = toAnnotation("javax.validation.constraints.NotNull")
+  val NOT_NULL_ANNOTATION: AnnotationSpec = toAnnotation("jakarta.validation.constraints.NotNull")
 
   fun toAnnotation(name: String, value: Any, stringValue: Boolean = true): AnnotationSpec = toAnnotation(name, listOf(value), stringValue)
 

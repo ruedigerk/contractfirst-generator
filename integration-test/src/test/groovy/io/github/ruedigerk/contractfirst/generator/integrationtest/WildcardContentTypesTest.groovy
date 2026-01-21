@@ -6,7 +6,7 @@ import io.github.ruedigerk.contractfirst.generator.integrationtest.spec.Embedded
 import okhttp3.logging.HttpLoggingInterceptor
 import spock.lang.Subject
 
-import javax.ws.rs.core.Response
+import jakarta.ws.rs.core.Response
 
 /**
  * Test for wildcards in response content types.

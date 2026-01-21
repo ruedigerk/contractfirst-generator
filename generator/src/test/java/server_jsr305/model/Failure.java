@@ -1,8 +1,8 @@
 package server_jsr305.model;
 
+import jakarta.validation.constraints.NotNull;
 import java.util.Objects;
 import javax.annotation.Nonnull;
-import javax.validation.constraints.NotNull;
 
 public class Failure {
   @NotNull

@@ -13,8 +13,8 @@
    </parent>
 
    <properties>
-      <required.maven.version>3.8.1</required.maven.version>
-      <maven-plugin-plugin.version>3.10.2</maven-plugin-plugin.version>
+      <required.maven.version>3.8.9</required.maven.version>
+      <maven-plugin-plugin.version>3.15.2</maven-plugin-plugin.version>
    </properties>
 
    <prerequisites>

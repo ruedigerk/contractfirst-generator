@@ -1,7 +1,7 @@
 package selfreferential.model;
 
+import jakarta.validation.Valid;
 import java.util.Objects;
-import javax.validation.Valid;
 
 /**
  * A self-referential Model. Also, test escaping of JavaPoet placeholders: $L $1N $%.

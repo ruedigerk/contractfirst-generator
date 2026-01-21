@@ -1,13 +1,13 @@
 
 package io.github.ruedigerk.contractfirst.generator.server;
 
+import jakarta.ws.rs.ext.ParamConverter;
+import jakarta.ws.rs.ext.ParamConverterProvider;
+import jakarta.ws.rs.ext.Provider;
 import java.lang.annotation.Annotation;
 import java.lang.reflect.Type;
 import java.time.LocalDate;
 import java.time.OffsetDateTime;
-import javax.ws.rs.ext.ParamConverter;
-import javax.ws.rs.ext.ParamConverterProvider;
-import javax.ws.rs.ext.Provider;
 
 /**
  * JAX-RS ParamConverterProvider to enable parameters in the date and date-time formats to be serialized to LocalDate and OffsetDateTime instances.

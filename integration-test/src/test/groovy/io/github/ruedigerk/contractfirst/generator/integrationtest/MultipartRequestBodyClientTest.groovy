@@ -6,12 +6,11 @@ import io.github.ruedigerk.contractfirst.generator.integrationtest.generated.cli
 import io.github.ruedigerk.contractfirst.generator.integrationtest.generated.client.model.CMultipartRequestBodyRequestBodyMultipartFormDataObjectProperty
 import io.github.ruedigerk.contractfirst.generator.integrationtest.generated.server.model.SMultipartRequestBodyRequestBodyMultipartFormDataObjectProperty
 import io.github.ruedigerk.contractfirst.generator.integrationtest.spec.EmbeddedJaxRsServerSpecification
+import jakarta.ws.rs.*
+import jakarta.ws.rs.core.MediaType
 import org.glassfish.jersey.media.multipart.FormDataBodyPart
 import org.glassfish.jersey.media.multipart.FormDataParam
 import spock.lang.Subject
-
-import javax.ws.rs.*
-import javax.ws.rs.core.MediaType
 
 /**
  * Tests serialization of form encoded request bodies.

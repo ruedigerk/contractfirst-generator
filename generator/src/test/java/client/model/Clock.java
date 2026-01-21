@@ -1,9 +1,9 @@
 package client.model;
 
+import jakarta.validation.constraints.NotNull;
 import java.time.LocalDate;
 import java.time.OffsetDateTime;
 import java.util.Objects;
-import javax.validation.constraints.NotNull;
 
 public class Clock {
   @NotNull

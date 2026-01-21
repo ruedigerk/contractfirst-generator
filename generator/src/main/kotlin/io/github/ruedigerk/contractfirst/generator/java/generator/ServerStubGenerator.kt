@@ -1,11 +1,6 @@
 package io.github.ruedigerk.contractfirst.generator.java.generator
 
-import com.squareup.javapoet.AnnotationSpec
-import com.squareup.javapoet.ClassName
-import com.squareup.javapoet.JavaFile
-import com.squareup.javapoet.MethodSpec
-import com.squareup.javapoet.ParameterSpec
-import com.squareup.javapoet.TypeSpec
+import com.squareup.javapoet.*
 import io.github.ruedigerk.contractfirst.generator.java.Identifiers.capitalize
 import io.github.ruedigerk.contractfirst.generator.java.Identifiers.mediaTypeToJavaIdentifier
 import io.github.ruedigerk.contractfirst.generator.java.JavaConfiguration
@@ -15,27 +10,14 @@ import io.github.ruedigerk.contractfirst.generator.java.generator.JavapoetExtens
 import io.github.ruedigerk.contractfirst.generator.java.generator.JavapoetExtensions.doIfNotNull
 import io.github.ruedigerk.contractfirst.generator.java.generator.TypeNames.toClassName
 import io.github.ruedigerk.contractfirst.generator.java.generator.TypeNames.toTypeName
-import io.github.ruedigerk.contractfirst.generator.java.model.JavaContent
-import io.github.ruedigerk.contractfirst.generator.java.model.JavaMultipartBodyParameter
-import io.github.ruedigerk.contractfirst.generator.java.model.JavaOperation
-import io.github.ruedigerk.contractfirst.generator.java.model.JavaOperationGroup
-import io.github.ruedigerk.contractfirst.generator.java.model.JavaParameter
-import io.github.ruedigerk.contractfirst.generator.java.model.JavaRegularParameter
-import io.github.ruedigerk.contractfirst.generator.java.model.JavaResponse
-import io.github.ruedigerk.contractfirst.generator.java.model.JavaSpecification
+import io.github.ruedigerk.contractfirst.generator.java.model.*
 import io.github.ruedigerk.contractfirst.generator.logging.Log
 import io.github.ruedigerk.contractfirst.generator.model.DefaultStatusCode
 import io.github.ruedigerk.contractfirst.generator.model.HttpMethod
-import io.github.ruedigerk.contractfirst.generator.model.ParameterLocation.COOKIE
-import io.github.ruedigerk.contractfirst.generator.model.ParameterLocation.HEADER
-import io.github.ruedigerk.contractfirst.generator.model.ParameterLocation.PATH
-import io.github.ruedigerk.contractfirst.generator.model.ParameterLocation.QUERY
+import io.github.ruedigerk.contractfirst.generator.model.ParameterLocation.*
 import io.github.ruedigerk.contractfirst.generator.model.StatusCode
 import java.io.File
-import javax.lang.model.element.Modifier.ABSTRACT
-import javax.lang.model.element.Modifier.PRIVATE
-import javax.lang.model.element.Modifier.PUBLIC
-import javax.lang.model.element.Modifier.STATIC
+import javax.lang.model.element.Modifier.*
 
 /**
  * Generates the code for the server stubs.
@@ -115,29 +97,29 @@ class ServerStubGenerator(
       COOKIE -> "CookieParam"
     }
 
-    return toAnnotation("javax.ws.rs.$annotationName", parameter.originalName)
+    return toAnnotation("jakarta.ws.rs.$annotationName", parameter.originalName)
   }
 
-  private fun paramAnnotation(parameter: JavaMultipartBodyParameter): AnnotationSpec = toAnnotation("javax.ws.rs.FormParam", parameter.originalName)
+  private fun paramAnnotation(parameter: JavaMultipartBodyParameter): AnnotationSpec = toAnnotation("jakarta.ws.rs.FormParam", parameter.originalName)
 
-  private fun pathAnnotation(path: String) = toAnnotation("javax.ws.rs.Path", path)
+  private fun pathAnnotation(path: String) = toAnnotation("jakarta.ws.rs.Path", path)
 
-  private fun httpMethodAnnotation(method: HttpMethod) = toAnnotation("javax.ws.rs.${method.name.uppercase()}")
+  private fun httpMethodAnnotation(method: HttpMethod) = toAnnotation("jakarta.ws.rs.${method.name.uppercase()}")
 
   private fun producesAnnotation(responses: List<JavaResponse>): AnnotationSpec {
     val mediaTypes = responses.flatMap { response -> response.contents.map { it.mediaType } }
         .sorted()
         .distinct()
 
-    return toAnnotation("javax.ws.rs.Produces", mediaTypes)
+    return toAnnotation("jakarta.ws.rs.Produces", mediaTypes)
   }
 
   private fun consumesAnnotation(mediaType: String): AnnotationSpec {
-    return toAnnotation("javax.ws.rs.Consumes", mediaType)
+    return toAnnotation("jakarta.ws.rs.Consumes", mediaType)
   }
 
   private fun toTypesafeResponseClass(operation: JavaOperation): TypeSpec {
-    val jaxRsResponseTypeName = "javax.ws.rs.core.Response".toClassName()
+    val jaxRsResponseTypeName = "jakarta.ws.rs.core.Response".toClassName()
     val className = operation.javaMethodName.capitalize() + "Response"
 
     val responseMethodsWithStatusCode = operation.responses
