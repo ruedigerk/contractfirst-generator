@@ -2,6 +2,7 @@ package io.github.ruedigerk.contractfirst.generator
 
 import io.github.ruedigerk.contractfirst.generator.allinonecontract.SwaggerParser
 import io.github.ruedigerk.contractfirst.generator.allinonecontract.YamlSerializer
+import io.github.ruedigerk.contractfirst.generator.configuration.Configuration
 import io.github.ruedigerk.contractfirst.generator.logging.Log
 import io.swagger.v3.oas.models.OpenAPI
 import java.io.File

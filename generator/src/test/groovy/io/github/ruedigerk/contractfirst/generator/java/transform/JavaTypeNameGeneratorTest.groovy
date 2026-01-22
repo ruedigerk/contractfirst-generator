@@ -1,5 +1,7 @@
 package io.github.ruedigerk.contractfirst.generator.java.transform
 
+import io.github.ruedigerk.contractfirst.generator.configuration.GeneratorVariant
+import io.github.ruedigerk.contractfirst.generator.configuration.ModelVariant
 import io.github.ruedigerk.contractfirst.generator.java.JavaConfiguration
 import io.github.ruedigerk.contractfirst.generator.java.model.JavaTypeName
 import io.github.ruedigerk.contractfirst.generator.logging.Log
@@ -15,10 +17,12 @@ class JavaTypeNameGeneratorTest extends Specification {
   static final String MODEL_PACKAGE = "package.api"
 
   Map<Operation.PathAndMethod, String> operationMethodNames = [
-      new Operation.PathAndMethod("/path/op", HttpMethod.GET): "usesOperationId"
+      (new Operation.PathAndMethod("/path/op", HttpMethod.GET)): "usesOperationId"
   ]
   
   JavaConfiguration configuration = new JavaConfiguration(
+      GeneratorVariant.MODEL_ONLY,
+      ModelVariant.GSON,
       "ignored",
       "ignored",
       MODEL_PACKAGE,

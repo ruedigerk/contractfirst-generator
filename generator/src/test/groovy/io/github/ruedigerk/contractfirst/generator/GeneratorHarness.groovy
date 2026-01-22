@@ -1,9 +1,11 @@
 package io.github.ruedigerk.contractfirst.generator
 
 import groovy.io.FileType
+import io.github.ruedigerk.contractfirst.generator.configuration.Configuration
+import io.github.ruedigerk.contractfirst.generator.configuration.GeneratorVariant
+import io.github.ruedigerk.contractfirst.generator.configuration.ModelVariant
 import io.github.ruedigerk.contractfirst.generator.logging.Slf4jLogAdapter
 import org.slf4j.LoggerFactory
-
 /**
  * Harness for running the Contractfirst-Generator in tests to compare the generated code to some reference.
  */
@@ -28,20 +30,20 @@ class GeneratorHarness {
   private final String outputJavaBasePackage
   private final String outputJavaModelNamePrefix
   private final boolean outputJavaModelUseJsr305NullabilityAnnotations
-  private final GeneratorType generatorType
+  private final GeneratorVariant generatorVariant
 
   private generatorRan = false
 
   GeneratorHarness(
       String inputContractFile,
       String outputJavaBasePackage,
-      GeneratorType generatorType,
+      GeneratorVariant generatorVariant,
       String outputJavaModelNamePrefix = "",
       boolean outputJavaModelUseJsr305NullabilityAnnotations = false
   ) {
     this.inputContractFile = inputContractFile
     this.outputJavaBasePackage = outputJavaBasePackage
-    this.generatorType = generatorType
+    this.generatorVariant = generatorVariant
     this.outputJavaModelNamePrefix = outputJavaModelNamePrefix
     this.outputJavaModelUseJsr305NullabilityAnnotations = outputJavaModelUseJsr305NullabilityAnnotations
 
@@ -84,13 +86,15 @@ class GeneratorHarness {
     new ContractfirstGenerator(logAdapter).generate(
         new Configuration(
             inputContractFile,
-            generatorType,
+            generatorVariant.associatedGenerator,
+            generatorVariant,
+            ModelVariant.GSON,
             OUTPUT_DIR,
             true,
             "$outputJavaBasePackage/openapi.yaml",
             outputJavaBasePackage,
             true,
-            generatorType == GeneratorType.MODEL_ONLY ? new File(inputContractFile).absolutePath : new File(inputContractFile).parentFile.absolutePath,
+            generatorVariant == GeneratorVariant.MODEL_ONLY ? new File(inputContractFile).absolutePath : new File(inputContractFile).parentFile.absolutePath,
             outputJavaModelNamePrefix,
             outputJavaModelUseJsr305NullabilityAnnotations
         )

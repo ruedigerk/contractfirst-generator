@@ -1,23 +1,24 @@
 package io.github.ruedigerk.contractfirst.generator.java.generator
 
-import com.squareup.javapoet.*
-import io.github.ruedigerk.contractfirst.generator.java.Identifiers.capitalize
-import io.github.ruedigerk.contractfirst.generator.java.Identifiers.mediaTypeToJavaIdentifier
+import com.squareup.javapoet.JavaFile
+import com.squareup.javapoet.MethodSpec
+import com.squareup.javapoet.ParameterSpec
+import com.squareup.javapoet.TypeSpec
+import io.github.ruedigerk.contractfirst.generator.configuration.GeneratorVariant
 import io.github.ruedigerk.contractfirst.generator.java.JavaConfiguration
 import io.github.ruedigerk.contractfirst.generator.java.generator.Annotations.NOT_NULL_ANNOTATION
-import io.github.ruedigerk.contractfirst.generator.java.generator.Annotations.toAnnotation
 import io.github.ruedigerk.contractfirst.generator.java.generator.JavapoetExtensions.doIf
 import io.github.ruedigerk.contractfirst.generator.java.generator.JavapoetExtensions.doIfNotNull
 import io.github.ruedigerk.contractfirst.generator.java.generator.TypeNames.toClassName
 import io.github.ruedigerk.contractfirst.generator.java.generator.TypeNames.toTypeName
-import io.github.ruedigerk.contractfirst.generator.java.model.*
+import io.github.ruedigerk.contractfirst.generator.java.model.JavaOperation
+import io.github.ruedigerk.contractfirst.generator.java.model.JavaOperationGroup
+import io.github.ruedigerk.contractfirst.generator.java.model.JavaParameter
+import io.github.ruedigerk.contractfirst.generator.java.model.JavaSpecification
 import io.github.ruedigerk.contractfirst.generator.logging.Log
-import io.github.ruedigerk.contractfirst.generator.model.DefaultStatusCode
-import io.github.ruedigerk.contractfirst.generator.model.HttpMethod
-import io.github.ruedigerk.contractfirst.generator.model.ParameterLocation.*
-import io.github.ruedigerk.contractfirst.generator.model.StatusCode
 import java.io.File
-import javax.lang.model.element.Modifier.*
+import javax.lang.model.element.Modifier.ABSTRACT
+import javax.lang.model.element.Modifier.PUBLIC
 
 /**
  * Generates the code for the server stubs.
@@ -30,6 +31,13 @@ class ServerStubGenerator(
   private val outputDir = File(configuration.outputDir)
   private val apiPackage = configuration.apiPackage
   private val supportPackage = configuration.supportPackage
+  private val variant = selectVariant(configuration)
+
+  private fun selectVariant(configuration: JavaConfiguration) = when (configuration.generatorVariant) {
+    GeneratorVariant.SERVER_JAX_RS -> JaxRsServerVariant(supportPackage)
+    GeneratorVariant.SERVER_SPRING_WEB -> TODO()
+    else -> error("Unsupported generator variant ${configuration.generatorVariant}")
+  }
 
   override operator fun invoke(specification: JavaSpecification) {
     specification.operationGroups.asSequence()
@@ -40,12 +48,12 @@ class ServerStubGenerator(
   }
 
   private fun toJavaInterface(operationGroup: JavaOperationGroup): JavaFile {
-    val operationsToTypesafeResponseClass = operationGroup.operations.associateWith(::toTypesafeResponseClass)
+    val operationsToTypesafeResponseClass = operationGroup.operations.associateWith(variant::toTypesafeResponseClass)
     val methodSpecs = operationsToTypesafeResponseClass.mapNotNull { (operation, typesafeClass) -> toOperationMethod(operation, typesafeClass) }
 
     val interfaceSpec = TypeSpec.interfaceBuilder(operationGroup.javaIdentifier)
+        .also { variant.addAnnotationsToJavaInterface(it) }
         .addModifiers(PUBLIC)
-        .addAnnotation(pathAnnotation(""))
         .addMethods(methodSpecs)
         .addTypes(operationsToTypesafeResponseClass.values)
         .build()
@@ -56,6 +64,7 @@ class ServerStubGenerator(
   }
 
   private fun toOperationMethod(operation: JavaOperation, typesafeResponseClass: TypeSpec): MethodSpec? {
+    // TODO: Multipart is supported since JAX-RS 3.1: https://jakarta.ee/specifications/restful-ws/3.1/jakarta-restful-ws-spec-3.1.html#consuming_multipart_formdata
     if (operation.requestBodyMediaType?.startsWith("multipart/") == true) {
       log.warn {
         "Request body media type ${operation.requestBodyMediaType} is not supported in the server generator for operation " +
@@ -67,11 +76,8 @@ class ServerStubGenerator(
     val parameters = operation.parameters.map(::toParameterSpec)
 
     return MethodSpec.methodBuilder(operation.javaMethodName)
+        .also { variant.addAnnotationsToOperationMethod(it, operation) }
         .doIfNotNull(operation.javadoc) { addJavadoc("\$L", it) }
-        .addAnnotation(httpMethodAnnotation(operation.httpMethod))
-        .addAnnotation(pathAnnotation(operation.path))
-        .doIfNotNull(operation.requestBodyMediaType) { addAnnotation(consumesAnnotation(it)) }
-        .addAnnotation(producesAnnotation(operation.responses))
         .addModifiers(PUBLIC, ABSTRACT)
         .returns(typesafeResponseClass.name.toClassName())
         .addParameters(parameters)
@@ -82,117 +88,9 @@ class ServerStubGenerator(
     val typeValidationAnnotations = parameter.javaType.validations.map(Annotations::toAnnotation)
 
     return ParameterSpec.builder(parameter.javaType.toTypeName(), parameter.javaParameterName)
-        .doIfNotNull(parameter as? JavaRegularParameter) { addAnnotation(paramAnnotation(it)) }
-        .doIfNotNull(parameter as? JavaMultipartBodyParameter) { addAnnotation(paramAnnotation(it)) }
+        .also { variant.addAnnotationsToMethodParameter(it, parameter) }
         .doIf(parameter.required) { addAnnotation(NOT_NULL_ANNOTATION) }
         .addAnnotations(typeValidationAnnotations)
-        .build()
-  }
-
-  private fun paramAnnotation(parameter: JavaRegularParameter): AnnotationSpec {
-    val annotationName = when (parameter.location) {
-      QUERY -> "QueryParam"
-      HEADER -> "HeaderParam"
-      PATH -> "PathParam"
-      COOKIE -> "CookieParam"
-    }
-
-    return toAnnotation("jakarta.ws.rs.$annotationName", parameter.originalName)
-  }
-
-  private fun paramAnnotation(parameter: JavaMultipartBodyParameter): AnnotationSpec = toAnnotation("jakarta.ws.rs.FormParam", parameter.originalName)
-
-  private fun pathAnnotation(path: String) = toAnnotation("jakarta.ws.rs.Path", path)
-
-  private fun httpMethodAnnotation(method: HttpMethod) = toAnnotation("jakarta.ws.rs.${method.name.uppercase()}")
-
-  private fun producesAnnotation(responses: List<JavaResponse>): AnnotationSpec {
-    val mediaTypes = responses.flatMap { response -> response.contents.map { it.mediaType } }
-        .sorted()
-        .distinct()
-
-    return toAnnotation("jakarta.ws.rs.Produces", mediaTypes)
-  }
-
-  private fun consumesAnnotation(mediaType: String): AnnotationSpec {
-    return toAnnotation("jakarta.ws.rs.Consumes", mediaType)
-  }
-
-  private fun toTypesafeResponseClass(operation: JavaOperation): TypeSpec {
-    val jaxRsResponseTypeName = "jakarta.ws.rs.core.Response".toClassName()
-    val className = operation.javaMethodName.capitalize() + "Response"
-
-    val responseMethodsWithStatusCode = operation.responses
-        .filter { it.statusCode is StatusCode }
-        .flatMap { response ->
-          if (response.contents.isEmpty()) {
-            listOf(toTypesafeEmptyResponseMethod(response, className))
-          } else {
-            response.contents.map { content -> toTypesafeResponseMethod(response, content, className) }
-          }
-        }
-
-    val defaultResponseMethods = operation.responses
-        .filter { it.statusCode is DefaultStatusCode }
-        .flatMap { response -> response.contents.map { content -> toTypesafeDefaultResponseMethod(content, className) } }
-
-    val customResponseMethod = MethodSpec.methodBuilder("withCustomResponse")
-        .addModifiers(PUBLIC, STATIC)
-        .returns(className.toClassName())
-        .addParameter(jaxRsResponseTypeName, "response")
-        .addStatement("return new \$N(response)", className)
-        .build()
-
-    val constructor = MethodSpec.constructorBuilder()
-        .addModifiers(PRIVATE)
-        .addParameter(jaxRsResponseTypeName, "delegate")
-        .addStatement("super(delegate)")
-        .build()
-
-    return TypeSpec.classBuilder(className)
-        .addModifiers(PUBLIC, STATIC)
-        .superclass(ClassName.get(supportPackage, RESPONSE_WRAPPER_CLASS_NAME))
-        .addMethod(constructor)
-        .addMethods(responseMethodsWithStatusCode)
-        .addMethods(defaultResponseMethods)
-        .addMethod(customResponseMethod)
-        .build()
-  }
-
-  private fun toTypesafeResponseMethod(response: JavaResponse, content: JavaContent, className: String): MethodSpec {
-    val statusCode = (response.statusCode as StatusCode).code
-    val mediaTypeAsIdentifier = content.mediaType.mediaTypeToJavaIdentifier()
-    val methodName = "with$statusCode$mediaTypeAsIdentifier"
-
-    return MethodSpec.methodBuilder(methodName)
-        .addModifiers(PUBLIC, STATIC)
-        .returns(className.toClassName())
-        .addParameter(content.javaType.toTypeName(), "entity")
-        .addStatement("return new \$N(Response.status(\$L).header(\"Content-Type\", \$S).entity(entity).build())", className, statusCode, content.mediaType)
-        .build()
-  }
-
-  private fun toTypesafeEmptyResponseMethod(response: JavaResponse, className: String): MethodSpec {
-    val statusCode = (response.statusCode as StatusCode).code
-    val methodName = "with$statusCode"
-
-    return MethodSpec.methodBuilder(methodName)
-        .addModifiers(PUBLIC, STATIC)
-        .returns(className.toClassName())
-        .addStatement("return new \$N(Response.status(\$L).build())", className, statusCode)
-        .build()
-  }
-
-  private fun toTypesafeDefaultResponseMethod(content: JavaContent, className: String): MethodSpec {
-    val mediaTypeAsIdentifier = content.mediaType.mediaTypeToJavaIdentifier()
-    val methodName = "with$mediaTypeAsIdentifier"
-
-    return MethodSpec.methodBuilder(methodName)
-        .addModifiers(PUBLIC, STATIC)
-        .returns(className.toClassName())
-        .addParameter(Integer.TYPE, "status")
-        .addParameter(content.javaType.toTypeName(), "entity")
-        .addStatement("return new \$N(Response.status(status).header(\"Content-Type\", \$S).entity(entity).build())", className, content.mediaType)
         .build()
   }
 

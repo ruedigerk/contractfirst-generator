@@ -1,5 +1,7 @@
 package io.github.ruedigerk.contractfirst.generator
 
+import io.github.ruedigerk.contractfirst.generator.configuration.Configuration
+import io.github.ruedigerk.contractfirst.generator.configuration.GeneratorType
 import io.github.ruedigerk.contractfirst.generator.java.JavaConfiguration
 import io.github.ruedigerk.contractfirst.generator.java.generator.ClientGenerator
 import io.github.ruedigerk.contractfirst.generator.java.generator.ModelGenerator

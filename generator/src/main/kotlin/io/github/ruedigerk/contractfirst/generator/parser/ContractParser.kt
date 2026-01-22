@@ -159,7 +159,7 @@ class ContractParser(private val log: Log) {
     "default" -> DefaultStatusCode
     else -> try {
       StatusCode(statusCode.toInt())
-    } catch (e: NumberFormatException) {
+    } catch (_: NumberFormatException) {
       throw ParserContentException("Status code must be a number, but was '$statusCode' at $position")
     }
   }

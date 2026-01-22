@@ -1,11 +1,15 @@
 package io.github.ruedigerk.contractfirst.generator.java
 
-import io.github.ruedigerk.contractfirst.generator.Configuration
+import io.github.ruedigerk.contractfirst.generator.configuration.Configuration
+import io.github.ruedigerk.contractfirst.generator.configuration.GeneratorVariant
+import io.github.ruedigerk.contractfirst.generator.configuration.ModelVariant
 
 /**
  * The configuration for the Java generators.
  */
 data class JavaConfiguration(
+    val generatorVariant: GeneratorVariant,
+    val modelVariant: ModelVariant,
     val outputDir: String,
     val apiPackage: String,
     val modelPackage: String,
@@ -19,6 +23,8 @@ data class JavaConfiguration(
   companion object {
 
     fun forFullSpecification(configuration: Configuration, apiPackagePrefix: String) = JavaConfiguration(
+        configuration.generatorVariant,
+        configuration.modelVariant,
         configuration.outputDir,
         configuration.outputJavaBasePackage + apiPackagePrefix,
         configuration.outputJavaBasePackage + ".model",
@@ -30,6 +36,8 @@ data class JavaConfiguration(
     )
 
     fun forModelOnly(configuration: Configuration) = JavaConfiguration(
+        configuration.generatorVariant,
+        configuration.modelVariant,
         configuration.outputDir,
         configuration.outputJavaBasePackage,
         configuration.outputJavaBasePackage,

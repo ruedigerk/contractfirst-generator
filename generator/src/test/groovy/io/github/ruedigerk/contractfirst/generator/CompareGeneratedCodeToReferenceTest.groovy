@@ -1,25 +1,28 @@
 package io.github.ruedigerk.contractfirst.generator
 
+
 import spock.lang.Specification
+
+import static io.github.ruedigerk.contractfirst.generator.configuration.GeneratorVariant.*
 
 /**
  * Compares generated code to the reference in the src/test/java source root.
  */
 class CompareGeneratedCodeToReferenceTest extends Specification {
 
-  static def serverHarness = new GeneratorHarness("src/test/contract/testsuite.yaml", "server", GeneratorType.SERVER)
-  static def clientHarness = new GeneratorHarness("src/test/contract/testsuite.yaml", "client", GeneratorType.CLIENT)
-  static def combinationsServerHarness = new GeneratorHarness("src/test/contract/content-type-combinations.yaml", "combinations_server", GeneratorType.SERVER)
-  static def combinationsClientHarness = new GeneratorHarness("src/test/contract/content-type-combinations.yaml", "combinations_client", GeneratorType.CLIENT)
-  static def selfReferentialHarness = new GeneratorHarness("src/test/contract/self-referential-model.yaml", "selfreferential", GeneratorType.CLIENT)
-  static def multipartHarness = new GeneratorHarness("src/test/contract/multipart-request-body.yaml", "multipart", GeneratorType.CLIENT)
-  static def parametersServerHarness = new GeneratorHarness("src/test/contract/equally-named-parameters.yaml", "parameters_server", GeneratorType.SERVER)
-  static def parametersClientHarness = new GeneratorHarness("src/test/contract/equally-named-parameters.yaml", "parameters_client", GeneratorType.CLIENT)
-  static def validationsHarness = new GeneratorHarness("src/test/contract/validations.yaml", "validations", GeneratorType.SERVER)
-  static def modelOnlyHarness = new GeneratorHarness("src/test/contract/modelOnlySchemas", "model_only", GeneratorType.MODEL_ONLY)
-  static def serverJsr305Harness = new GeneratorHarness("src/test/contract/testsuite.yaml", "server_jsr305", GeneratorType.SERVER, "", true)
-  static def clientJsr305Harness = new GeneratorHarness("src/test/contract/testsuite.yaml", "client_jsr305", GeneratorType.CLIENT, "", true)
-  static def modelOnlyJsr305Harness = new GeneratorHarness("src/test/contract/modelOnlySchemas", "model_only_jsr305", GeneratorType.MODEL_ONLY, "", true)
+  static def serverHarness = new GeneratorHarness("src/test/contract/testsuite.yaml", "server", SERVER_JAX_RS)
+  static def clientHarness = new GeneratorHarness("src/test/contract/testsuite.yaml", "client", CLIENT_OKHTTP)
+  static def combinationsServerHarness = new GeneratorHarness("src/test/contract/content-type-combinations.yaml", "combinations_server", SERVER_JAX_RS)
+  static def combinationsClientHarness = new GeneratorHarness("src/test/contract/content-type-combinations.yaml", "combinations_client", CLIENT_OKHTTP)
+  static def selfReferentialHarness = new GeneratorHarness("src/test/contract/self-referential-model.yaml", "selfreferential", CLIENT_OKHTTP)
+  static def multipartHarness = new GeneratorHarness("src/test/contract/multipart-request-body.yaml", "multipart", CLIENT_OKHTTP)
+  static def parametersServerHarness = new GeneratorHarness("src/test/contract/equally-named-parameters.yaml", "parameters_server", SERVER_JAX_RS)
+  static def parametersClientHarness = new GeneratorHarness("src/test/contract/equally-named-parameters.yaml", "parameters_client", CLIENT_OKHTTP)
+  static def validationsHarness = new GeneratorHarness("src/test/contract/validations.yaml", "validations", SERVER_JAX_RS)
+  static def modelOnlyHarness = new GeneratorHarness("src/test/contract/modelOnlySchemas", "model_only", MODEL_ONLY)
+  static def serverJsr305Harness = new GeneratorHarness("src/test/contract/testsuite.yaml", "server_jsr305", SERVER_JAX_RS, "", true)
+  static def clientJsr305Harness = new GeneratorHarness("src/test/contract/testsuite.yaml", "client_jsr305", CLIENT_OKHTTP, "", true)
+  static def modelOnlyJsr305Harness = new GeneratorHarness("src/test/contract/modelOnlySchemas", "model_only_jsr305", MODEL_ONLY, "", true)
 
   def "Testsuite (server): #fileName"() {
     when:

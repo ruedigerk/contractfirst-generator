@@ -1,12 +1,14 @@
 package io.github.ruedigerk.contractfirst.generator.mavenplugin;
 
 import com.google.common.base.Throwables;
-import io.github.ruedigerk.contractfirst.generator.Configuration;
 import io.github.ruedigerk.contractfirst.generator.ContractfirstGenerator;
-import io.github.ruedigerk.contractfirst.generator.GeneratorType;
-import io.github.ruedigerk.contractfirst.generator.InvalidConfigurationException;
 import io.github.ruedigerk.contractfirst.generator.NotSupportedException;
 import io.github.ruedigerk.contractfirst.generator.ParserException;
+import io.github.ruedigerk.contractfirst.generator.configuration.Configuration;
+import io.github.ruedigerk.contractfirst.generator.configuration.GeneratorType;
+import io.github.ruedigerk.contractfirst.generator.configuration.GeneratorVariant;
+import io.github.ruedigerk.contractfirst.generator.configuration.InvalidConfigurationException;
+import io.github.ruedigerk.contractfirst.generator.configuration.ModelVariant;
 import io.github.ruedigerk.contractfirst.generator.logging.LogAdapter;
 import java.io.File;
 import java.io.IOException;
@@ -29,8 +31,8 @@ public class CodeGeneratorMojo extends AbstractMojo {
   // See https://medium.com/swlh/step-by-step-guide-to-developing-a-custom-maven-plugin-b6e3a0e09966
 
   /**
-   * the path to the file containing the OpenAPI contract to use as input; in case of the model-only generator, this should point to a single
-   * JSON-Schema file in YAML or JSON format, or to a directory which is recursively searched for JSON-Schema files
+   * the path to the file containing the OpenAPI contract to use as input; in case of the model-only generator, this should point to a single JSON-Schema file
+   * in YAML or JSON format, or to a directory which is recursively searched for JSON-Schema files
    */
   @Parameter(name = "inputContractFile", property = "openapi.generator.maven.plugin.inputContractFile", required = true)
   private String inputContractFile;
@@ -40,6 +42,23 @@ public class CodeGeneratorMojo extends AbstractMojo {
    */
   @Parameter(name = "generator", property = "openapi.generator.maven.plugin.generator", required = true)
   private String generator;
+
+  /**
+   * the variant of the generator to use for code generation; allowed values depend on the selected generator:
+   * <pre>
+   *   - server generator: "jax-rs" (default), "spring-web"
+   *   - client generator: "okhttp" (default)
+   *   - model-only generator: "model-only" (default)
+   * </pre>
+   */
+  @Parameter(name = "generatorVariant", property = "openapi.generator.maven.plugin.generatorVariant", required = false)
+  private String generatorVariant;
+
+  /**
+   * the variant of the model to use for code generation; allowed values are: "gson", "jackson"
+   */
+  @Parameter(name = "modelVariant", property = "openapi.generator.maven.plugin.modelVariant", required = false, defaultValue = "gson")
+  private String modelVariant;
 
   /**
    * the target directory for writing the generated sources to
@@ -133,6 +152,8 @@ public class CodeGeneratorMojo extends AbstractMojo {
     return "Configuration:" +
         "\n\tinputContractFile='" + inputContractFile + '\'' +
         "\n\tgenerator='" + generator + '\'' +
+        "\n\tgeneratorVariant='" + generatorVariant + '\'' +
+        "\n\tmodelVariant='" + modelVariant + '\'' +
         "\n\toutputDir='" + outputDir + '\'' +
         "\n\toutputContract=" + outputContract +
         "\n\toutputContractFile='" + outputContractFile + '\'' +
@@ -149,15 +170,21 @@ public class CodeGeneratorMojo extends AbstractMojo {
     String effectiveInputContractFile = makeAbsolutePath(inputContractFile);
     String effectiveOutputJavaPackageSchemaDirectoryPrefix = determineOutputJavaPackageSchemaDirectoryPrefix(effectiveInputContractFile);
 
+    GeneratorType generatorType = determineGenerator();
+    GeneratorVariant generatorVariantType = determineGeneratorVariant(generatorType);
+    ModelVariant modelVariantType = determineModelVariant();
+
     return new Configuration(
         effectiveInputContractFile,
-        determineGenerator(),
+        generatorType,
+        generatorVariantType,
+        modelVariantType,
         outputDir,
         outputContract,
         outputContractFile,
         outputJavaBasePackage,
         outputJavaPackageMirrorsSchemaDirectory,
-        effectiveOutputJavaPackageSchemaDirectoryPrefix, 
+        effectiveOutputJavaPackageSchemaDirectoryPrefix,
         outputJavaModelNamePrefix,
         outputJavaModelUseJsr305NullabilityAnnotations
     );
@@ -175,7 +202,7 @@ public class CodeGeneratorMojo extends AbstractMojo {
       throw new MojoExecutionException("Error canonicalizing path: " + e.getMessage(), e);
     }
   }
-  
+
   private String determineOutputJavaPackageSchemaDirectoryPrefix(String effectiveInputContractFile) throws MojoExecutionException {
     if (outputJavaPackageSchemaDirectoryPrefix == null) {
       File inputFile = new File(effectiveInputContractFile);
@@ -198,7 +225,47 @@ public class CodeGeneratorMojo extends AbstractMojo {
       case "model-only":
         return GeneratorType.MODEL_ONLY;
       default:
-        throw new MojoExecutionException("Configuration 'generator' has invalid value: '" + generator + "', allowed values are 'client', 'server'.");
+        throw new MojoExecutionException("Configuration 'generator' has invalid value: '"
+            + generator
+            + "', allowed values are client, server, model-only.");
+    }
+  }
+
+  private GeneratorVariant determineGeneratorVariant(GeneratorType generatorType) throws MojoExecutionException {
+    if (generatorVariant == null) {
+      return generatorType.getDefaultVariant();
+    }
+
+    switch (generatorVariant) {
+      case "okhttp":
+        return GeneratorVariant.CLIENT_OKHTTP;
+      case "jax-rs":
+        return GeneratorVariant.SERVER_JAX_RS;
+      case "spring-web":
+        return GeneratorVariant.SERVER_SPRING_WEB;
+      case "model-only":
+        return GeneratorVariant.MODEL_ONLY;
+      default:
+        throw new MojoExecutionException("Configuration 'generatorVariant' has invalid value: '"
+            + generatorVariant
+            + "', allowed values are okhttp, jax-rs, spring-web, model-only.");
+    }
+  }
+
+  private ModelVariant determineModelVariant() throws MojoExecutionException {
+    if (modelVariant == null) {
+      return ModelVariant.GSON;
+    }
+
+    switch (modelVariant) {
+      case "gson":
+        return ModelVariant.GSON;
+      case "jackson":
+        return ModelVariant.JACKSON;
+      default:
+        throw new MojoExecutionException("Configuration 'modelVariant' has invalid value: '"
+            + modelVariant
+            + "', allowed values are gson, jackson.");
     }
   }
 
