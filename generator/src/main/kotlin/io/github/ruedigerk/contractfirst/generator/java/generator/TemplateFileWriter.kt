@@ -10,14 +10,14 @@ import java.io.InputStream
  */
 class TemplateFileWriter(private val configuration: JavaConfiguration) {
 
-  fun writeTemplateFile(destinationPackage: String, templateFileName: String) {
+  fun writeTemplateFile(destinationPackage: String, templateDir: String, templateFile: String) {
     val packageAsDirectory = destinationPackage.replace('.', '/')
     val destinationDirectory = File(configuration.outputDir).resolve(packageAsDirectory)
-    val templateInputStream = loadResource("/io/github/ruedigerk/contractfirst/generator/templates/${templateFileName}")
+    val templateInputStream = loadResource("/io/github/ruedigerk/contractfirst/generator/templates/$templateDir/$templateFile")
     
     destinationDirectory.mkdirs()
 
-    destinationDirectory.resolve(templateFileName).outputStream().buffered().use { outputStream ->
+    destinationDirectory.resolve(templateFile).outputStream().buffered().use { outputStream ->
       outputStream.writePackageStatement(destinationPackage)
       templateInputStream.use { it.copyTo(outputStream) }
     }

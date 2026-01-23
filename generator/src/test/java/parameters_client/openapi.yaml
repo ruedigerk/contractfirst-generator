@@ -3,40 +3,40 @@ info:
   title: Contract for testing operations with multiple equally named parameters.
   version: 1.0.0
 servers:
-- url: https://example.com/equally-named-parameters
+  - url: https://example.com/equally-named-parameters
 paths:
   /getEquallyNamedParameters/{theParameter}:
     get:
       operationId: getEquallyNamedParameters
       parameters:
-      - explode: true
-        in: cookie
-        name: theParameter
-        required: false
-        schema:
-          type: string
-        style: form
-      - explode: false
-        in: header
-        name: theParameter
-        required: false
-        schema:
-          type: string
-        style: simple
-      - explode: false
-        in: path
-        name: theParameter
-        required: true
-        schema:
-          type: string
-        style: simple
-      - explode: true
-        in: query
-        name: theParameter
-        required: false
-        schema:
-          type: string
-        style: form
+        - explode: true
+          in: cookie
+          name: theParameter
+          required: false
+          schema:
+            type: string
+          style: form
+        - explode: false
+          in: header
+          name: theParameter
+          required: false
+          schema:
+            type: string
+          style: simple
+        - explode: false
+          in: path
+          name: theParameter
+          required: true
+          schema:
+            type: string
+          style: simple
+        - explode: true
+          in: query
+          name: theParameter
+          required: false
+          schema:
+            type: string
+          style: form
       requestBody:
         content:
           application/x-www-form-urlencoded:
@@ -52,4 +52,4 @@ paths:
           description: Ok.
       summary: Test for multiple equally named parameters.
       tags:
-      - EquallyNamedParameters
+        - EquallyNamedParameters

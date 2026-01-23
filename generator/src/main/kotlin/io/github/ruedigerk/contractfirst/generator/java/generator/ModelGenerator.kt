@@ -1,10 +1,10 @@
 package io.github.ruedigerk.contractfirst.generator.java.generator
 
 import com.squareup.javapoet.*
+import io.github.ruedigerk.contractfirst.generator.configuration.ModelVariant
 import io.github.ruedigerk.contractfirst.generator.java.Identifiers.capitalize
 import io.github.ruedigerk.contractfirst.generator.java.JavaConfiguration
 import io.github.ruedigerk.contractfirst.generator.java.generator.Annotations.jsr305NullabilityAnnotation
-import io.github.ruedigerk.contractfirst.generator.java.generator.Annotations.toAnnotation
 import io.github.ruedigerk.contractfirst.generator.java.generator.JavapoetExtensions.doIf
 import io.github.ruedigerk.contractfirst.generator.java.generator.JavapoetExtensions.doIfNotNull
 import io.github.ruedigerk.contractfirst.generator.java.generator.TypeNames.toClassName
@@ -14,12 +14,18 @@ import java.io.File
 import javax.lang.model.element.Modifier.*
 
 /**
- * Generates the code for the model classes.
+ * Generates the Java code for the model classes of an API.
  */
 class ModelGenerator(configuration: JavaConfiguration) {
 
   private val outputDir = File(configuration.outputDir)
   private val useJsr305Nullability = configuration.useJsr305NullabilityAnnotations
+  private val variant = selectVariant(configuration.modelVariant)
+
+  private fun selectVariant(modelVariant: ModelVariant): ModelGeneratorVariant = when (modelVariant) {
+    ModelVariant.GSON -> GsonModelGeneratorVariant()
+    ModelVariant.JACKSON -> JacksonModelGeneratorVariant()
+  }
 
   fun generateCode(javaSourceFiles: List<JavaSourceFile>) {
     javaSourceFiles.asSequence()
@@ -102,7 +108,7 @@ class ModelGenerator(configuration: JavaConfiguration) {
     return FieldSpec.builder(property.type.toTypeName(true), property.javaName, PRIVATE)
         .doIfNotNull(property.javadoc) { addJavadoc("\$L", it) }
         .doIf(property.required) { addAnnotation(Annotations.NOT_NULL_ANNOTATION) }
-        .doIf(property.javaName != property.originalName) { addAnnotation(serializedNameAnnotation(property.originalName)) }
+        .doIf(property.javaName != property.originalName) { addAnnotation(variant.serializedNameAnnotation(property.originalName)) }
         .addAnnotations(typeValidationAnnotations)
         .doIfNotNull(property.initializerType) { initializer("new \$T<>()", it.toTypeName()) }
         .build()
@@ -158,7 +164,7 @@ class ModelGenerator(configuration: JavaConfiguration) {
 
     enumFile.constants.forEach { enumConstant ->
       val constant = TypeSpec.anonymousClassBuilder("\$S", enumConstant.originalName)
-          .doIf(enumConstant.javaName != enumConstant.originalName) { addAnnotation(serializedNameAnnotation(enumConstant.originalName)) }
+          .doIf(enumConstant.javaName != enumConstant.originalName) { addAnnotation(variant.serializedNameAnnotation(enumConstant.originalName)) }
           .build()
 
       builder.addEnumConstant(enumConstant.javaName, constant)
@@ -166,6 +172,4 @@ class ModelGenerator(configuration: JavaConfiguration) {
 
     return builder.build()
   }
-
-  private fun serializedNameAnnotation(originalName: String) = toAnnotation("com.google.gson.annotations.SerializedName", originalName)
 }

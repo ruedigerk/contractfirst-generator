@@ -40,6 +40,8 @@ data class JavaBodyParameter(
 
 /**
  * Represents a form field or multipart part of a form or multipart request body.
+ *
+ * Note: the Java type for binary parameters/attachments is framework-specific and may be generated differently from the javaType property here.
  */
 data class JavaMultipartBodyParameter(
     override val javaParameterName: String,
@@ -57,10 +59,21 @@ data class JavaMultipartBodyParameter(
    */
   enum class BodyPartType {
 
+    /**
+     * The body part is a primitive, like String. Note that the body part can also represent an array of primitives.
+     */
     PRIMITIVE,
+
+    /**
+     * The body part is complex, meaning it is to be treated as JSON to serialize/deserialize into, e.g., Java objects. Note that the body part can also
+     * represent an array of JSON entities.
+     */
     COMPLEX,
+
+    /**
+     * The body part is binary data, like a file, and typically needs framework-specific handling. Note that the body part can also represent an array of
+     * binaries.
+     */
     ATTACHMENT
   }
 }
-
-

@@ -1,14 +1,6 @@
 package io.github.ruedigerk.contractfirst.generator.java.generator
 
-import com.squareup.javapoet.ClassName
-import com.squareup.javapoet.CodeBlock
-import com.squareup.javapoet.FieldSpec
-import com.squareup.javapoet.JavaFile
-import com.squareup.javapoet.MethodSpec
-import com.squareup.javapoet.ParameterSpec
-import com.squareup.javapoet.ParameterizedTypeName
-import com.squareup.javapoet.TypeName
-import com.squareup.javapoet.TypeSpec
+import com.squareup.javapoet.*
 import io.github.ruedigerk.contractfirst.generator.java.Identifiers.toJavaConstant
 import io.github.ruedigerk.contractfirst.generator.java.Identifiers.toJavaTypeIdentifier
 import io.github.ruedigerk.contractfirst.generator.java.JavaConfiguration
@@ -17,23 +9,11 @@ import io.github.ruedigerk.contractfirst.generator.java.generator.JavapoetExtens
 import io.github.ruedigerk.contractfirst.generator.java.generator.JavapoetExtensions.doIfNotNull
 import io.github.ruedigerk.contractfirst.generator.java.generator.TypeNames.toClassName
 import io.github.ruedigerk.contractfirst.generator.java.generator.TypeNames.toTypeName
-import io.github.ruedigerk.contractfirst.generator.java.model.JavaAnyType
-import io.github.ruedigerk.contractfirst.generator.java.model.JavaBodyParameter
-import io.github.ruedigerk.contractfirst.generator.java.model.JavaCollectionType
-import io.github.ruedigerk.contractfirst.generator.java.model.JavaMapType
-import io.github.ruedigerk.contractfirst.generator.java.model.JavaMultipartBodyParameter
-import io.github.ruedigerk.contractfirst.generator.java.model.JavaMultipartBodyParameter.BodyPartType.ATTACHMENT
-import io.github.ruedigerk.contractfirst.generator.java.model.JavaOperation
-import io.github.ruedigerk.contractfirst.generator.java.model.JavaOperationGroup
-import io.github.ruedigerk.contractfirst.generator.java.model.JavaParameter
-import io.github.ruedigerk.contractfirst.generator.java.model.JavaRegularParameter
-import io.github.ruedigerk.contractfirst.generator.java.model.JavaSpecification
-import io.github.ruedigerk.contractfirst.generator.java.model.JavaType
-import io.github.ruedigerk.contractfirst.generator.java.model.JavaTypeName
+import io.github.ruedigerk.contractfirst.generator.java.model.*
 import io.github.ruedigerk.contractfirst.generator.model.DefaultStatusCode
 import io.github.ruedigerk.contractfirst.generator.model.StatusCode
 import java.io.File
-import java.util.Optional
+import java.util.*
 import javax.lang.model.element.Modifier
 
 /**
@@ -274,20 +254,8 @@ class ClientGenerator(configuration: JavaConfiguration) : (JavaSpecification) ->
   }
 
   private fun toParameterSpec(parameter: JavaParameter): ParameterSpec {
-    val parameterType = when (parameter) {
-      is JavaBodyParameter, is JavaRegularParameter -> parameter.javaType
-      is JavaMultipartBodyParameter -> toMultipartFileParameterType(parameter)
-    }
-
+    val parameterType = JavaParameters.determineParameterType(parameter, AttachmentJavaTypeName)
     return ParameterSpec.builder(parameterType.toTypeName(), parameter.javaParameterName).build()
-  }
-
-  /**
-   * Rewrite attachment type body parts to use type Java type Attachment instead of InputStream.
-   */
-  private fun toMultipartFileParameterType(parameter: JavaMultipartBodyParameter): JavaAnyType = when {
-    parameter.bodyPartType == ATTACHMENT -> parameter.javaType.rewriteSimpleType(JavaTypeName.INPUT_STREAM, AttachmentJavaTypeName)
-    else -> parameter.javaType
   }
 
   private fun createCodeOfSimplifiedMethod(operation: JavaOperation): CodeBlock {

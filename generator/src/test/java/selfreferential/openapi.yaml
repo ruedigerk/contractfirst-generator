@@ -3,7 +3,7 @@ info:
   title: Contract for testing a self-referential data model.
   version: 1.0.0
 servers:
-- url: https://example.com/
+  - url: https://example.com/
 paths:
   /v1/components:
     get:
@@ -15,16 +15,19 @@ paths:
               schema:
                 $ref: "#/components/schemas/Model"
           description: Returned component.
-      summary: "Get component. Also, test escaping of JavaPoet placeholders: $L $1N $%."
+      summary: "Get component. Also, test escaping of JavaPoet placeholders: $L $1N\
+        \ $%."
       tags:
-      - V1Components
+        - V1Components
 components:
   schemas:
     Model:
-      description: "A self-referential Model. Also, test escaping of JavaPoet placeholders: $L $1N $%."
+      description: "A self-referential Model. Also, test escaping of JavaPoet placeholders:\
+        \ $L $1N $%."
       properties:
         name:
-          description: "The name. Also, test escaping of JavaPoet placeholders: $L $1N $%."
+          description: "The name. Also, test escaping of JavaPoet placeholders: $L\
+            \ $1N $%."
           type: string
         next:
           $ref: "#/components/schemas/Model"

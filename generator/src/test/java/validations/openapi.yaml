@@ -3,7 +3,7 @@ info:
   title: Contract for testing validations for the data model.
   version: 1.0.0
 servers:
-- url: https://example.com/
+  - url: https://example.com/
 paths:
   /v1/components:
     get:
@@ -17,7 +17,7 @@ paths:
           description: Returned component.
       summary: Get component.
       tags:
-      - V1Components
+        - V1Components
 components:
   schemas:
     Component:
@@ -73,5 +73,5 @@ components:
           pattern: ^\w+$
           type: string
       required:
-      - intMinMax
+        - intMinMax
       type: object

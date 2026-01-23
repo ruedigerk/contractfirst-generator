@@ -2,12 +2,13 @@ package io.github.ruedigerk.contractfirst.generator.java.generator
 
 import com.squareup.javapoet.AnnotationSpec
 import com.squareup.javapoet.ClassName
+import io.github.ruedigerk.contractfirst.generator.java.generator.TypeNames.toClassName
 import io.github.ruedigerk.contractfirst.generator.java.model.*
 import java.math.BigInteger
 
 
 /**
- * For creating annotations and BeanValidation annotations.
+ * For creating annotations in general and for creating Jakarta Validation annotations.
  */
 object Annotations {
 
@@ -22,7 +23,7 @@ object Annotations {
   fun toAnnotation(name: String, value: Any, stringValue: Boolean = true): AnnotationSpec = toAnnotation(name, listOf(value), stringValue)
 
   fun toAnnotation(name: String, values: List<Any> = emptyList(), stringValue: Boolean = true): AnnotationSpec {
-    val builder = AnnotationSpec.builder(ClassName.bestGuess(name))
+    val builder = AnnotationSpec.builder(name.toClassName())
     values.forEach { builder.addMember("value", if (stringValue) "\$S" else "\$L", it) }
     return builder.build()
   }

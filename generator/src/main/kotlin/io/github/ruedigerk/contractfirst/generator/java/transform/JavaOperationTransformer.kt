@@ -5,34 +5,12 @@ import io.github.ruedigerk.contractfirst.generator.ParserContentException
 import io.github.ruedigerk.contractfirst.generator.java.Identifiers.capitalize
 import io.github.ruedigerk.contractfirst.generator.java.Identifiers.toJavaIdentifier
 import io.github.ruedigerk.contractfirst.generator.java.Identifiers.toJavaTypeIdentifier
-import io.github.ruedigerk.contractfirst.generator.java.model.JavaAnyType
-import io.github.ruedigerk.contractfirst.generator.java.model.JavaBodyParameter
-import io.github.ruedigerk.contractfirst.generator.java.model.JavaContent
-import io.github.ruedigerk.contractfirst.generator.java.model.JavaMultipartBodyParameter
+import io.github.ruedigerk.contractfirst.generator.java.model.*
 import io.github.ruedigerk.contractfirst.generator.java.model.JavaMultipartBodyParameter.BodyPartType
-import io.github.ruedigerk.contractfirst.generator.java.model.JavaMultipartBodyParameter.BodyPartType.ATTACHMENT
-import io.github.ruedigerk.contractfirst.generator.java.model.JavaMultipartBodyParameter.BodyPartType.COMPLEX
-import io.github.ruedigerk.contractfirst.generator.java.model.JavaMultipartBodyParameter.BodyPartType.PRIMITIVE
-import io.github.ruedigerk.contractfirst.generator.java.model.JavaOperation
-import io.github.ruedigerk.contractfirst.generator.java.model.JavaOperationGroup
-import io.github.ruedigerk.contractfirst.generator.java.model.JavaParameter
-import io.github.ruedigerk.contractfirst.generator.java.model.JavaRegularParameter
-import io.github.ruedigerk.contractfirst.generator.java.model.JavaResponse
+import io.github.ruedigerk.contractfirst.generator.java.model.JavaMultipartBodyParameter.BodyPartType.*
 import io.github.ruedigerk.contractfirst.generator.java.transform.OperationNaming.getJavaMethodName
-import io.github.ruedigerk.contractfirst.generator.model.ArraySchema
-import io.github.ruedigerk.contractfirst.generator.model.Content
+import io.github.ruedigerk.contractfirst.generator.model.*
 import io.github.ruedigerk.contractfirst.generator.model.DataType.BINARY
-import io.github.ruedigerk.contractfirst.generator.model.EnumSchema
-import io.github.ruedigerk.contractfirst.generator.model.MapSchema
-import io.github.ruedigerk.contractfirst.generator.model.ObjectSchema
-import io.github.ruedigerk.contractfirst.generator.model.Operation
-import io.github.ruedigerk.contractfirst.generator.model.Parameter
-import io.github.ruedigerk.contractfirst.generator.model.PrimitiveSchema
-import io.github.ruedigerk.contractfirst.generator.model.RequestBody
-import io.github.ruedigerk.contractfirst.generator.model.Response
-import io.github.ruedigerk.contractfirst.generator.model.Schema
-import io.github.ruedigerk.contractfirst.generator.model.SchemaId
-import io.github.ruedigerk.contractfirst.generator.model.SchemaProperty
 
 /**
  * Transforms the parsed specification into a Java-specific specification, appropriate for code generation.
@@ -136,14 +114,12 @@ class JavaOperationTransformer(
       is EnumSchema -> PRIMITIVE
       is ObjectSchema -> COMPLEX
       is MapSchema -> COMPLEX
-      is ArraySchema -> {
-        when (val itemSchema = schemaFor(schema.itemSchema)) {
-          is PrimitiveSchema -> if (itemSchema.dataType == BINARY) ATTACHMENT else PRIMITIVE
-          is EnumSchema -> PRIMITIVE
-          is ObjectSchema -> COMPLEX
-          is MapSchema -> COMPLEX
-          is ArraySchema -> COMPLEX
-        }
+      is ArraySchema -> when (val itemSchema = schemaFor(schema.itemSchema)) {
+        is PrimitiveSchema -> if (itemSchema.dataType == BINARY) ATTACHMENT else PRIMITIVE
+        is EnumSchema -> PRIMITIVE
+        is ObjectSchema -> COMPLEX
+        is MapSchema -> COMPLEX
+        is ArraySchema -> COMPLEX
       }
     }
   }
@@ -223,4 +199,3 @@ class JavaOperationTransformer(
     private const val DEFAULT_TAG_NAME = "Default"
   }
 }
-

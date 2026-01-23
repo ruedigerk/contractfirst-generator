@@ -35,7 +35,7 @@ class RecipeForFullSpecification(
 
   private fun getGenerator(javaConfiguration: JavaConfiguration): (JavaSpecification) -> Unit = when (configuration.generator) {
     GeneratorType.CLIENT -> ClientGenerator(javaConfiguration)
-    GeneratorType.SERVER -> ServerStubGenerator(javaConfiguration, log)
+    GeneratorType.SERVER -> ServerStubGenerator(javaConfiguration)
     GeneratorType.MODEL_ONLY -> error("Illegal generator type: ${configuration.generator}")
   }
 

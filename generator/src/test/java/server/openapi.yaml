@@ -3,45 +3,45 @@ info:
   title: Test suite for the client and server code generator
   version: 1.0.0
 servers:
-- url: https://example.com/v1
+  - url: https://example.com/v1
 paths:
   /{systemId}/components:
     post:
       operationId: createItem
       parameters:
-      - description: ID of the system to create the item in.
-        explode: false
-        in: path
-        name: systemId
-        required: true
-        schema:
-          type: string
-        style: simple
-      - description: Do a dry run?
-        explode: true
-        in: query
-        name: dryRun
-        required: false
-        schema:
-          type: boolean
-        style: form
-      - description: Optional part number
-        explode: false
-        in: header
-        name: partNumber
-        required: false
-        schema:
-          format: int64
-          type: integer
-        style: simple
-      - description: Used to select the desired behaviour of the server in the test.
-        explode: false
-        in: header
-        name: testCaseSelector
-        required: false
-        schema:
-          type: string
-        style: simple
+        - description: ID of the system to create the item in.
+          explode: false
+          in: path
+          name: systemId
+          required: true
+          schema:
+            type: string
+          style: simple
+        - description: Do a dry run?
+          explode: true
+          in: query
+          name: dryRun
+          required: false
+          schema:
+            type: boolean
+          style: form
+        - description: Optional part number
+          explode: false
+          in: header
+          name: partNumber
+          required: false
+          schema:
+            format: int64
+            type: integer
+          style: simple
+        - description: Used to select the desired behaviour of the server in the test.
+          explode: false
+          in: header
+          name: testCaseSelector
+          required: false
+          schema:
+            type: string
+          style: simple
       requestBody:
         content:
           application/json:
@@ -71,9 +71,10 @@ paths:
               schema:
                 $ref: "#/components/schemas/Failure"
           description: "Some other error, like 500."
-      summary: Test for the various parameter locations and for serializing request and response body entities.
+      summary: Test for the various parameter locations and for serializing request
+        and response body entities.
       tags:
-      - ResponseVariants
+        - ResponseVariants
   /items:
     post:
       operationId: filterItems
@@ -98,7 +99,7 @@ paths:
           $ref: "#/components/responses/DefaultFailures"
       summary: "Test operation for generating generic types, e.g. List of Item."
       tags:
-      - PayloadVariants
+        - PayloadVariants
   /items2:
     post:
       operationId: filterItems2
@@ -121,9 +122,10 @@ paths:
           description: Returned filtered items.
         default:
           $ref: "#/components/responses/DefaultFailures"
-      summary: "Second test operation for generic types, using the same generic return type as the other operation (test for bug in the generator)."
+      summary: "Second test operation for generic types, using the same generic return\
+        \ type as the other operation (test for bug in the generator)."
       tags:
-      - PayloadVariants
+        - PayloadVariants
   /itemBinaries:
     post:
       operationId: changeItem
@@ -140,7 +142,7 @@ paths:
           $ref: "#/components/responses/DefaultFailures"
       summary: Test for 204 response.
       tags:
-      - PayloadVariants
+        - PayloadVariants
     put:
       operationId: uploadAndReturnBinary
       requestBody:
@@ -162,19 +164,19 @@ paths:
           $ref: "#/components/responses/DefaultFailures"
       summary: Test binary input and output.
       tags:
-      - PayloadVariants
+        - PayloadVariants
   /manuals:
     get:
       operationId: getManual
       parameters:
-      - description: Used to select the desired behaviour of the server in the test.
-        explode: false
-        in: header
-        name: testCaseSelector
-        required: false
-        schema:
-          type: string
-        style: simple
+        - description: Used to select the desired behaviour of the server in the test.
+          explode: false
+          in: header
+          name: testCaseSelector
+          required: false
+          schema:
+            type: string
+          style: simple
       responses:
         "200":
           content:
@@ -198,19 +200,19 @@ paths:
           $ref: "#/components/responses/DefaultFailures"
       summary: Test case for multiple response content types with different schemas.
       tags:
-      - MultipleContentTypes
+        - MultipleContentTypes
   /wildcardContentTypes:
     get:
       operationId: getWildcardContentTypes
       parameters:
-      - description: Used to select the desired behaviour of the server in the test.
-        explode: false
-        in: header
-        name: testCaseSelector
-        required: false
-        schema:
-          type: string
-        style: simple
+        - description: Used to select the desired behaviour of the server in the test.
+          explode: false
+          in: header
+          name: testCaseSelector
+          required: false
+          schema:
+            type: string
+          style: simple
       responses:
         "200":
           content:
@@ -226,51 +228,51 @@ paths:
           $ref: "#/components/responses/DefaultFailures"
       summary: Test wildcard response content types.
       tags:
-      - WildcardContentTypes
+        - WildcardContentTypes
   /time/{timeId}:
     post:
       operationId: updateTime
       parameters:
-      - explode: false
-        in: path
-        name: timeId
-        required: true
-        schema:
-          format: date
-          type: string
-        style: simple
-      - explode: true
-        in: query
-        name: queryTimeA
-        required: true
-        schema:
-          format: date
-          type: string
-        style: form
-      - explode: true
-        in: query
-        name: queryTimeB
-        required: true
-        schema:
-          format: date-time
-          type: string
-        style: form
-      - explode: false
-        in: header
-        name: headerTimeA
-        required: true
-        schema:
-          format: date
-          type: string
-        style: simple
-      - explode: false
-        in: header
-        name: headerTimeB
-        required: true
-        schema:
-          format: date-time
-          type: string
-        style: simple
+        - explode: false
+          in: path
+          name: timeId
+          required: true
+          schema:
+            format: date
+            type: string
+          style: simple
+        - explode: true
+          in: query
+          name: queryTimeA
+          required: true
+          schema:
+            format: date
+            type: string
+          style: form
+        - explode: true
+          in: query
+          name: queryTimeB
+          required: true
+          schema:
+            format: date-time
+            type: string
+          style: form
+        - explode: false
+          in: header
+          name: headerTimeA
+          required: true
+          schema:
+            format: date
+            type: string
+          style: simple
+        - explode: false
+          in: header
+          name: headerTimeB
+          required: true
+          schema:
+            format: date-time
+            type: string
+          style: simple
       requestBody:
         content:
           application/json:
@@ -288,19 +290,19 @@ paths:
           $ref: "#/components/responses/DefaultFailures"
       summary: For testing handling of date and date-time formats.
       tags:
-      - time
+        - time
   /bigDecimals:
     get:
       operationId: getNumber
       parameters:
-      - description: Test BigDecimal
-        explode: true
-        in: query
-        name: decimalNumber
-        required: true
-        schema:
-          type: number
-        style: form
+        - description: Test BigDecimal
+          explode: true
+          in: query
+          name: decimalNumber
+          required: true
+          schema:
+            type: number
+          style: form
       responses:
         "200":
           content:
@@ -312,7 +314,7 @@ paths:
           $ref: "#/components/responses/DefaultFailures"
       summary: Test serialization of schema type number as BigDecimal.
       tags:
-      - BigDecimals
+        - BigDecimals
   /testcases:
     get:
       description: A test case for the SchemaToJavaTypeTransformer.
@@ -332,7 +334,7 @@ paths:
         default:
           $ref: "#/components/responses/DefaultFailures"
       tags:
-      - testcases
+        - testcases
   /postWithoutBody/post:
     post:
       description: Testing HTTP method POST without a request body.
@@ -341,7 +343,7 @@ paths:
         "204":
           description: Ok.
       tags:
-      - PostWithoutBody
+        - PostWithoutBody
   /postWithoutBody/put:
     put:
       description: Testing HTTP method PUT without a request body.
@@ -350,7 +352,7 @@ paths:
         "204":
           description: Ok.
       tags:
-      - PostWithoutBody
+        - PostWithoutBody
   /postWithoutBody/patch:
     post:
       description: Testing HTTP method PATCH without a request body.
@@ -359,10 +361,11 @@ paths:
         "204":
           description: Ok.
       tags:
-      - PostWithoutBody
+        - PostWithoutBody
   /nonJavaPropertyNames:
     post:
-      description: A test case for a JSON model with properties that are not legal Java identifiers.
+      description: A test case for a JSON model with properties that are not legal
+        Java identifiers.
       operationId: postNonJavaPropertyNames
       requestBody:
         content:
@@ -380,7 +383,7 @@ paths:
         default:
           $ref: "#/components/responses/DefaultFailures"
       tags:
-      - NonJavaPropertyNames
+        - NonJavaPropertyNames
   /nonJsonEntityAsJson:
     get:
       operationId: getNonJsonEntityAsJson
@@ -390,10 +393,12 @@ paths:
             application/xml:
               schema:
                 $ref: "#/components/schemas/Item"
-          description: "Response defined with content type XML, but server sends JSON anyway."
-      summary: Test case for an operation that declares a non-JSON entity and the server nevertheless sending the entity as JSON.
+          description: "Response defined with content type XML, but server sends JSON\
+            \ anyway."
+      summary: Test case for an operation that declares a non-JSON entity and the
+        server nevertheless sending the entity as JSON.
       tags:
-      - NonJsonEntityAsJson
+        - NonJsonEntityAsJson
 components:
   responses:
     DefaultFailures:
@@ -413,8 +418,8 @@ components:
         tag:
           type: string
       required:
-      - id
-      - name
+        - id
+        - name
     Component:
       description: A component.
       properties:
@@ -426,25 +431,25 @@ components:
           $ref: "#/components/schemas/ComponentType"
         multiplier:
           enum:
-          - "1"
-          - "2"
-          - "4"
+            - "1"
+            - "2"
+            - "4"
           type: string
         rarity:
           enum:
-          - COMMON
-          - UNCOMMON
-          - RARE
+            - COMMON
+            - UNCOMMON
+            - RARE
           type: string
       required:
-      - id
-      - name
+        - id
+        - name
     ComponentType:
       description: Type of a component.
       enum:
-      - Integrated
-      - Plug-in
-      - After sales
+        - Integrated
+        - Plug-in
+        - After sales
       type: string
     Components:
       items:
@@ -457,8 +462,8 @@ components:
         content:
           type: string
       required:
-      - content
-      - title
+        - content
+        - title
       type: object
     Clock:
       properties:
@@ -469,8 +474,8 @@ components:
           format: date-time
           type: string
       required:
-      - time1
-      - time2
+        - time1
+        - time2
       type: object
     ClockResponse:
       properties:
@@ -504,8 +509,8 @@ components:
         message:
           type: string
       required:
-      - code
-      - message
+        - code
+        - message
     ProblematicName:
       properties:
         "2name":
@@ -514,7 +519,7 @@ components:
           type: string
         problemat%c:
           enum:
-          - "1"
-          - two-point-zero
-          - three?
+            - "1"
+            - two-point-zero
+            - three?
           type: string

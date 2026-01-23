@@ -1,29 +1,11 @@
 package io.github.ruedigerk.contractfirst.generator.java.transform
 
 import io.github.ruedigerk.contractfirst.generator.java.JavaConfiguration
-import io.github.ruedigerk.contractfirst.generator.java.model.DecimalValidation
-import io.github.ruedigerk.contractfirst.generator.java.model.IntegralValidation
-import io.github.ruedigerk.contractfirst.generator.java.model.JavaAnyType
-import io.github.ruedigerk.contractfirst.generator.java.model.JavaCollectionType
-import io.github.ruedigerk.contractfirst.generator.java.model.JavaMapType
-import io.github.ruedigerk.contractfirst.generator.java.model.JavaType
-import io.github.ruedigerk.contractfirst.generator.java.model.JavaTypeName
+import io.github.ruedigerk.contractfirst.generator.java.model.*
 import io.github.ruedigerk.contractfirst.generator.java.model.NumericValidationType.MAX
 import io.github.ruedigerk.contractfirst.generator.java.model.NumericValidationType.MIN
-import io.github.ruedigerk.contractfirst.generator.java.model.PatternValidation
-import io.github.ruedigerk.contractfirst.generator.java.model.SizeValidation
-import io.github.ruedigerk.contractfirst.generator.java.model.TypeValidation
-import io.github.ruedigerk.contractfirst.generator.java.model.ValidatedValidation
 import io.github.ruedigerk.contractfirst.generator.logging.Log
-import io.github.ruedigerk.contractfirst.generator.model.ArraySchema
-import io.github.ruedigerk.contractfirst.generator.model.DataType
-import io.github.ruedigerk.contractfirst.generator.model.EnumSchema
-import io.github.ruedigerk.contractfirst.generator.model.MapSchema
-import io.github.ruedigerk.contractfirst.generator.model.ObjectSchema
-import io.github.ruedigerk.contractfirst.generator.model.Operation
-import io.github.ruedigerk.contractfirst.generator.model.PrimitiveSchema
-import io.github.ruedigerk.contractfirst.generator.model.Schema
-import io.github.ruedigerk.contractfirst.generator.model.SchemaId
+import io.github.ruedigerk.contractfirst.generator.model.*
 
 /**
  * Transforms the parsed Schemas into Java types, creating unique and valid type names for generated types. This needs to be done before creating Java
@@ -90,6 +72,7 @@ class JavaSchemaToTypeTransformer(
 
   private fun toJavaPredefinedType(schema: PrimitiveSchema): JavaType = when (schema.dataType) {
     DataType.STRING -> JavaType(JavaTypeName.STRING, sizeValidations(schema.minLength, schema.maxLength) + patternValidations(schema))
+    DataType.BINARY -> JavaType(JavaTypeName.INPUT_STREAM)
     DataType.BOOLEAN -> JavaType(JavaTypeName.BOOLEAN)
 
     DataType.INT_32 -> JavaType(JavaTypeName.INTEGER, integralValidations(schema))
@@ -102,7 +85,6 @@ class JavaSchemaToTypeTransformer(
 
     DataType.DATE -> JavaType(JavaTypeName.LOCAL_DATE)
     DataType.DATE_TIME -> JavaType(JavaTypeName.OFFSET_DATE_TIME)
-    DataType.BINARY -> JavaType(JavaTypeName.INPUT_STREAM)
   }
 
   private fun integralValidations(schema: PrimitiveSchema): List<TypeValidation> {

@@ -16,8 +16,9 @@ data class JavaTypeName(
   companion object {
 
     val OBJECT = JavaTypeName("java.lang", "Object")
-    
+    val STRING = JavaTypeName("java.lang", "String")
     val BOOLEAN = JavaTypeName("java.lang", "Boolean")
+    val INPUT_STREAM = JavaTypeName("java.io", "InputStream")
 
     val INTEGER = JavaTypeName("java.lang", "Integer")
     val LONG = JavaTypeName("java.lang", "Long")
@@ -29,8 +30,6 @@ data class JavaTypeName(
 
     val LOCAL_DATE = JavaTypeName("java.time", "LocalDate")
     val OFFSET_DATE_TIME = JavaTypeName("java.time", "OffsetDateTime")
-    val INPUT_STREAM = JavaTypeName("java.io", "InputStream")
-    val STRING = JavaTypeName("java.lang", "String")
 
     val LIST = JavaTypeName("java.util", "List")
     val MAP = JavaTypeName("java.util", "Map")

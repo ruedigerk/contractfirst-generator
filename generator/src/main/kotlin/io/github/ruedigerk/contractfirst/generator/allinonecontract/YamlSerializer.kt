@@ -46,7 +46,8 @@ object YamlSerializer {
         enable(Feature.MINIMIZE_QUOTES)
         enable(Feature.ALWAYS_QUOTE_NUMBERS_AS_STRINGS)
         enable(Feature.LITERAL_BLOCK_STYLE)
-        disable(Feature.SPLIT_LINES)
+        enable(Feature.SPLIT_LINES)
+        enable(Feature.INDENT_ARRAYS_WITH_INDICATOR)
       }
     }
   }
