@@ -82,6 +82,7 @@
       <module>command-line-interface</module>
       <module>compat-1.7-test</module>
       <module>generator</module>
+      <module>generator-test-spring</module>
       <module>gson-date-time-support</module>
       <module>integration-test</module>
       <module>maven-plugin</module>
@@ -262,6 +263,7 @@
                   <excludeArtifacts>
                      <excludeArtifact>contractfirst-generator-integration-test</excludeArtifact>
                      <excludeArtifact>contractfirst-generator-compat-1.7-test</excludeArtifact>
+                     <excludeArtifact>contractfirst-generator-test-spring</excludeArtifact>
                   </excludeArtifacts>
                   <autoPublish>false</autoPublish>
                   <waitUntil>validated</waitUntil>

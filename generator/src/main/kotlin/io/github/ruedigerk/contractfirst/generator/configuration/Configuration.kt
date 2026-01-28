@@ -20,7 +20,6 @@ data class Configuration(
   val outputJavaModelUseJsr305NullabilityAnnotations: Boolean,
 ) {
 
-  // TODO: also validate the other configuration parameters
   @Throws(InvalidConfigurationException::class)
   fun validate() {
     if (generator != generatorVariant.associatedGenerator) {

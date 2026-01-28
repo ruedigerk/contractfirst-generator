@@ -1,0 +1,511 @@
+openapi: "3.0.0"
+info:
+  version: 1.0.0
+  title: Test suite for the client and server code generator
+servers:
+  - url: https://example.com/v1
+paths:
+  /{systemId}/components:
+    post:
+      summary: Test for the various parameter locations and for serializing request and response body entities.
+      operationId: createItem
+      tags:
+        - ResponseVariants
+      parameters:
+        - name: systemId
+          in: path
+          description: ID of the system to create the item in.
+          required: true
+          schema:
+            type: string
+        - name: dryRun
+          in: query
+          description: Do a dry run?
+          required: false
+          schema:
+            type: boolean
+        - name: partNumber
+          in: header
+          description: Optional part number
+          required: false
+          schema:
+            type: integer
+            format: int64
+        - name: testCaseSelector
+          in: header
+          description: Used to select the desired behaviour of the server in the test.
+          required: false
+          schema:
+            type: string
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/Item"
+      responses:
+        200:
+          description: Return created item
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Item"
+        201:
+          description: Accepted, also empty response.
+        204:
+          description: Empty response
+        400:
+          description: Error, customer ID unknown
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Failure"
+        default:
+          description: Some other error, like 500.
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Failure"
+
+  /items:
+    post:
+      summary: Test operation for generating generic types, e.g. List of Item.
+      operationId: filterItems
+      tags:
+        - PayloadVariants
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: array
+              items:
+                $ref: "#/components/schemas/Item"
+      responses:
+        200:
+          description: Returned filtered items.
+          content:
+            application/json:
+              schema:
+                type: array
+                items: 
+                  $ref: "#/components/schemas/Item"
+        default:
+          $ref: "#/components/responses/DefaultFailures"
+
+  /items2:
+    post:
+      summary: Second test operation for generic types, using the same generic return type as the other operation (test for bug in the generator).
+      operationId: filterItems2
+      tags:
+        - PayloadVariants
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: array
+              items:
+                $ref: "#/components/schemas/Item"
+      responses:
+        200:
+          description: Returned filtered items.
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: "#/components/schemas/Item"
+        default:
+          $ref: "#/components/responses/DefaultFailures"
+
+  /itemBinaries:
+    post:
+      summary: Test for 204 response.
+      operationId: changeItem
+      tags:
+        - PayloadVariants
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/Item"
+      responses:
+        204:
+          description: Ok
+        default:
+          $ref: "#/components/responses/DefaultFailures"
+
+    put:
+      summary: Test binary input and output.
+      operationId: uploadAndReturnBinary
+      tags:
+        - PayloadVariants
+      requestBody:
+        required: true
+        content:
+          application/octet-stream:
+            schema:
+              type: string
+              format: binary
+      responses:
+        200:
+          description: Returned binary data.
+          content:
+            application/octet-stream:
+              schema:
+                type: string
+                format: binary
+        default:
+          $ref: "#/components/responses/DefaultFailures"
+
+  /manuals:
+    get:
+      summary: Test case for multiple response content types with different schemas.
+      operationId: getManual
+      tags:
+        - MultipleContentTypes
+      parameters:
+        - name: testCaseSelector
+          in: header
+          description: Used to select the desired behaviour of the server in the test.
+          required: false
+          schema:
+            type: string
+      responses:
+        200:
+          description: Returned requested Manual.
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Manual"
+            application/pdf:
+              schema:
+                type: string
+                format: binary
+        202:
+          description: Returned a description of the manual instead.
+          content: 
+            text/plain:
+              schema: 
+                type: string
+        204:
+          description: Return nothing.
+        default:
+          $ref: "#/components/responses/DefaultFailures"
+
+  /wildcardContentTypes:
+    get:
+      summary: Test wildcard response content types.
+      operationId: getWildcardContentTypes
+      tags:
+        - WildcardContentTypes
+      parameters:
+        - name: testCaseSelector
+          in: header
+          description: Used to select the desired behaviour of the server in the test.
+          required: false
+          schema:
+            type: string
+      responses:
+        200:
+          description: Returned some content.
+          content:
+            text/*:
+              schema:
+                type: string
+            application/*:
+              schema:
+                type: string
+                format: binary
+        default:
+          $ref: "#/components/responses/DefaultFailures"
+
+  /time/{timeId}:
+    post:
+      summary: For testing handling of date and date-time formats.
+      operationId: updateTime
+      tags:
+        - time
+      parameters:
+        - name: timeId
+          in: path
+          required: true
+          schema:
+            type: string
+            format: date
+        - name: queryTimeA
+          in: query
+          required: true
+          schema:
+            type: string
+            format: date
+        - name: queryTimeB
+          in: query
+          required: true
+          schema:
+            type: string
+            format: date-time
+        - name: headerTimeA
+          in: header
+          required: true
+          schema:
+            type: string
+            format: date
+        - name: headerTimeB
+          in: header
+          required: true
+          schema:
+            type: string
+            format: date-time
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/Clock"
+      responses:
+        200:
+          description: Returned a clock.
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ClockResponse"
+        default:
+          $ref: "#/components/responses/DefaultFailures"
+
+  /bigDecimals:
+    get:
+      summary: Test serialization of schema type number as BigDecimal.
+      operationId: getNumber
+      tags:
+        - BigDecimals
+      parameters:
+        - name: decimalNumber
+          in: query
+          description: Test BigDecimal
+          required: true
+          schema:
+            type: number
+      responses:
+        200:
+          description: Returned decimal number.
+          content:
+            application/json:
+              schema:
+                type: number
+        default:
+          $ref: "#/components/responses/DefaultFailures"
+
+  /testcases:
+    get:
+      description: A test case for the SchemaToJavaTypeTransformer.
+      tags:
+        - testcases
+      operationId: getInlineObjectInArray
+      responses:
+        200:
+          description: Return an object embedded inline in an array.
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  type: object
+                  properties:
+                    someProperty:
+                      type: string
+        default:
+          $ref: "#/components/responses/DefaultFailures"
+
+  /postWithoutBody/post:
+    post:
+      description: Testing HTTP method POST without a request body.
+      operationId: postWithoutBody
+      tags:
+        - PostWithoutBody
+      responses:
+        204:
+          description: Ok.
+
+  /postWithoutBody/put:
+    put:
+      description: Testing HTTP method PUT without a request body.
+      operationId: putWithoutBody
+      tags:
+        - PostWithoutBody
+      responses:
+        204:
+          description: Ok.
+
+  /postWithoutBody/patch:
+    post:
+      description: Testing HTTP method PATCH without a request body.
+      operationId: patchWithoutBody
+      tags:
+        - PostWithoutBody
+      responses:
+        204:
+          description: Ok.
+
+  /nonJavaPropertyNames:
+    post:
+      description: A test case for a JSON model with properties that are not legal Java identifiers.
+      tags:
+        - NonJavaPropertyNames
+      operationId: postNonJavaPropertyNames
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/ProblematicName"
+      responses:
+        200:
+          description: Return object as received.
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ProblematicName"
+        default:
+          $ref: "#/components/responses/DefaultFailures"
+
+  /nonJsonEntityAsJson:
+    get:
+      summary: Test case for an operation that declares a non-JSON entity and the server nevertheless sending the entity as JSON.
+      operationId: getNonJsonEntityAsJson
+      tags:
+        - NonJsonEntityAsJson
+      responses:
+        200:
+          description: Response defined with content type XML, but server sends JSON anyway.
+          content:
+            application/xml:
+              schema:
+                $ref: "#/components/schemas/Item"
+
+components:
+  schemas:
+    Item:
+      required:
+        - id
+        - name
+      properties:
+        id:
+          type: integer
+          format: int64
+        name:
+          type: string
+        tag:
+          type: string
+    Component:
+      description: A component.
+      required:
+        - id
+        - name
+      properties:
+        id:
+          type: string
+        name:
+          type: string
+        type:
+          $ref: "#/components/schemas/ComponentType"
+        multiplier:
+          type: string
+          enum:
+            - "1"
+            - "2"
+            - "4"
+        rarity:
+          type: string
+          enum:
+            - COMMON
+            - UNCOMMON
+            - RARE
+    ComponentType:
+      description: Type of a component.
+      type: string
+      enum:
+        - Integrated
+        - Plug-in
+        - After sales
+    Components:
+      type: array
+      items:
+        $ref: "#/components/schemas/Component"
+    Manual:
+      type: object
+      required: 
+        - title
+        - content
+      properties: 
+        title:
+          type: string
+        content:
+          type: string
+    Clock:
+      type: object
+      required:
+        - time1
+        - time2
+      properties:
+        time1:
+          type: string
+          format: date
+        time2:
+          type: string
+          format: date-time
+    ClockResponse:
+      type: object
+      properties:
+        time1:
+          type: string
+          format: date
+        time2:
+          type: string
+          format: date-time
+        pathTime:
+          type: string
+          format: date
+        queryTime1:
+          type: string
+          format: date
+        queryTime2:
+          type: string
+          format: date-time
+        headerTime1:
+          type: string
+          format: date
+        headerTime2:
+          type: string
+          format: date-time
+    Failure:
+      required:
+        - code
+        - message
+      properties:
+        code:
+          type: integer
+          format: int32
+        message:
+          type: string
+    ProblematicName:
+      properties:
+        2name:
+          type: string
+        name-and-value:
+          type: string
+        problemat%c:
+          type: string
+          enum:
+            - 1
+            - two-point-zero
+            - three?
+  responses:
+    DefaultFailures:
+      description: Some other error, like 500.
+      content:
+        application/json:
+          schema:
+            $ref: "#/components/schemas/Failure"

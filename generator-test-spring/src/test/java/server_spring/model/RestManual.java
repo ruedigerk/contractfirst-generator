@@ -1,0 +1,60 @@
+package server_spring.model;
+
+import jakarta.validation.constraints.NotNull;
+import java.util.Objects;
+
+public class RestManual {
+  @NotNull
+  private String title;
+
+  @NotNull
+  private String content;
+
+  public RestManual title(String title) {
+    this.title = title;
+    return this;
+  }
+
+  public String getTitle() {
+    return title;
+  }
+
+  public void setTitle(String title) {
+    this.title = title;
+  }
+
+  public RestManual content(String content) {
+    this.content = content;
+    return this;
+  }
+
+  public String getContent() {
+    return content;
+  }
+
+  public void setContent(String content) {
+    this.content = content;
+  }
+
+  @Override
+  public boolean equals(Object other) {
+    if (other == this) return true;
+    if (other == null || getClass() != other.getClass()) return false;
+    RestManual o = (RestManual) other;
+    return Objects.equals(title, o.title)
+        && Objects.equals(content, o.content);
+  }
+
+  @Override
+  public int hashCode() {
+    return Objects.hash(title, content);
+  }
+
+  @Override
+  public String toString() {
+    StringBuilder builder = new StringBuilder();
+    builder.append(", title=").append(title);
+    builder.append(", content=").append(content);
+    return builder.replace(0, 2, "RestManual{").append('}').toString();
+  }
+}
