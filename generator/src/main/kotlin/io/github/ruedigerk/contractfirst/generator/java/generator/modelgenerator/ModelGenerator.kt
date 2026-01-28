@@ -1,12 +1,14 @@
-package io.github.ruedigerk.contractfirst.generator.java.generator
+package io.github.ruedigerk.contractfirst.generator.java.generator.modelgenerator
 
 import com.squareup.javapoet.*
 import io.github.ruedigerk.contractfirst.generator.configuration.ModelVariant
 import io.github.ruedigerk.contractfirst.generator.java.Identifiers.capitalize
 import io.github.ruedigerk.contractfirst.generator.java.JavaConfiguration
+import io.github.ruedigerk.contractfirst.generator.java.generator.Annotations
 import io.github.ruedigerk.contractfirst.generator.java.generator.Annotations.jsr305NullabilityAnnotation
 import io.github.ruedigerk.contractfirst.generator.java.generator.JavapoetExtensions.doIf
 import io.github.ruedigerk.contractfirst.generator.java.generator.JavapoetExtensions.doIfNotNull
+import io.github.ruedigerk.contractfirst.generator.java.generator.MethodsFromObject
 import io.github.ruedigerk.contractfirst.generator.java.generator.TypeNames.toClassName
 import io.github.ruedigerk.contractfirst.generator.java.generator.TypeNames.toTypeName
 import io.github.ruedigerk.contractfirst.generator.java.model.*

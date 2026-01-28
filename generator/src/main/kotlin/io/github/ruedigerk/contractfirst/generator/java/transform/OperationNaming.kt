@@ -1,7 +1,7 @@
 package io.github.ruedigerk.contractfirst.generator.java.transform
 
 import io.github.ruedigerk.contractfirst.generator.java.Identifiers.toJavaIdentifier
-import io.github.ruedigerk.contractfirst.generator.model.Operation
+import io.github.ruedigerk.contractfirst.generator.openapi.Operation
 
 /**
  * Responsible for creating Java method names for operations.

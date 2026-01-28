@@ -3,7 +3,7 @@ package io.github.ruedigerk.contractfirst.generator
 import io.github.ruedigerk.contractfirst.generator.configuration.Configuration
 import io.github.ruedigerk.contractfirst.generator.configuration.InvalidConfigurationException
 import io.github.ruedigerk.contractfirst.generator.java.JavaConfiguration
-import io.github.ruedigerk.contractfirst.generator.java.generator.ModelGenerator
+import io.github.ruedigerk.contractfirst.generator.java.generator.modelgenerator.ModelGenerator
 import io.github.ruedigerk.contractfirst.generator.java.transform.JavaSchemaToSourceTransformer
 import io.github.ruedigerk.contractfirst.generator.java.transform.JavaSchemaToTypeTransformer
 import io.github.ruedigerk.contractfirst.generator.logging.Log

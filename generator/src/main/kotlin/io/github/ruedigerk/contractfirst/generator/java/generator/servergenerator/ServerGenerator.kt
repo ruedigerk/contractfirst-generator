@@ -1,25 +1,27 @@
-package io.github.ruedigerk.contractfirst.generator.java.generator
+package io.github.ruedigerk.contractfirst.generator.java.generator.servergenerator
 
 import com.squareup.javapoet.*
 import io.github.ruedigerk.contractfirst.generator.configuration.GeneratorVariant
 import io.github.ruedigerk.contractfirst.generator.java.Identifiers.capitalize
 import io.github.ruedigerk.contractfirst.generator.java.Identifiers.mediaTypeToJavaIdentifier
 import io.github.ruedigerk.contractfirst.generator.java.JavaConfiguration
+import io.github.ruedigerk.contractfirst.generator.java.generator.Annotations
 import io.github.ruedigerk.contractfirst.generator.java.generator.Annotations.NOT_NULL_ANNOTATION
+import io.github.ruedigerk.contractfirst.generator.java.generator.JavaParameters
 import io.github.ruedigerk.contractfirst.generator.java.generator.JavapoetExtensions.doIf
 import io.github.ruedigerk.contractfirst.generator.java.generator.JavapoetExtensions.doIfNotNull
 import io.github.ruedigerk.contractfirst.generator.java.generator.TypeNames.toClassName
 import io.github.ruedigerk.contractfirst.generator.java.generator.TypeNames.toTypeName
 import io.github.ruedigerk.contractfirst.generator.java.model.*
-import io.github.ruedigerk.contractfirst.generator.model.DefaultStatusCode
-import io.github.ruedigerk.contractfirst.generator.model.StatusCode
+import io.github.ruedigerk.contractfirst.generator.openapi.DefaultStatusCode
+import io.github.ruedigerk.contractfirst.generator.openapi.StatusCode
 import java.io.File
 import javax.lang.model.element.Modifier.*
 
 /**
  * Generates the code for server stubs/interfaces.
  */
-class ServerStubGenerator(
+class ServerGenerator(
     private val configuration: JavaConfiguration
 ) : (JavaSpecification) -> Unit {
 
@@ -29,8 +31,8 @@ class ServerStubGenerator(
   private val variant = selectVariant(configuration.generatorVariant)
 
   private fun selectVariant(generatorVariant: GeneratorVariant) = when (generatorVariant) {
-    GeneratorVariant.SERVER_JAX_RS -> JaxRsServerVariant()
-    GeneratorVariant.SERVER_SPRING_WEB -> SpringWebServerVariant()
+    GeneratorVariant.SERVER_JAX_RS -> JaxRsServerGeneratorVariant()
+    GeneratorVariant.SERVER_SPRING_WEB -> SpringWebServerGeneratorVariant()
     else -> error("Unsupported server generator variant $generatorVariant")
   }
 
@@ -97,7 +99,7 @@ class ServerStubGenerator(
 
     val defaultResponseMethods = operation.responses
         .filter { it.statusCode is DefaultStatusCode }
-        .flatMap { response -> response.contents.map { content -> toTypesafeArbitrayResponseMethod(content, frameworkResponseClass, typesafeResponseClass) } }
+        .flatMap { response -> response.contents.map { content -> toTypesafeArbitraryResponseMethod(content, frameworkResponseClass, typesafeResponseClass) } }
 
     val customResponseMethod = MethodSpec.methodBuilder("withCustomResponse")
         .addModifiers(PUBLIC, STATIC)
@@ -161,7 +163,7 @@ class ServerStubGenerator(
   /**
    * This method allows the caller to arbitrarily choose the response status. This is for supporting the "default" status in OpenAPI contracts.
    */
-  private fun toTypesafeArbitrayResponseMethod(content: JavaContent, frameworkResponseClass: ClassName, typesafeResponseClass: ClassName): MethodSpec {
+  private fun toTypesafeArbitraryResponseMethod(content: JavaContent, frameworkResponseClass: ClassName, typesafeResponseClass: ClassName): MethodSpec {
     val mediaTypeAsIdentifier = content.mediaType.mediaTypeToJavaIdentifier()
     val methodName = "with$mediaTypeAsIdentifier"
 

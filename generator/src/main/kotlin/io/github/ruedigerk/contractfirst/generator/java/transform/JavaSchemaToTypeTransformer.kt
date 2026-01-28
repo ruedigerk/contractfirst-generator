@@ -5,7 +5,7 @@ import io.github.ruedigerk.contractfirst.generator.java.model.*
 import io.github.ruedigerk.contractfirst.generator.java.model.NumericValidationType.MAX
 import io.github.ruedigerk.contractfirst.generator.java.model.NumericValidationType.MIN
 import io.github.ruedigerk.contractfirst.generator.logging.Log
-import io.github.ruedigerk.contractfirst.generator.model.*
+import io.github.ruedigerk.contractfirst.generator.openapi.*
 
 /**
  * Transforms the parsed Schemas into Java types, creating unique and valid type names for generated types. This needs to be done before creating Java

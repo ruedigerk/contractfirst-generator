@@ -1,6 +1,6 @@
 package io.github.ruedigerk.contractfirst.generator.java.model
 
-import io.github.ruedigerk.contractfirst.generator.model.ParameterLocation
+import io.github.ruedigerk.contractfirst.generator.openapi.ParameterLocation
 
 /**
  * Represents a parameter of an operation of the contract.

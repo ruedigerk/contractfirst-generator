@@ -3,9 +3,9 @@ package io.github.ruedigerk.contractfirst.generator
 import io.github.ruedigerk.contractfirst.generator.configuration.Configuration
 import io.github.ruedigerk.contractfirst.generator.configuration.GeneratorType
 import io.github.ruedigerk.contractfirst.generator.java.JavaConfiguration
-import io.github.ruedigerk.contractfirst.generator.java.generator.ClientGenerator
-import io.github.ruedigerk.contractfirst.generator.java.generator.ModelGenerator
-import io.github.ruedigerk.contractfirst.generator.java.generator.ServerStubGenerator
+import io.github.ruedigerk.contractfirst.generator.java.generator.clientgenerator.ClientGenerator
+import io.github.ruedigerk.contractfirst.generator.java.generator.modelgenerator.ModelGenerator
+import io.github.ruedigerk.contractfirst.generator.java.generator.servergenerator.ServerGenerator
 import io.github.ruedigerk.contractfirst.generator.java.model.JavaSpecification
 import io.github.ruedigerk.contractfirst.generator.java.transform.JavaTransformer
 import io.github.ruedigerk.contractfirst.generator.logging.Log
@@ -35,7 +35,7 @@ class RecipeForFullSpecification(
 
   private fun getGenerator(javaConfiguration: JavaConfiguration): (JavaSpecification) -> Unit = when (configuration.generator) {
     GeneratorType.CLIENT -> ClientGenerator(javaConfiguration)
-    GeneratorType.SERVER -> ServerStubGenerator(javaConfiguration)
+    GeneratorType.SERVER -> ServerGenerator(javaConfiguration)
     GeneratorType.MODEL_ONLY -> error("Illegal generator type: ${configuration.generator}")
   }
 

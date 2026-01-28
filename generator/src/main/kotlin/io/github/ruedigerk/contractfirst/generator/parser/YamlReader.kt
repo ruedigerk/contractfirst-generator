@@ -4,7 +4,7 @@ import com.fasterxml.jackson.databind.ObjectMapper
 import com.fasterxml.jackson.dataformat.yaml.YAMLFactory
 import io.github.ruedigerk.contractfirst.generator.ParserFileNotFoundException
 import io.github.ruedigerk.contractfirst.generator.ParserIoException
-import io.github.ruedigerk.contractfirst.generator.model.Position
+import io.github.ruedigerk.contractfirst.generator.openapi.Position
 import java.io.File
 import java.io.FileNotFoundException
 import java.io.IOException

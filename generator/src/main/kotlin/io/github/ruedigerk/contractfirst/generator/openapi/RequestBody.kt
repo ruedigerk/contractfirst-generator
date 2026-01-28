@@ -1,4 +1,4 @@
-package io.github.ruedigerk.contractfirst.generator.model
+package io.github.ruedigerk.contractfirst.generator.openapi
 
 /**
  * Represents the request body of an operation in the contract.

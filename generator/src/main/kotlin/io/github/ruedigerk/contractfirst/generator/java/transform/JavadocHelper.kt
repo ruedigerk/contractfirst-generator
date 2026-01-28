@@ -1,6 +1,6 @@
 package io.github.ruedigerk.contractfirst.generator.java.transform
 
-import io.github.ruedigerk.contractfirst.generator.model.Schema
+import io.github.ruedigerk.contractfirst.generator.openapi.Schema
 
 /**
  * For extracting the Javadoc relevant description from a schema.

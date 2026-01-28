@@ -3,7 +3,7 @@ package io.github.ruedigerk.contractfirst.generator.java.transform
 import io.github.ruedigerk.contractfirst.generator.java.JavaConfiguration
 import io.github.ruedigerk.contractfirst.generator.java.model.JavaSpecification
 import io.github.ruedigerk.contractfirst.generator.logging.Log
-import io.github.ruedigerk.contractfirst.generator.model.Specification
+import io.github.ruedigerk.contractfirst.generator.openapi.Specification
 
 /**
  * Transforms the parsed specification into a Java-specific specification, appropriate for code generation.
@@ -22,4 +22,3 @@ class JavaTransformer(
     return JavaSpecification(operationTransformerResult.operationGroups, javaModelFiles)
   }
 }
-

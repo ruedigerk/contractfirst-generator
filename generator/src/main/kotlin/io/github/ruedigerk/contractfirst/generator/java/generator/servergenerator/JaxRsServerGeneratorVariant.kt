@@ -1,4 +1,4 @@
-package io.github.ruedigerk.contractfirst.generator.java.generator
+package io.github.ruedigerk.contractfirst.generator.java.generator.servergenerator
 
 import com.squareup.javapoet.AnnotationSpec
 import com.squareup.javapoet.MethodSpec
@@ -7,13 +7,13 @@ import com.squareup.javapoet.TypeSpec
 import io.github.ruedigerk.contractfirst.generator.java.generator.Annotations.toAnnotation
 import io.github.ruedigerk.contractfirst.generator.java.generator.JavapoetExtensions.doIfNotNull
 import io.github.ruedigerk.contractfirst.generator.java.model.*
-import io.github.ruedigerk.contractfirst.generator.model.HttpMethod
-import io.github.ruedigerk.contractfirst.generator.model.ParameterLocation.*
+import io.github.ruedigerk.contractfirst.generator.openapi.HttpMethod
+import io.github.ruedigerk.contractfirst.generator.openapi.ParameterLocation.*
 
 /**
  * JAX-RS-specific implementation of the ServerGeneratorVariant.
  */
-class JaxRsServerVariant : ServerVariant {
+class JaxRsServerGeneratorVariant : ServerGeneratorVariant {
 
   override val responseClassName: String
     get() = "jakarta.ws.rs.core.Response"

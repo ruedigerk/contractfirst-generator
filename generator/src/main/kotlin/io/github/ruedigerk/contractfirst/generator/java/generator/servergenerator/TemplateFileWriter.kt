@@ -1,4 +1,4 @@
-package io.github.ruedigerk.contractfirst.generator.java.generator
+package io.github.ruedigerk.contractfirst.generator.java.generator.servergenerator
 
 import io.github.ruedigerk.contractfirst.generator.java.JavaConfiguration
 import java.io.BufferedOutputStream

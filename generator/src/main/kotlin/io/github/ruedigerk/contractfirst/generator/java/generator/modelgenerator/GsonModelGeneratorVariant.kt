@@ -1,4 +1,4 @@
-package io.github.ruedigerk.contractfirst.generator.java.generator
+package io.github.ruedigerk.contractfirst.generator.java.generator.modelgenerator
 
 import io.github.ruedigerk.contractfirst.generator.java.generator.Annotations.toAnnotation
 

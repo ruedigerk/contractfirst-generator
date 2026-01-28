@@ -6,8 +6,8 @@ import io.github.ruedigerk.contractfirst.generator.java.JavaConfiguration
 import io.github.ruedigerk.contractfirst.generator.java.model.JavaTypeName
 import io.github.ruedigerk.contractfirst.generator.java.transform.OperationNaming.getJavaMethodName
 import io.github.ruedigerk.contractfirst.generator.logging.Log
-import io.github.ruedigerk.contractfirst.generator.model.Operation
-import io.github.ruedigerk.contractfirst.generator.model.Position
+import io.github.ruedigerk.contractfirst.generator.openapi.Operation
+import io.github.ruedigerk.contractfirst.generator.openapi.Position
 import java.io.File
 
 /**

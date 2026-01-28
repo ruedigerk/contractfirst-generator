@@ -1,4 +1,4 @@
-package io.github.ruedigerk.contractfirst.generator.model
+package io.github.ruedigerk.contractfirst.generator.openapi
 
 /**
  * Represents an operation in the contract.
@@ -32,4 +32,3 @@ data class Operation(
     }
   }
 }
-

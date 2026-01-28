@@ -5,6 +5,7 @@ Ideas and Todos
 - Add integration tests for Spring server
 - Support jSpecify nullability annotations in addition to jsr305.
 - Support inner Enums (and classes?) for model.
+- Implement all-in-one contract functionality without swagger-parser. 
 
 ## General / in the parser
 
@@ -21,6 +22,8 @@ Ideas and Todos
 ## Code-Generation, JavaPoet
 
 - Properly use NameAllocator with scopes, see https://github.com/square/wire/blob/d48be72904d7f6e1458b762cd936b1a7069c2813/wire-java-generator/src/main/java/com/squareup/wire/java/JavaGenerator.java#L1278-L1403
+  - https://github.com/square/javapoet/blob/master/src/main/java/com/squareup/javapoet/NameAllocator.java
+  - https://square.github.io/javapoet/javadoc/javapoet/com/squareup/javapoet/NameAllocator.html
 
 ## Server Generator
 

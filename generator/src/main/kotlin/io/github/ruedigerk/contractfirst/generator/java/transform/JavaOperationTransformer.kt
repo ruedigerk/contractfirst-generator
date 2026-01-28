@@ -9,8 +9,8 @@ import io.github.ruedigerk.contractfirst.generator.java.model.*
 import io.github.ruedigerk.contractfirst.generator.java.model.JavaMultipartBodyParameter.BodyPartType
 import io.github.ruedigerk.contractfirst.generator.java.model.JavaMultipartBodyParameter.BodyPartType.*
 import io.github.ruedigerk.contractfirst.generator.java.transform.OperationNaming.getJavaMethodName
-import io.github.ruedigerk.contractfirst.generator.model.*
-import io.github.ruedigerk.contractfirst.generator.model.DataType.BINARY
+import io.github.ruedigerk.contractfirst.generator.openapi.*
+import io.github.ruedigerk.contractfirst.generator.openapi.DataType.BINARY
 
 /**
  * Transforms the parsed specification into a Java-specific specification, appropriate for code generation.

@@ -3,7 +3,7 @@ package io.github.ruedigerk.contractfirst.generator.java.transform
 import io.github.ruedigerk.contractfirst.generator.java.Identifiers.toJavaConstant
 import io.github.ruedigerk.contractfirst.generator.java.Identifiers.toJavaIdentifier
 import io.github.ruedigerk.contractfirst.generator.java.model.*
-import io.github.ruedigerk.contractfirst.generator.model.*
+import io.github.ruedigerk.contractfirst.generator.openapi.*
 
 /**
  * Transforms the parsed schemas into Java source file representations, appropriate for code generation.
@@ -63,4 +63,3 @@ class JavaSchemaToSourceTransformer(
     return JavaEnumFile(type.name, JavadocHelper.toJavadoc(schema), constants)
   }
 }
-

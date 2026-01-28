@@ -3,7 +3,7 @@ package io.github.ruedigerk.contractfirst.generator.parser
 import io.github.ruedigerk.contractfirst.generator.NotSupportedException
 import io.github.ruedigerk.contractfirst.generator.ParserContentException
 import io.github.ruedigerk.contractfirst.generator.logging.Log
-import io.github.ruedigerk.contractfirst.generator.model.*
+import io.github.ruedigerk.contractfirst.generator.openapi.*
 import io.github.ruedigerk.contractfirst.generator.parser.Strings.normalize
 
 /**

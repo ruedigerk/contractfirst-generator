@@ -3,7 +3,7 @@ package io.github.ruedigerk.contractfirst.generator.java.transform
 import io.github.ruedigerk.contractfirst.generator.java.transform.Collections.takeIfAllElementsNotNull
 
 /**
- * A Regex-inspired matcher for the path of a [io.github.ruedigerk.contractfirst.generator.model.Position], i.e. a list of strings.
+ * A Regex-inspired matcher for the path of a [io.github.ruedigerk.contractfirst.generator.openapi.Position], i.e. a list of strings.
  */
 class PositionPathMatcher private constructor(
     private val segmentMatchers: List<(String) -> MatchResult?>

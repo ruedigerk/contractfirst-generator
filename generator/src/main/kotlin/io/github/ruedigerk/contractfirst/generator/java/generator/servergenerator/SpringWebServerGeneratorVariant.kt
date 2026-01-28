@@ -1,4 +1,4 @@
-package io.github.ruedigerk.contractfirst.generator.java.generator
+package io.github.ruedigerk.contractfirst.generator.java.generator.servergenerator
 
 import com.squareup.javapoet.AnnotationSpec
 import com.squareup.javapoet.MethodSpec
@@ -8,12 +8,12 @@ import io.github.ruedigerk.contractfirst.generator.java.generator.Annotations.to
 import io.github.ruedigerk.contractfirst.generator.java.generator.JavapoetExtensions.doIfNotNull
 import io.github.ruedigerk.contractfirst.generator.java.generator.TypeNames.toClassName
 import io.github.ruedigerk.contractfirst.generator.java.model.*
-import io.github.ruedigerk.contractfirst.generator.model.ParameterLocation.*
+import io.github.ruedigerk.contractfirst.generator.openapi.ParameterLocation.*
 
 /**
  * Spring Web MVC-specific implementation of the ServerGeneratorVariant.
  */
-class SpringWebServerVariant : ServerVariant {
+class SpringWebServerGeneratorVariant : ServerGeneratorVariant {
 
   override val responseClassName: String
     get() = "org.springframework.http.ResponseEntity"

@@ -6,9 +6,9 @@ import io.github.ruedigerk.contractfirst.generator.java.JavaConfiguration
 import io.github.ruedigerk.contractfirst.generator.java.model.JavaTypeName
 import io.github.ruedigerk.contractfirst.generator.logging.Log
 import io.github.ruedigerk.contractfirst.generator.logging.LogAdapter
-import io.github.ruedigerk.contractfirst.generator.model.HttpMethod
-import io.github.ruedigerk.contractfirst.generator.model.Operation
-import io.github.ruedigerk.contractfirst.generator.model.Position
+import io.github.ruedigerk.contractfirst.generator.openapi.HttpMethod
+import io.github.ruedigerk.contractfirst.generator.openapi.Operation
+import io.github.ruedigerk.contractfirst.generator.openapi.Position
 import spock.lang.Specification
 import spock.lang.Subject
 

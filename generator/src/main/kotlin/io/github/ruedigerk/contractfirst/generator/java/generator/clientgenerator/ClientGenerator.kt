@@ -1,17 +1,19 @@
-package io.github.ruedigerk.contractfirst.generator.java.generator
+package io.github.ruedigerk.contractfirst.generator.java.generator.clientgenerator
 
 import com.squareup.javapoet.*
 import io.github.ruedigerk.contractfirst.generator.java.Identifiers.toJavaConstant
 import io.github.ruedigerk.contractfirst.generator.java.Identifiers.toJavaTypeIdentifier
 import io.github.ruedigerk.contractfirst.generator.java.JavaConfiguration
 import io.github.ruedigerk.contractfirst.generator.java.generator.Annotations.toAnnotation
+import io.github.ruedigerk.contractfirst.generator.java.generator.JavaParameters
 import io.github.ruedigerk.contractfirst.generator.java.generator.JavapoetExtensions.doIf
 import io.github.ruedigerk.contractfirst.generator.java.generator.JavapoetExtensions.doIfNotNull
+import io.github.ruedigerk.contractfirst.generator.java.generator.MethodsFromObject
 import io.github.ruedigerk.contractfirst.generator.java.generator.TypeNames.toClassName
 import io.github.ruedigerk.contractfirst.generator.java.generator.TypeNames.toTypeName
 import io.github.ruedigerk.contractfirst.generator.java.model.*
-import io.github.ruedigerk.contractfirst.generator.model.DefaultStatusCode
-import io.github.ruedigerk.contractfirst.generator.model.StatusCode
+import io.github.ruedigerk.contractfirst.generator.openapi.DefaultStatusCode
+import io.github.ruedigerk.contractfirst.generator.openapi.StatusCode
 import java.io.File
 import java.util.*
 import javax.lang.model.element.Modifier
@@ -127,7 +129,7 @@ class ClientGenerator(configuration: JavaConfiguration) : (JavaSpecification) ->
     val exceptions = getAllErrorWithEntityExceptionsFor(operation)
 
     val returnType = when {
-      // There are multiple success entity types, so return the successful response object.  
+      // There are multiple success entity types, so return the successful response object.
       operation.successTypes.size > 1 -> typeNameOfResultClass(operation)
       // There is a single entity type that all successful responses use or no entity at all.
       else -> operation.successTypes.firstOrNull()?.toTypeName()
@@ -290,7 +292,7 @@ class ClientGenerator(configuration: JavaConfiguration) : (JavaSpecification) ->
         }
 
         else -> {
-          // There are success and failure types, so use type-specific entity accessor method. 
+          // There are success and failure types, so use type-specific entity accessor method.
           codeBuilder.add("\n")
           codeBuilder.addStatement("return result.\$N()", nameForMethodGetEntityAs(operation.successTypes.first()))
         }

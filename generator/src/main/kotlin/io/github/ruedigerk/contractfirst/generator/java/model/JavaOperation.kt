@@ -1,8 +1,8 @@
 package io.github.ruedigerk.contractfirst.generator.java.model
 
-import io.github.ruedigerk.contractfirst.generator.model.DefaultStatusCode
-import io.github.ruedigerk.contractfirst.generator.model.HttpMethod
-import io.github.ruedigerk.contractfirst.generator.model.StatusCode
+import io.github.ruedigerk.contractfirst.generator.openapi.DefaultStatusCode
+import io.github.ruedigerk.contractfirst.generator.openapi.HttpMethod
+import io.github.ruedigerk.contractfirst.generator.openapi.StatusCode
 
 /**
  * Represents an operation of the contract.

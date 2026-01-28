@@ -1,4 +1,4 @@
-package io.github.ruedigerk.contractfirst.generator.model
+package io.github.ruedigerk.contractfirst.generator.openapi
 
 import io.github.ruedigerk.contractfirst.generator.ParserContentException
 import java.io.File

@@ -2,7 +2,7 @@ package io.github.ruedigerk.contractfirst.generator.parser
 
 import com.fasterxml.jackson.databind.JsonNode
 import io.github.ruedigerk.contractfirst.generator.ParserContentException
-import io.github.ruedigerk.contractfirst.generator.model.Position
+import io.github.ruedigerk.contractfirst.generator.openapi.Position
 import java.math.BigDecimal
 
 /**

@@ -1,4 +1,4 @@
-package io.github.ruedigerk.contractfirst.generator.model
+package io.github.ruedigerk.contractfirst.generator.openapi
 
 enum class ParameterLocation {
 
