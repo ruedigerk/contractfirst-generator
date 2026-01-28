@@ -2,7 +2,7 @@ package io.github.ruedigerk.contractfirst.generator.logging
 
 /**
  * Logger class acting as a wrapper around a slf4j logger, providing Kotlin convenience using inline functions and lambdas.
- * 
+ *
  * In the spirit of: https://github.com/MicroUtils/kotlin-logging
  */
 class Log(val underlyingLogger: LogAdapter) {

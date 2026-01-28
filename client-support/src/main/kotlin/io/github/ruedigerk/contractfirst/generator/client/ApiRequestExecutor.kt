@@ -3,16 +3,32 @@ package io.github.ruedigerk.contractfirst.generator.client
 import com.google.gson.Gson
 import com.google.gson.GsonBuilder
 import com.google.gson.JsonParseException
-import io.github.ruedigerk.contractfirst.generator.client.internal.*
-import io.github.ruedigerk.contractfirst.generator.client.internal.Traversal.traverse
+import io.github.ruedigerk.contractfirst.generator.client.internal.BodyPart
+import io.github.ruedigerk.contractfirst.generator.client.internal.MediaTypes
+import io.github.ruedigerk.contractfirst.generator.client.internal.MultipartRequestBody
+import io.github.ruedigerk.contractfirst.generator.client.internal.Operation
+import io.github.ruedigerk.contractfirst.generator.client.internal.OperationRequestBody
+import io.github.ruedigerk.contractfirst.generator.client.internal.Parameter
+import io.github.ruedigerk.contractfirst.generator.client.internal.ParameterSerialization
+import io.github.ruedigerk.contractfirst.generator.client.internal.traverse
 import io.github.ruedigerk.contractfirst.generator.support.gson.LocalDateGsonTypeAdapter
 import io.github.ruedigerk.contractfirst.generator.support.gson.OffsetDateTimeGsonTypeAdapter
-import okhttp3.*
+import okhttp3.FormBody
+import okhttp3.Headers
+import okhttp3.HttpUrl
 import okhttp3.HttpUrl.Companion.toHttpUrl
+import okhttp3.Interceptor
+import okhttp3.MediaType
 import okhttp3.MediaType.Companion.toMediaType
 import okhttp3.MediaType.Companion.toMediaTypeOrNull
+import okhttp3.MultipartBody
+import okhttp3.OkHttpClient
+import okhttp3.Request
+import okhttp3.RequestBody
 import okhttp3.RequestBody.Companion.asRequestBody
 import okhttp3.RequestBody.Companion.toRequestBody
+import okhttp3.Response
+import okhttp3.ResponseBody
 import okhttp3.internal.http.HttpMethod.requiresRequestBody
 import java.io.File
 import java.io.IOException
@@ -28,7 +44,10 @@ import java.util.*
  * @param httpClient the OkHttp-Client instance to use for sending HTTP requests.
  * @param baseUrl    the base URL to send requests to.
  */
-class ApiRequestExecutor(httpClient: OkHttpClient, baseUrl: String) {
+class ApiRequestExecutor(
+  httpClient: OkHttpClient,
+  baseUrl: String,
+) {
 
   /**
    * Returns the Gson instance used to serialize and deserialize JSON entities.
@@ -56,8 +75,8 @@ class ApiRequestExecutor(httpClient: OkHttpClient, baseUrl: String) {
 
   private fun addInternalInterceptors(httpClient: OkHttpClient): OkHttpClient {
     return httpClient.newBuilder()
-        .addNetworkInterceptor(RequestAccessInterceptor())
-        .build()
+      .addNetworkInterceptor(RequestAccessInterceptor())
+      .build()
   }
 
   private fun removeTrailingSlash(baseUrl: String): String {
@@ -66,9 +85,9 @@ class ApiRequestExecutor(httpClient: OkHttpClient, baseUrl: String) {
 
   private fun createGson(): Gson {
     return GsonBuilder()
-        .registerTypeAdapter(LocalDate::class.java, LocalDateGsonTypeAdapter())
-        .registerTypeAdapter(OffsetDateTime::class.java, OffsetDateTimeGsonTypeAdapter())
-        .create()
+      .registerTypeAdapter(LocalDate::class.java, LocalDateGsonTypeAdapter())
+      .registerTypeAdapter(OffsetDateTime::class.java, OffsetDateTimeGsonTypeAdapter())
+      .create()
   }
 
   @Throws(ApiClientIoException::class, ApiClientValidationException::class, ApiClientIncompatibleResponseException::class)
@@ -125,10 +144,10 @@ class ApiRequestExecutor(httpClient: OkHttpClient, baseUrl: String) {
       val requestBody = serializeRequestBody(operation)
 
       return Request.Builder()
-          .url(url)
-          .method(operation.method, requestBody)
-          .headers(headers)
-          .build()
+        .url(url)
+        .method(operation.method, requestBody)
+        .headers(headers)
+        .build()
     } catch (e: IOException) {
       val apiRequest = ApiRequest(url.toString(), operation.method, headers.toList())
       throw ApiClientIoException("Error serializing request body: $e", apiRequest, e)
@@ -219,6 +238,7 @@ class ApiRequestExecutor(httpClient: OkHttpClient, baseUrl: String) {
       when (part.type) {
         // BACKWARDS_COMPATIBILITY(1.7) START
         null -> builder.add(part.name, ParameterSerialization.serializePrimitiveParameterValue(part.value))
+
         // BACKWARDS_COMPATIBILITY(1.7) END
 
         BodyPart.Type.ATTACHMENT -> traverse(part.value) { attachment ->
@@ -255,6 +275,7 @@ class ApiRequestExecutor(httpClient: OkHttpClient, baseUrl: String) {
       when (part.type) {
         // BACKWARDS_COMPATIBILITY(1.7) START
         null -> addLegacyBodyPart(builder, part)
+
         // BACKWARDS_COMPATIBILITY(1.7) END
 
         BodyPart.Type.ATTACHMENT -> traverse(part.value) { attachment ->
@@ -284,7 +305,7 @@ class ApiRequestExecutor(httpClient: OkHttpClient, baseUrl: String) {
   private fun createOptionallyEmptyRequestBody(builder: MultipartBody.Builder): RequestBody {
     return try {
       builder.build()
-    } catch (ignored: IllegalStateException) {
+    } catch (_: IllegalStateException) {
       createEmptyRequestBody()
     }
   }
@@ -431,17 +452,20 @@ class ApiRequestExecutor(httpClient: OkHttpClient, baseUrl: String) {
     }
   }
 
-  private data class RequestAndResponse(val request: Request, val response: Response)
+  private data class RequestAndResponse(
+    val request: Request,
+    val response: Response,
+  )
 
   /**
    * Builder for constructing Responses, either defined or undefined.
    */
   private class ResponseBuilder(
-      private val request: ApiRequest,
-      private val statusCode: Int,
-      private val httpStatusMessage: String,
-      private val contentType: String?,
-      headers: Headers,
+    private val request: ApiRequest,
+    private val statusCode: Int,
+    private val httpStatusMessage: String,
+    private val contentType: String?,
+    headers: Headers,
   ) {
 
     private val headers = headers.toList()

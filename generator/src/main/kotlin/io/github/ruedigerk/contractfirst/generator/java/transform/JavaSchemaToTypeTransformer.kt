@@ -1,21 +1,39 @@
 package io.github.ruedigerk.contractfirst.generator.java.transform
 
 import io.github.ruedigerk.contractfirst.generator.java.JavaConfiguration
-import io.github.ruedigerk.contractfirst.generator.java.model.*
+import io.github.ruedigerk.contractfirst.generator.java.model.DecimalValidation
+import io.github.ruedigerk.contractfirst.generator.java.model.IntegralValidation
+import io.github.ruedigerk.contractfirst.generator.java.model.JavaAnyType
+import io.github.ruedigerk.contractfirst.generator.java.model.JavaCollectionType
+import io.github.ruedigerk.contractfirst.generator.java.model.JavaMapType
+import io.github.ruedigerk.contractfirst.generator.java.model.JavaType
+import io.github.ruedigerk.contractfirst.generator.java.model.JavaTypeName
 import io.github.ruedigerk.contractfirst.generator.java.model.NumericValidationType.MAX
 import io.github.ruedigerk.contractfirst.generator.java.model.NumericValidationType.MIN
+import io.github.ruedigerk.contractfirst.generator.java.model.PatternValidation
+import io.github.ruedigerk.contractfirst.generator.java.model.SizeValidation
+import io.github.ruedigerk.contractfirst.generator.java.model.TypeValidation
+import io.github.ruedigerk.contractfirst.generator.java.model.ValidatedValidation
 import io.github.ruedigerk.contractfirst.generator.logging.Log
-import io.github.ruedigerk.contractfirst.generator.openapi.*
+import io.github.ruedigerk.contractfirst.generator.openapi.ArraySchema
+import io.github.ruedigerk.contractfirst.generator.openapi.DataType
+import io.github.ruedigerk.contractfirst.generator.openapi.EnumSchema
+import io.github.ruedigerk.contractfirst.generator.openapi.MapSchema
+import io.github.ruedigerk.contractfirst.generator.openapi.ObjectSchema
+import io.github.ruedigerk.contractfirst.generator.openapi.Operation
+import io.github.ruedigerk.contractfirst.generator.openapi.PrimitiveSchema
+import io.github.ruedigerk.contractfirst.generator.openapi.Schema
+import io.github.ruedigerk.contractfirst.generator.openapi.SchemaId
 
 /**
  * Transforms the parsed Schemas into Java types, creating unique and valid type names for generated types. This needs to be done before creating Java
  * source file models for these types.
  */
 class JavaSchemaToTypeTransformer(
-    private val log: Log,
-    private val schemas: Map<SchemaId, Schema>,
-    configuration: JavaConfiguration,
-    operationMethodNames: Map<Operation.PathAndMethod, String>
+  private val log: Log,
+  private val schemas: Map<SchemaId, Schema>,
+  configuration: JavaConfiguration,
+  operationMethodNames: Map<Operation.PathAndMethod, String>,
 ) {
 
   private val nameGenerator = JavaTypeNameGenerator(log, configuration, operationMethodNames)
@@ -74,15 +92,12 @@ class JavaSchemaToTypeTransformer(
     DataType.STRING -> JavaType(JavaTypeName.STRING, sizeValidations(schema.minLength, schema.maxLength) + patternValidations(schema))
     DataType.BINARY -> JavaType(JavaTypeName.INPUT_STREAM)
     DataType.BOOLEAN -> JavaType(JavaTypeName.BOOLEAN)
-
     DataType.INT_32 -> JavaType(JavaTypeName.INTEGER, integralValidations(schema))
     DataType.INT_64 -> JavaType(JavaTypeName.LONG, integralValidations(schema))
     DataType.INTEGER -> JavaType(JavaTypeName.BIG_INTEGER, integralValidations(schema))
-
     DataType.FLOAT -> JavaType(JavaTypeName.FLOAT, decimalValidations(schema))
     DataType.DOUBLE -> JavaType(JavaTypeName.DOUBLE, decimalValidations(schema))
     DataType.NUMBER -> JavaType(JavaTypeName.BIG_DECIMAL, decimalValidations(schema))
-
     DataType.DATE -> JavaType(JavaTypeName.LOCAL_DATE)
     DataType.DATE_TIME -> JavaType(JavaTypeName.OFFSET_DATE_TIME)
   }

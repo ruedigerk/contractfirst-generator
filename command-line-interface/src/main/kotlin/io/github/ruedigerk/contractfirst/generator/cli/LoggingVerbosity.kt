@@ -7,5 +7,5 @@ enum class LoggingVerbosity {
 
   VERBOSE,
   NORMAL,
-  QUIET
+  QUIET,
 }

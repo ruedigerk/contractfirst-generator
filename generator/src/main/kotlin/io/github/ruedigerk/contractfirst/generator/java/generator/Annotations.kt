@@ -3,9 +3,14 @@ package io.github.ruedigerk.contractfirst.generator.java.generator
 import com.squareup.javapoet.AnnotationSpec
 import com.squareup.javapoet.ClassName
 import io.github.ruedigerk.contractfirst.generator.java.generator.TypeNames.toClassName
-import io.github.ruedigerk.contractfirst.generator.java.model.*
+import io.github.ruedigerk.contractfirst.generator.java.model.DecimalValidation
+import io.github.ruedigerk.contractfirst.generator.java.model.IntegralValidation
+import io.github.ruedigerk.contractfirst.generator.java.model.NumericValidationType
+import io.github.ruedigerk.contractfirst.generator.java.model.PatternValidation
+import io.github.ruedigerk.contractfirst.generator.java.model.SizeValidation
+import io.github.ruedigerk.contractfirst.generator.java.model.TypeValidation
+import io.github.ruedigerk.contractfirst.generator.java.model.ValidatedValidation
 import java.math.BigInteger
-
 
 /**
  * For creating annotations in general and for creating Jakarta Validation annotations.
@@ -28,14 +33,12 @@ object Annotations {
     return builder.build()
   }
 
-  fun toAnnotation(validation: TypeValidation): AnnotationSpec {
-    return when (validation) {
-      is IntegralValidation -> createIntegralMinMaxAnnotation(validation)
-      is DecimalValidation -> createDecimalMinMaxAnnotation(validation)
-      is SizeValidation -> createSizeAnnotation(validation)
-      is PatternValidation -> createPatternAnnotation(validation)
-      is ValidatedValidation -> VALID_ANNOTATION
-    }
+  fun toAnnotation(validation: TypeValidation): AnnotationSpec = when (validation) {
+    is IntegralValidation -> createIntegralMinMaxAnnotation(validation)
+    is DecimalValidation -> createDecimalMinMaxAnnotation(validation)
+    is SizeValidation -> createSizeAnnotation(validation)
+    is PatternValidation -> createPatternAnnotation(validation)
+    is ValidatedValidation -> VALID_ANNOTATION
   }
 
   fun jsr305NullabilityAnnotation(nonnull: Boolean) = if (nonnull) {
@@ -91,5 +94,5 @@ object Annotations {
   }
 
   private fun createPatternAnnotation(validation: PatternValidation) =
-      AnnotationSpec.builder(ClassName.get(BEAN_VALIDATION_PACKAGE, "Pattern")).addMember("regexp", "\$S", validation.pattern).build()
+    AnnotationSpec.builder(ClassName.get(BEAN_VALIDATION_PACKAGE, "Pattern")).addMember("regexp", "\$S", validation.pattern).build()
 }

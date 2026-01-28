@@ -1,9 +1,6 @@
 package io.github.ruedigerk.contractfirst.generator.parser
 
 /**
- * Helper for manipulating Strings.
+ * Trims whitespace and returns null for empty or blank strings.
  */
-object Strings {
-
-  fun String?.normalize(): String? = if (this.isNullOrBlank()) null else this.trim()
-}
+fun String?.normalize(): String? = if (this.isNullOrBlank()) null else this.trim()

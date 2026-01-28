@@ -22,9 +22,11 @@ object YamlSerializer {
     val mapper = createMapper()
 
     if (value is OpenAPI) {
-      mapper.registerModule(SimpleModule().apply {
-        addSerializer(OpenAPI::class.java, OpenApiSerializer())
-      })
+      mapper.registerModule(
+        SimpleModule().apply {
+          addSerializer(OpenAPI::class.java, OpenApiSerializer())
+        },
+      )
     }
 
     return toYaml(value, mapper)

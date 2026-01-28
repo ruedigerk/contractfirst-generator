@@ -3,8 +3,19 @@ package io.github.ruedigerk.contractfirst.generator.parser
 import io.github.ruedigerk.contractfirst.generator.NotSupportedException
 import io.github.ruedigerk.contractfirst.generator.ParserContentException
 import io.github.ruedigerk.contractfirst.generator.logging.Log
-import io.github.ruedigerk.contractfirst.generator.openapi.*
-import io.github.ruedigerk.contractfirst.generator.parser.Strings.normalize
+import io.github.ruedigerk.contractfirst.generator.openapi.Content
+import io.github.ruedigerk.contractfirst.generator.openapi.DefaultStatusCode
+import io.github.ruedigerk.contractfirst.generator.openapi.HttpMethod
+import io.github.ruedigerk.contractfirst.generator.openapi.Operation
+import io.github.ruedigerk.contractfirst.generator.openapi.Parameter
+import io.github.ruedigerk.contractfirst.generator.openapi.ParameterLocation
+import io.github.ruedigerk.contractfirst.generator.openapi.Position
+import io.github.ruedigerk.contractfirst.generator.openapi.RequestBody
+import io.github.ruedigerk.contractfirst.generator.openapi.Response
+import io.github.ruedigerk.contractfirst.generator.openapi.ResponseStatusCode
+import io.github.ruedigerk.contractfirst.generator.openapi.SchemaId
+import io.github.ruedigerk.contractfirst.generator.openapi.Specification
+import io.github.ruedigerk.contractfirst.generator.openapi.StatusCode
 
 /**
  * Parser implementation based on swagger-parser.
@@ -41,40 +52,35 @@ class ContractParser(private val log: Log) {
   }
 
   private fun toOperations(path: String, pathItemOrReference: Parseable): List<Operation> {
-    // path item references can point to anywhere according to the spec, there is no components key designated for these. 
+    // path item references can point to anywhere according to the spec, there is no components key designated for these.
     // This changes with OpenApi 3.1, where there is a "pathItems" key designated in components.
     val pathItem = parseableCache.resolveWhileReference(pathItemOrReference)
 
     val commonParameters = pathItem.optionalField("parameters")
-        .requireArray()
-        .elements()
-        .map { toParameter(it) }
+      .requireArray()
+      .elements()
+      .map { toParameter(it) }
 
     return pathItem.properties().mapNotNull { (methodName, operation) ->
       HttpMethod.of(methodName)?.let { method -> toOperation(path, method, operation.requireObject(), commonParameters) }
     }
   }
 
-  private fun toOperation(
-      path: String,
-      method: HttpMethod,
-      operation: Parseable,
-      commonParameters: List<Parameter>
-  ): Operation {
+  private fun toOperation(path: String, method: HttpMethod, operation: Parseable, commonParameters: List<Parameter>): Operation {
     val parameters = operation.optionalField("parameters").elements().map(::toParameter)
     val requestBodyField = operation.optionalField("requestBody")
 
     return Operation(
-        path,
-        method,
-        operation.optionalField("tags").stringElements(),
-        operation.optionalField("summary").string().normalize(),
-        operation.optionalField("description").string().normalize(),
-        operation.optionalField("operationId").string().normalize(),
-        if (requestBodyField.isPresent()) toRequestBody(requestBodyField) else null,
-        joinParameters(commonParameters, parameters),
-        toResponses(operation.requiredField("responses")),
-        operation.position
+      path,
+      method,
+      operation.optionalField("tags").stringElements(),
+      operation.optionalField("summary").string().normalize(),
+      operation.optionalField("description").string().normalize(),
+      operation.optionalField("operationId").string().normalize(),
+      if (requestBodyField.isPresent()) toRequestBody(requestBodyField) else null,
+      joinParameters(commonParameters, parameters),
+      toResponses(operation.requiredField("responses")),
+      operation.position,
     )
   }
 
@@ -87,14 +93,17 @@ class ContractParser(private val log: Log) {
     }
 
     return RequestBody(
-        requestBody.optionalField("description").string().normalize(),
-        requestBody.optionalField("required").boolean() ?: false,
-        contents
+      requestBody.optionalField("description").string().normalize(),
+      requestBody.optionalField("required").boolean() ?: false,
+      contents,
     )
   }
 
   private fun joinParameters(commonParameters: List<Parameter>, operationParameters: List<Parameter>): List<Parameter> {
-    data class NameAndLocation(val name: String, val location: ParameterLocation)
+    data class NameAndLocation(
+      val name: String,
+      val location: ParameterLocation,
+    )
 
     fun Parameter.nameAndLocation() = NameAndLocation(this.name, this.location)
 
@@ -126,11 +135,11 @@ class ContractParser(private val log: Log) {
     val required: Boolean = (location == ParameterLocation.PATH) || requiredField.boolean() ?: false
 
     return Parameter(
-        name,
-        location,
-        parameter.optionalField("description").string().normalize(),
-        required,
-        dereferenceAndRememberSchema(parameter.requiredField("schema"))
+      name,
+      location,
+      parameter.optionalField("description").string().normalize(),
+      required,
+      dereferenceAndRememberSchema(parameter.requiredField("schema")),
     )
   }
 
@@ -143,10 +152,16 @@ class ContractParser(private val log: Log) {
   private fun toParameterLocation(parseable: Parseable): ParameterLocation {
     return when (val location = parseable.string()) {
       "query" -> ParameterLocation.QUERY
+
       "header" -> ParameterLocation.HEADER
+
       "path" -> ParameterLocation.PATH
+
       "cookie" -> ParameterLocation.COOKIE
-      else -> throw ParserContentException("parameter.in must be one of 'query', 'header', 'path' or 'cookie', but was '$location' at ${parseable.position}")
+
+      else -> throw ParserContentException(
+        "parameter.in must be one of 'query', 'header', 'path' or 'cookie', but was '$location' at ${parseable.position}",
+      )
     }
   }
 
@@ -157,6 +172,7 @@ class ContractParser(private val log: Log) {
 
   private fun toStatusCode(statusCode: String, position: Position): ResponseStatusCode = when (statusCode) {
     "default" -> DefaultStatusCode
+
     else -> try {
       StatusCode(statusCode.toInt())
     } catch (_: NumberFormatException) {
@@ -170,7 +186,7 @@ class ContractParser(private val log: Log) {
       emptyList()
     } else {
       val response = parseableCache.resolveWhileReference(responseOrReference)
-      return if (!response.hasField("content")) emptyList() else toContents(response.requiredField("content"))
+      if (!response.hasField("content")) emptyList() else toContents(response.requiredField("content"))
     }
   }
 

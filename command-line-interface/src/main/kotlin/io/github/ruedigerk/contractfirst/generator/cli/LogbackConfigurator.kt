@@ -12,7 +12,9 @@ import ch.qos.logback.core.spi.ContextAwareBase
 /**
  * Configures Logback logging.
  */
-class LogbackConfigurator : ContextAwareBase(), Configurator {
+class LogbackConfigurator :
+  ContextAwareBase(),
+  Configurator {
 
   override fun configure(loggerContext: LoggerContext) {
     cachedLoggerContext = loggerContext

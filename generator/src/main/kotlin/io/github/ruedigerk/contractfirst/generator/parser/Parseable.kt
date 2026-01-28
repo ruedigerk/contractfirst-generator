@@ -10,10 +10,10 @@ import java.math.BigDecimal
  * non-existing nodes, in which case `node` is null. Instances are immutable.
  */
 class Parseable(
-    val node: JsonNode?,
-    val position: Position
+  val node: JsonNode?,
+  val position: Position,
 ) {
-  
+
   fun withPositionHint(hint: String): Parseable = Parseable(node, position.addPathHint(hint))
 
   fun optionalField(fieldName: String): Parseable {
@@ -25,7 +25,7 @@ class Parseable(
     if (node == null) {
       return descend(null, fieldName)
     }
-    
+
     requireObject()
     val child = node[fieldName]
     return child?.let { descend(it, fieldName) } ?: throw ParserContentException("$position has no field '$fieldName'")
@@ -42,7 +42,7 @@ class Parseable(
   fun isReference(): Boolean = hasField(DOLLAR_REF)
 
   fun getReference(): String = requiredField(DOLLAR_REF).string()!!
-  
+
   fun resolveReference(): Position {
     if (!isReference()) {
       throw IllegalStateException("Parseable is not a reference: $this")
@@ -51,7 +51,7 @@ class Parseable(
     val reference = getReference()
     return position.resolveReference(reference)
   }
-  
+
   fun string(): String? {
     if (node?.isTextual == false) {
       throw ParserContentException("$position is not a string")
@@ -114,7 +114,7 @@ class Parseable(
     requireArray()
     return node?.mapIndexed { index, jsonNode -> descend(jsonNode, "$index") } ?: emptyList()
   }
-  
+
   fun stringElements(): List<String> {
     requireArray()
     val entries = node?.toList() ?: emptyList()
@@ -125,9 +125,9 @@ class Parseable(
 
     return entries.map { it.asText() }
   }
-  
+
   private fun descend(jsonNode: JsonNode?, fieldName: String): Parseable = Parseable(jsonNode, position + fieldName)
-  
+
   override fun equals(other: Any?): Boolean {
     if (this === other) return true
     if (javaClass != other?.javaClass) return false
@@ -152,6 +152,6 @@ class Parseable(
 
   private companion object {
 
-    private const val DOLLAR_REF = "\$ref"    
+    private const val DOLLAR_REF = "\$ref"
   }
 }

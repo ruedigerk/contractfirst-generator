@@ -1,7 +1,6 @@
 package io.github.ruedigerk.contractfirst.generator.compat_1_7_test;
 
 import java.util.Objects;
-
 import javax.validation.constraints.NotNull;
 
 public class SMultipartRequestBodyRequestBodyMultipartFormDataObjectProperty {

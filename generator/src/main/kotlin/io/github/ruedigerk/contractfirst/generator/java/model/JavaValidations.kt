@@ -12,10 +12,10 @@ sealed interface TypeValidation
  * Represents a validation performed on integral values like int and BigInteger.
  */
 data class IntegralValidation(
-    val type: NumericValidationType,
-    val value: BigInteger
+  val type: NumericValidationType,
+  val value: BigInteger,
 ) : TypeValidation {
-  
+
   fun toDecimalValidation(): DecimalValidation = DecimalValidation(type, value.toBigDecimal(), true)
 }
 
@@ -23,9 +23,9 @@ data class IntegralValidation(
  * Represents a validation performed on decimal values like double and BigDecimal.
  */
 data class DecimalValidation(
-    val type: NumericValidationType,
-    val value: BigDecimal,
-    val inclusive: Boolean
+  val type: NumericValidationType,
+  val value: BigDecimal,
+  val inclusive: Boolean,
 ) : TypeValidation
 
 /**
@@ -33,15 +33,15 @@ data class DecimalValidation(
  */
 enum class NumericValidationType {
   MIN,
-  MAX
+  MAX,
 }
 
 /**
  * Represents a validation on values with a size, e.g. Strings or Arrays.
  */
 data class SizeValidation(
-    val min: Int?,
-    val max: Int?,
+  val min: Int?,
+  val max: Int?,
 ) : TypeValidation {
 
   init {
@@ -57,6 +57,6 @@ data class SizeValidation(
 data class PatternValidation(val pattern: String) : TypeValidation
 
 /**
- * Represents a validation on complex values that themselves are defined with validations on their properties. 
+ * Represents a validation on complex values that themselves are defined with validations on their properties.
  */
 object ValidatedValidation : TypeValidation

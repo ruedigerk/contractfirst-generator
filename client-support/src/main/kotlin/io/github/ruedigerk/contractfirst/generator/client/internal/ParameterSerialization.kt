@@ -1,7 +1,6 @@
 package io.github.ruedigerk.contractfirst.generator.client.internal
 
 import io.github.ruedigerk.contractfirst.generator.client.internal.ParameterSerialization.serializeFormStyleParameter
-import io.github.ruedigerk.contractfirst.generator.client.internal.Traversal.traverse
 
 /**
  * Helper functions for serializing parameters.
@@ -53,4 +52,3 @@ internal object ParameterSerialization {
     return value?.toString() ?: ""
   }
 }
-

@@ -10,13 +10,13 @@ import java.util.*
  */
 class Attachment private constructor(
 
-    /**
-     * Content can be either of type java.io.File, java.io.InputStream or byte[].
-     */
-    val content: Any,
+  /**
+   * Content can be either of type java.io.File, java.io.InputStream or byte[].
+   */
+  val content: Any,
 
-    val fileName: String,
-    val mediaType: String
+  val fileName: String,
+  val mediaType: String,
 ) {
 
   override fun equals(other: Any?): Boolean {

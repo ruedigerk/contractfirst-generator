@@ -9,8 +9,8 @@ import io.github.ruedigerk.contractfirst.generator.openapi.Specification
  * Transforms the parsed specification into a Java-specific specification, appropriate for code generation.
  */
 class JavaTransformer(
-    private val log: Log,
-    private val configuration: JavaConfiguration,
+  private val log: Log,
+  private val configuration: JavaConfiguration,
 ) {
 
   fun transform(specification: Specification): JavaSpecification {

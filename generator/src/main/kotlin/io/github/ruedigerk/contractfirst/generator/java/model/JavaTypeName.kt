@@ -4,8 +4,8 @@ package io.github.ruedigerk.contractfirst.generator.java.model
  * A Java type name, i.e. the combination of a package name and a simple name.
  */
 data class JavaTypeName(
-    val packageName: String,
-    val simpleName: String
+  val packageName: String,
+  val simpleName: String,
 ) {
 
   override fun toString(): String = "$packageName.$simpleName"
@@ -34,7 +34,7 @@ data class JavaTypeName(
     val LIST = JavaTypeName("java.util", "List")
     val MAP = JavaTypeName("java.util", "Map")
     val SET = JavaTypeName("java.util", "Set")
-    
+
     val ARRAY_LIST = JavaTypeName("java.util", "ArrayList")
     val HASH_MAP = JavaTypeName("java.util", "HashMap")
     val HASH_SET = JavaTypeName("java.util", "HashSet")

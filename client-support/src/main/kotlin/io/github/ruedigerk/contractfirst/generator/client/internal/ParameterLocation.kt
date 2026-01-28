@@ -8,5 +8,5 @@ enum class ParameterLocation {
   QUERY,
   HEADER,
   PATH,
-  COOKIE
+  COOKIE,
 }

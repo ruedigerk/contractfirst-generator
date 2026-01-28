@@ -1,7 +1,7 @@
 package io.github.ruedigerk.contractfirst.generator.mavenplugin;
 
-import org.apache.maven.plugin.logging.Log;
 import io.github.ruedigerk.contractfirst.generator.logging.LogAdapter;
+import org.apache.maven.plugin.logging.Log;
 
 /**
  * Logging adapter for Maven Log.

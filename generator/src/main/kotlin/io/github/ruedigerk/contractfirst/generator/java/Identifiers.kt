@@ -16,10 +16,14 @@ object Identifiers {
 
   @JvmStatic
   fun String.mediaTypeToJavaIdentifier(): String = this
-      .replace("*", "Star")
-      .toJavaTypeIdentifier()
+    .replace("*", "Star")
+    .toJavaTypeIdentifier()
 
-  private fun String.prefixUnderscoreIfFirstCharIsNotValid(): String = if (this.isEmpty() || this[0].isJavaIdentifierStart()) this else "_$this"
+  private fun String.prefixUnderscoreIfFirstCharIsNotValid(): String = if (this.isEmpty() || this[0].isJavaIdentifierStart()) {
+    this
+  } else {
+    "_$this"
+  }
 
   @JvmStatic
   fun String.capitalize(): String = if (this.isEmpty() || !this[0].isLowerCase()) this else this[0].uppercase() + this.substring(1)
@@ -34,7 +38,7 @@ object Identifiers {
       if (transition) {
         firstTransition = false
       }
-      
+
       stringToInsert
     }
   }
@@ -59,9 +63,9 @@ object Identifiers {
 
       if (valid) {
         val nextIsLowercase = index < this.lastIndex && this[index + 1].isLowerCase()
-        val transition = !lastWasLetter && letter || !lastWasUppercase && uppercase || lastWasUppercase && uppercase && nextIsLowercase
+        val transition = (!lastWasLetter && letter) || (!lastWasUppercase && uppercase) || (lastWasUppercase && uppercase && nextIsLowercase)
         val stringToInsert = transformer(char, transition, index)
-        
+
         builder.append(stringToInsert)
       }
 

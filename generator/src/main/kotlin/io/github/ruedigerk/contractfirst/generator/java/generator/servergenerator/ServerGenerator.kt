@@ -1,6 +1,10 @@
 package io.github.ruedigerk.contractfirst.generator.java.generator.servergenerator
 
-import com.squareup.javapoet.*
+import com.squareup.javapoet.ClassName
+import com.squareup.javapoet.JavaFile
+import com.squareup.javapoet.MethodSpec
+import com.squareup.javapoet.ParameterSpec
+import com.squareup.javapoet.TypeSpec
 import io.github.ruedigerk.contractfirst.generator.configuration.GeneratorVariant
 import io.github.ruedigerk.contractfirst.generator.java.Identifiers.capitalize
 import io.github.ruedigerk.contractfirst.generator.java.Identifiers.mediaTypeToJavaIdentifier
@@ -8,22 +12,28 @@ import io.github.ruedigerk.contractfirst.generator.java.JavaConfiguration
 import io.github.ruedigerk.contractfirst.generator.java.generator.Annotations
 import io.github.ruedigerk.contractfirst.generator.java.generator.Annotations.NOT_NULL_ANNOTATION
 import io.github.ruedigerk.contractfirst.generator.java.generator.JavaParameters
-import io.github.ruedigerk.contractfirst.generator.java.generator.JavapoetExtensions.doIf
-import io.github.ruedigerk.contractfirst.generator.java.generator.JavapoetExtensions.doIfNotNull
 import io.github.ruedigerk.contractfirst.generator.java.generator.TypeNames.toClassName
 import io.github.ruedigerk.contractfirst.generator.java.generator.TypeNames.toTypeName
-import io.github.ruedigerk.contractfirst.generator.java.model.*
+import io.github.ruedigerk.contractfirst.generator.java.generator.doIf
+import io.github.ruedigerk.contractfirst.generator.java.generator.doIfNotNull
+import io.github.ruedigerk.contractfirst.generator.java.model.JavaContent
+import io.github.ruedigerk.contractfirst.generator.java.model.JavaOperation
+import io.github.ruedigerk.contractfirst.generator.java.model.JavaOperationGroup
+import io.github.ruedigerk.contractfirst.generator.java.model.JavaParameter
+import io.github.ruedigerk.contractfirst.generator.java.model.JavaResponse
+import io.github.ruedigerk.contractfirst.generator.java.model.JavaSpecification
 import io.github.ruedigerk.contractfirst.generator.openapi.DefaultStatusCode
 import io.github.ruedigerk.contractfirst.generator.openapi.StatusCode
 import java.io.File
-import javax.lang.model.element.Modifier.*
+import javax.lang.model.element.Modifier.ABSTRACT
+import javax.lang.model.element.Modifier.PRIVATE
+import javax.lang.model.element.Modifier.PUBLIC
+import javax.lang.model.element.Modifier.STATIC
 
 /**
  * Generates the code for server stubs/interfaces.
  */
-class ServerGenerator(
-    private val configuration: JavaConfiguration
-) : (JavaSpecification) -> Unit {
+class ServerGenerator(private val configuration: JavaConfiguration) : (JavaSpecification) -> Unit {
 
   private val outputDir = File(configuration.outputDir)
   private val apiPackage = configuration.apiPackage
@@ -38,8 +48,8 @@ class ServerGenerator(
 
   override operator fun invoke(specification: JavaSpecification) {
     specification.operationGroups.asSequence()
-        .map(::toJavaInterface)
-        .forEach { it.writeTo(outputDir) }
+      .map(::toJavaInterface)
+      .forEach { it.writeTo(outputDir) }
 
     writeResponseWrapperClass()
   }
@@ -49,27 +59,27 @@ class ServerGenerator(
     val methodSpecs = operationsToTypesafeResponseClass.mapNotNull { (operation, typesafeClass) -> toOperationMethod(operation, typesafeClass) }
 
     val interfaceSpec = TypeSpec.interfaceBuilder(operationGroup.javaIdentifier)
-        .also { variant.addAnnotationsToJavaInterface(it) }
-        .addModifiers(PUBLIC)
-        .addMethods(methodSpecs)
-        .addTypes(operationsToTypesafeResponseClass.values)
-        .build()
+      .also { variant.addAnnotationsToJavaInterface(it) }
+      .addModifiers(PUBLIC)
+      .addMethods(methodSpecs)
+      .addTypes(operationsToTypesafeResponseClass.values)
+      .build()
 
     return JavaFile.builder(apiPackage, interfaceSpec)
-        .skipJavaLangImports(true)
-        .build()
+      .skipJavaLangImports(true)
+      .build()
   }
 
   private fun toOperationMethod(operation: JavaOperation, typesafeResponseClass: TypeSpec): MethodSpec? {
     val parameters = operation.parameters.map(::toParameterSpec)
 
     return MethodSpec.methodBuilder(operation.javaMethodName)
-        .also { variant.addAnnotationsToOperationMethod(it, operation) }
-        .doIfNotNull(operation.javadoc) { addJavadoc("\$L", it) }
-        .addModifiers(PUBLIC, ABSTRACT)
-        .returns(typesafeResponseClass.name.toClassName())
-        .addParameters(parameters)
-        .build()
+      .also { variant.addAnnotationsToOperationMethod(it, operation) }
+      .doIfNotNull(operation.javadoc) { addJavadoc("\$L", it) }
+      .addModifiers(PUBLIC, ABSTRACT)
+      .returns(typesafeResponseClass.name.toClassName())
+      .addParameters(parameters)
+      .build()
   }
 
   private fun toParameterSpec(parameter: JavaParameter): ParameterSpec {
@@ -77,10 +87,10 @@ class ServerGenerator(
     val typeValidationAnnotations = parameter.javaType.validations.map(Annotations::toAnnotation)
 
     return ParameterSpec.builder(parameterType.toTypeName(), parameter.javaParameterName)
-        .also { variant.addAnnotationsToMethodParameter(it, parameter) }
-        .doIf(parameter.required) { addAnnotation(NOT_NULL_ANNOTATION) }
-        .addAnnotations(typeValidationAnnotations)
-        .build()
+      .also { variant.addAnnotationsToMethodParameter(it, parameter) }
+      .doIf(parameter.required) { addAnnotation(NOT_NULL_ANNOTATION) }
+      .addAnnotations(typeValidationAnnotations)
+      .build()
   }
 
   private fun toTypesafeResponseClass(operation: JavaOperation): TypeSpec {
@@ -88,47 +98,49 @@ class ServerGenerator(
     val typesafeResponseClass = (operation.javaMethodName.capitalize() + "Response").toClassName()
 
     val responseMethodsWithStatusCode = operation.responses
-        .filter { it.statusCode is StatusCode }
-        .flatMap { response ->
-          if (response.contents.isEmpty()) {
-            listOf(toTypesafeEmptyResponseMethod(response, frameworkResponseClass, typesafeResponseClass))
-          } else {
-            response.contents.map { content -> toTypesafeResponseMethod(response, content, frameworkResponseClass, typesafeResponseClass) }
-          }
+      .filter { it.statusCode is StatusCode }
+      .flatMap { response ->
+        if (response.contents.isEmpty()) {
+          listOf(toTypesafeEmptyResponseMethod(response, frameworkResponseClass, typesafeResponseClass))
+        } else {
+          response.contents.map { content -> toTypesafeResponseMethod(response, content, frameworkResponseClass, typesafeResponseClass) }
         }
+      }
 
     val defaultResponseMethods = operation.responses
-        .filter { it.statusCode is DefaultStatusCode }
-        .flatMap { response -> response.contents.map { content -> toTypesafeArbitraryResponseMethod(content, frameworkResponseClass, typesafeResponseClass) } }
+      .filter { it.statusCode is DefaultStatusCode }
+      .flatMap { response ->
+        response.contents.map { content -> toTypesafeArbitraryResponseMethod(content, frameworkResponseClass, typesafeResponseClass) }
+      }
 
     val customResponseMethod = MethodSpec.methodBuilder("withCustomResponse")
-        .addModifiers(PUBLIC, STATIC)
-        .returns(typesafeResponseClass)
-        .addParameter(frameworkResponseClass, "response")
-        .addStatement("return new \$T(response)", typesafeResponseClass)
-        .build()
+      .addModifiers(PUBLIC, STATIC)
+      .returns(typesafeResponseClass)
+      .addParameter(frameworkResponseClass, "response")
+      .addStatement("return new \$T(response)", typesafeResponseClass)
+      .build()
 
     val constructor = MethodSpec.constructorBuilder()
-        .addModifiers(PRIVATE)
-        .addParameter(frameworkResponseClass, "delegate")
-        .addStatement("super(delegate)")
-        .build()
+      .addModifiers(PRIVATE)
+      .addParameter(frameworkResponseClass, "delegate")
+      .addStatement("super(delegate)")
+      .build()
 
     return TypeSpec.classBuilder(typesafeResponseClass)
-        .addModifiers(PUBLIC, STATIC)
-        .superclass(ClassName.get(supportPackage, RESPONSE_WRAPPER_CLASS_NAME))
-        .addMethod(constructor)
-        .addMethods(responseMethodsWithStatusCode)
-        .addMethods(defaultResponseMethods)
-        .addMethod(customResponseMethod)
-        .build()
+      .addModifiers(PUBLIC, STATIC)
+      .superclass(ClassName.get(supportPackage, RESPONSE_WRAPPER_CLASS_NAME))
+      .addMethod(constructor)
+      .addMethods(responseMethodsWithStatusCode)
+      .addMethods(defaultResponseMethods)
+      .addMethod(customResponseMethod)
+      .build()
   }
 
   private fun toTypesafeResponseMethod(
-      response: JavaResponse,
-      content: JavaContent,
-      frameworkResponseClass: ClassName,
-      typesafeResponseClass: ClassName
+    response: JavaResponse,
+    content: JavaContent,
+    frameworkResponseClass: ClassName,
+    typesafeResponseClass: ClassName,
   ): MethodSpec {
     val statusCode = (response.statusCode as StatusCode).code
     val mediaTypeAsIdentifier = content.mediaType.mediaTypeToJavaIdentifier()
@@ -136,17 +148,17 @@ class ServerGenerator(
     val bodyParameterType = variant.rewriteResponseBodyType(content.javaType)
 
     return MethodSpec.methodBuilder(methodName)
-        .addModifiers(PUBLIC, STATIC)
-        .returns(typesafeResponseClass)
-        .addParameter(bodyParameterType.toTypeName(), "entity")
-        .addStatement(
-            "return new \$T(\$T.status(\$L).header(\"Content-Type\", \$S)${variant.buildResponseWithEntity()})",
-            typesafeResponseClass,
-            frameworkResponseClass,
-            statusCode,
-            content.mediaType
-        )
-        .build()
+      .addModifiers(PUBLIC, STATIC)
+      .returns(typesafeResponseClass)
+      .addParameter(bodyParameterType.toTypeName(), "entity")
+      .addStatement(
+        "return new \$T(\$T.status(\$L).header(\"Content-Type\", \$S)${variant.buildResponseWithEntity()})",
+        typesafeResponseClass,
+        frameworkResponseClass,
+        statusCode,
+        content.mediaType,
+      )
+      .build()
   }
 
   private fun toTypesafeEmptyResponseMethod(response: JavaResponse, frameworkResponseClass: ClassName, typesafeResponseClassame: ClassName): MethodSpec {
@@ -154,10 +166,10 @@ class ServerGenerator(
     val methodName = "with$statusCode"
 
     return MethodSpec.methodBuilder(methodName)
-        .addModifiers(PUBLIC, STATIC)
-        .returns(typesafeResponseClassame)
-        .addStatement("return new \$T(\$T.status(\$L).build())", typesafeResponseClassame, frameworkResponseClass, statusCode)
-        .build()
+      .addModifiers(PUBLIC, STATIC)
+      .returns(typesafeResponseClassame)
+      .addStatement("return new \$T(\$T.status(\$L).build())", typesafeResponseClassame, frameworkResponseClass, statusCode)
+      .build()
   }
 
   /**
@@ -168,17 +180,17 @@ class ServerGenerator(
     val methodName = "with$mediaTypeAsIdentifier"
 
     return MethodSpec.methodBuilder(methodName)
-        .addModifiers(PUBLIC, STATIC)
-        .returns(typesafeResponseClass)
-        .addParameter(Integer.TYPE, "status")
-        .addParameter(content.javaType.toTypeName(), "entity")
-        .addStatement(
-            "return new \$T(\$T.status(status).header(\"Content-Type\", \$S)${variant.buildResponseWithEntity()})",
-            typesafeResponseClass,
-            frameworkResponseClass,
-            content.mediaType
-        )
-        .build()
+      .addModifiers(PUBLIC, STATIC)
+      .returns(typesafeResponseClass)
+      .addParameter(Integer.TYPE, "status")
+      .addParameter(content.javaType.toTypeName(), "entity")
+      .addStatement(
+        "return new \$T(\$T.status(status).header(\"Content-Type\", \$S)${variant.buildResponseWithEntity()})",
+        typesafeResponseClass,
+        frameworkResponseClass,
+        content.mediaType,
+      )
+      .build()
   }
 
   private fun writeResponseWrapperClass() {

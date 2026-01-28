@@ -5,20 +5,42 @@ import io.github.ruedigerk.contractfirst.generator.ParserContentException
 import io.github.ruedigerk.contractfirst.generator.java.Identifiers.capitalize
 import io.github.ruedigerk.contractfirst.generator.java.Identifiers.toJavaIdentifier
 import io.github.ruedigerk.contractfirst.generator.java.Identifiers.toJavaTypeIdentifier
-import io.github.ruedigerk.contractfirst.generator.java.model.*
+import io.github.ruedigerk.contractfirst.generator.java.model.JavaAnyType
+import io.github.ruedigerk.contractfirst.generator.java.model.JavaBodyParameter
+import io.github.ruedigerk.contractfirst.generator.java.model.JavaContent
+import io.github.ruedigerk.contractfirst.generator.java.model.JavaMultipartBodyParameter
 import io.github.ruedigerk.contractfirst.generator.java.model.JavaMultipartBodyParameter.BodyPartType
-import io.github.ruedigerk.contractfirst.generator.java.model.JavaMultipartBodyParameter.BodyPartType.*
+import io.github.ruedigerk.contractfirst.generator.java.model.JavaMultipartBodyParameter.BodyPartType.ATTACHMENT
+import io.github.ruedigerk.contractfirst.generator.java.model.JavaMultipartBodyParameter.BodyPartType.COMPLEX
+import io.github.ruedigerk.contractfirst.generator.java.model.JavaMultipartBodyParameter.BodyPartType.PRIMITIVE
+import io.github.ruedigerk.contractfirst.generator.java.model.JavaOperation
+import io.github.ruedigerk.contractfirst.generator.java.model.JavaOperationGroup
+import io.github.ruedigerk.contractfirst.generator.java.model.JavaParameter
+import io.github.ruedigerk.contractfirst.generator.java.model.JavaRegularParameter
+import io.github.ruedigerk.contractfirst.generator.java.model.JavaResponse
 import io.github.ruedigerk.contractfirst.generator.java.transform.OperationNaming.getJavaMethodName
-import io.github.ruedigerk.contractfirst.generator.openapi.*
+import io.github.ruedigerk.contractfirst.generator.openapi.ArraySchema
+import io.github.ruedigerk.contractfirst.generator.openapi.Content
 import io.github.ruedigerk.contractfirst.generator.openapi.DataType.BINARY
+import io.github.ruedigerk.contractfirst.generator.openapi.EnumSchema
+import io.github.ruedigerk.contractfirst.generator.openapi.MapSchema
+import io.github.ruedigerk.contractfirst.generator.openapi.ObjectSchema
+import io.github.ruedigerk.contractfirst.generator.openapi.Operation
+import io.github.ruedigerk.contractfirst.generator.openapi.Parameter
+import io.github.ruedigerk.contractfirst.generator.openapi.PrimitiveSchema
+import io.github.ruedigerk.contractfirst.generator.openapi.RequestBody
+import io.github.ruedigerk.contractfirst.generator.openapi.Response
+import io.github.ruedigerk.contractfirst.generator.openapi.Schema
+import io.github.ruedigerk.contractfirst.generator.openapi.SchemaId
+import io.github.ruedigerk.contractfirst.generator.openapi.SchemaProperty
 
 /**
  * Transforms the parsed specification into a Java-specific specification, appropriate for code generation.
  */
 class JavaOperationTransformer(
-    private val schemas: Map<SchemaId, Schema>,
-    private val types: Map<SchemaId, JavaAnyType>,
-    private val operationMethodNames: Map<Operation.PathAndMethod, String>
+  private val schemas: Map<SchemaId, Schema>,
+  private val types: Map<SchemaId, JavaAnyType>,
+  private val operationMethodNames: Map<Operation.PathAndMethod, String>,
 ) {
 
   /**
@@ -37,22 +59,22 @@ class JavaOperationTransformer(
   }
 
   private fun groupOperations(operations: List<Operation>): List<JavaOperationGroup> = operations
-      .groupBy { it.tags.firstOrNull() ?: DEFAULT_TAG_NAME }
-      .mapValues { it.value.map(::toJavaOperation) }
-      .map { (tag, operations) -> JavaOperationGroup(tag.toJavaTypeIdentifier() + GROUP_NAME_SUFFIX, operations, tag) }
+    .groupBy { it.tags.firstOrNull() ?: DEFAULT_TAG_NAME }
+    .mapValues { it.value.map(::toJavaOperation) }
+    .map { (tag, operations) -> JavaOperationGroup(tag.toJavaTypeIdentifier() + GROUP_NAME_SUFFIX, operations, tag) }
 
   private fun toJavaOperation(operation: Operation): JavaOperation {
     val bodyParameters = operation.requestBody?.let { requestBodyToParameters(operation, it) } ?: emptyList()
     val parameters = toParametersWithUniqueName(operation.parameters.map(::toJavaParameter) + bodyParameters)
 
     return JavaOperation(
-        operationMethodNames.getJavaMethodName(operation.pathAndMethod),
-        toOperationJavadoc(operation, parameters),
-        operation.path,
-        operation.method,
-        operation.requestBody?.requireSingleContent(operation)?.mediaType,
-        parameters,
-        operation.responses.map(::toJavaResponse),
+      operationMethodNames.getJavaMethodName(operation.pathAndMethod),
+      toOperationJavadoc(operation, parameters),
+      operation.path,
+      operation.method,
+      operation.requestBody?.requireSingleContent(operation)?.mediaType,
+      parameters,
+      operation.responses.map(::toJavaResponse),
     )
   }
 
@@ -85,7 +107,9 @@ class JavaOperationTransformer(
 
   private fun multipartBodyToRequestParameters(operation: Operation, schema: Schema, mediaType: String): List<JavaMultipartBodyParameter> {
     if (schema !is ObjectSchema) {
-      throw ParserContentException("For request bodies of media type $mediaType the schema must be an object schema, but was ${schema::class.simpleName} in operation at ${operation.position}")
+      throw ParserContentException(
+        "For request bodies of media type $mediaType the schema must be an object schema, but was ${schema::class.simpleName} in operation at ${operation.position}",
+      )
     }
 
     return schema.properties.map { toJavaMultipartBodyParameter(it) }
@@ -93,12 +117,12 @@ class JavaOperationTransformer(
 
   private fun toJavaMultipartBodyParameter(property: SchemaProperty): JavaMultipartBodyParameter {
     return JavaMultipartBodyParameter(
-        property.name.toJavaIdentifier(),
-        schemaFor(property.schema).description,
-        property.required,
-        typeFor(property.schema),
-        property.name,
-        determineBodyPartType(property)
+      property.name.toJavaIdentifier(),
+      schemaFor(property.schema).description,
+      property.required,
+      typeFor(property.schema),
+      property.name,
+      determineBodyPartType(property),
     )
   }
 
@@ -111,9 +135,13 @@ class JavaOperationTransformer(
   private fun determineBodyPartType(property: SchemaProperty): BodyPartType {
     return when (val schema = schemaFor(property.schema)) {
       is PrimitiveSchema -> if (schema.dataType == BINARY) ATTACHMENT else PRIMITIVE
+
       is EnumSchema -> PRIMITIVE
+
       is ObjectSchema -> COMPLEX
+
       is MapSchema -> COMPLEX
+
       is ArraySchema -> when (val itemSchema = schemaFor(schema.itemSchema)) {
         is PrimitiveSchema -> if (itemSchema.dataType == BINARY) ATTACHMENT else PRIMITIVE
         is EnumSchema -> PRIMITIVE
@@ -128,11 +156,11 @@ class JavaOperationTransformer(
     val content = requestBody.requireSingleContent(operation)
 
     return JavaBodyParameter(
-        "requestBody",
-        requestBody.description ?: JavadocHelper.toJavadoc(schemaFor(content.schemaId)),
-        requestBody.required,
-        typeFor(content.schemaId),
-        content.mediaType
+      "requestBody",
+      requestBody.description ?: JavadocHelper.toJavadoc(schemaFor(content.schemaId)),
+      requestBody.required,
+      typeFor(content.schemaId),
+      content.mediaType,
     )
   }
 
@@ -144,12 +172,12 @@ class JavaOperationTransformer(
   }
 
   private fun toJavaParameter(parameter: Parameter): JavaRegularParameter = JavaRegularParameter(
-      parameter.name.toJavaIdentifier(),
-      parameter.description ?: JavadocHelper.toJavadoc(schemaFor(parameter.schema)),
-      parameter.required,
-      typeFor(parameter.schema),
-      parameter.location,
-      parameter.name,
+    parameter.name.toJavaIdentifier(),
+    parameter.description ?: JavadocHelper.toJavadoc(schemaFor(parameter.schema)),
+    parameter.required,
+    typeFor(parameter.schema),
+    parameter.location,
+    parameter.name,
   )
 
   /**
@@ -162,8 +190,13 @@ class JavaOperationTransformer(
       if (countByName[parameter.javaParameterName]!! > 1) {
         when (parameter) {
           is JavaBodyParameter -> parameter.copy(javaParameterName = parameter.javaParameterName + "Entity")
+
           is JavaMultipartBodyParameter -> parameter.copy(javaParameterName = parameter.javaParameterName + "InBody")
-          is JavaRegularParameter -> parameter.copy(javaParameterName = parameter.javaParameterName + "In" + parameter.location.name.lowercase().capitalize())
+
+          is JavaRegularParameter -> parameter.copy(
+            javaParameterName =
+            parameter.javaParameterName + "In" + parameter.location.name.lowercase().capitalize(),
+          )
         }
       } else {
         parameter
@@ -172,13 +205,13 @@ class JavaOperationTransformer(
   }
 
   private fun toJavaResponse(response: Response): JavaResponse = JavaResponse(
-      response.statusCode,
-      response.contents.map(::toJavaResponseContent)
+    response.statusCode,
+    response.contents.map(::toJavaResponseContent),
   )
 
   private fun toJavaResponseContent(content: Content): JavaContent = JavaContent(
-      content.mediaType,
-      typeFor(content.schemaId)
+    content.mediaType,
+    typeFor(content.schemaId),
   )
 
   private fun typeFor(schemaId: SchemaId): JavaAnyType = types[schemaId] ?: error("Unknown schema ID: $schemaId")
@@ -189,8 +222,8 @@ class JavaOperationTransformer(
    * The result of the Java operation transformation.
    */
   data class Result(
-      val operationGroups: List<JavaOperationGroup>,
-      val schemasToGenerateModelFilesFor: Map<SchemaId, Schema>,
+    val operationGroups: List<JavaOperationGroup>,
+    val schemasToGenerateModelFilesFor: Map<SchemaId, Schema>,
   )
 
   private companion object {

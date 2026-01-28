@@ -1,17 +1,36 @@
 package io.github.ruedigerk.contractfirst.generator.java.generator.clientgenerator
 
-import com.squareup.javapoet.*
+import com.squareup.javapoet.ClassName
+import com.squareup.javapoet.CodeBlock
+import com.squareup.javapoet.FieldSpec
+import com.squareup.javapoet.JavaFile
+import com.squareup.javapoet.MethodSpec
+import com.squareup.javapoet.ParameterSpec
+import com.squareup.javapoet.ParameterizedTypeName
+import com.squareup.javapoet.TypeName
+import com.squareup.javapoet.TypeSpec
 import io.github.ruedigerk.contractfirst.generator.java.Identifiers.toJavaConstant
 import io.github.ruedigerk.contractfirst.generator.java.Identifiers.toJavaTypeIdentifier
 import io.github.ruedigerk.contractfirst.generator.java.JavaConfiguration
 import io.github.ruedigerk.contractfirst.generator.java.generator.Annotations.toAnnotation
 import io.github.ruedigerk.contractfirst.generator.java.generator.JavaParameters
-import io.github.ruedigerk.contractfirst.generator.java.generator.JavapoetExtensions.doIf
-import io.github.ruedigerk.contractfirst.generator.java.generator.JavapoetExtensions.doIfNotNull
 import io.github.ruedigerk.contractfirst.generator.java.generator.MethodsFromObject
 import io.github.ruedigerk.contractfirst.generator.java.generator.TypeNames.toClassName
 import io.github.ruedigerk.contractfirst.generator.java.generator.TypeNames.toTypeName
-import io.github.ruedigerk.contractfirst.generator.java.model.*
+import io.github.ruedigerk.contractfirst.generator.java.generator.doIf
+import io.github.ruedigerk.contractfirst.generator.java.generator.doIfNotNull
+import io.github.ruedigerk.contractfirst.generator.java.model.JavaAnyType
+import io.github.ruedigerk.contractfirst.generator.java.model.JavaBodyParameter
+import io.github.ruedigerk.contractfirst.generator.java.model.JavaCollectionType
+import io.github.ruedigerk.contractfirst.generator.java.model.JavaMapType
+import io.github.ruedigerk.contractfirst.generator.java.model.JavaMultipartBodyParameter
+import io.github.ruedigerk.contractfirst.generator.java.model.JavaOperation
+import io.github.ruedigerk.contractfirst.generator.java.model.JavaOperationGroup
+import io.github.ruedigerk.contractfirst.generator.java.model.JavaParameter
+import io.github.ruedigerk.contractfirst.generator.java.model.JavaRegularParameter
+import io.github.ruedigerk.contractfirst.generator.java.model.JavaSpecification
+import io.github.ruedigerk.contractfirst.generator.java.model.JavaType
+import io.github.ruedigerk.contractfirst.generator.java.model.JavaTypeName
 import io.github.ruedigerk.contractfirst.generator.openapi.DefaultStatusCode
 import io.github.ruedigerk.contractfirst.generator.openapi.StatusCode
 import java.io.File
@@ -34,26 +53,29 @@ class ClientGenerator(configuration: JavaConfiguration) : (JavaSpecification) ->
     generateErrorWithEntityExceptionClasses(specWithoutCookieParameters)
   }
 
-  private fun removeAllCookieParameters(specification: JavaSpecification): JavaSpecification =
-      specification.copy(operationGroups = specification.operationGroups.map { group ->
-        group.copy(operations = group.operations.map { operation ->
+  private fun removeAllCookieParameters(specification: JavaSpecification): JavaSpecification = specification.copy(
+    operationGroups = specification.operationGroups.map { group ->
+      group.copy(
+        operations = group.operations.map { operation ->
           operation.copy(parameters = operation.parameters.filterNot { it.isCookieParameter() })
-        })
-      })
+        },
+      )
+    },
+  )
 
   private fun generateApiClientClasses(specification: JavaSpecification) {
     specification.operationGroups.asSequence()
-        .map(::createApiClientClass)
-        .forEach { it.writeTo(outputDir) }
+      .map(::createApiClientClass)
+      .forEach { it.writeTo(outputDir) }
   }
 
   private fun generateErrorWithEntityExceptionClasses(specification: JavaSpecification) {
     specification.operationGroups
-        .flatMap { it.operations }
-        .flatMap { it.failureTypes }
-        .distinct()
-        .map { createClassForErrorWithEntityException(it) }
-        .forEach { it.writeTo(outputDir) }
+      .flatMap { it.operations }
+      .flatMap { it.failureTypes }
+      .distinct()
+      .map { createClassForErrorWithEntityException(it) }
+      .forEach { it.writeTo(outputDir) }
   }
 
   private fun createApiClientClass(operationGroup: JavaOperationGroup): JavaFile {
@@ -63,18 +85,18 @@ class ClientGenerator(configuration: JavaConfiguration) : (JavaSpecification) ->
     val returningResultFieldSpec = FieldSpec.builder("ReturningResult".toClassName(), "returningResult", Modifier.PRIVATE, Modifier.FINAL).build()
 
     val constructorSpec = MethodSpec.constructorBuilder()
-        .addModifiers(Modifier.PUBLIC)
-        .addParameter(SupportTypes.ApiRequestExecutor, "requestExecutor")
-        .addStatement("this.requestExecutor = requestExecutor")
-        .addStatement("this.returningResult = new ReturningResult()")
-        .build()
+      .addModifiers(Modifier.PUBLIC)
+      .addParameter(SupportTypes.ApiRequestExecutor, "requestExecutor")
+      .addStatement("this.requestExecutor = requestExecutor")
+      .addStatement("this.returningResult = new ReturningResult()")
+      .build()
 
     val returningSuccessfulResultGetterMethodSpec = MethodSpec.methodBuilder("returningResult")
-        .addJavadoc("Returns an API client with methods that return operation specific result classes, allowing inspection of the operations' responses.")
-        .addModifiers(Modifier.PUBLIC)
-        .returns("ReturningResult".toClassName())
-        .addStatement("return returningResult")
-        .build()
+      .addJavadoc("Returns an API client with methods that return operation specific result classes, allowing inspection of the operations' responses.")
+      .addModifiers(Modifier.PUBLIC)
+      .returns("ReturningResult".toClassName())
+      .addStatement("return returningResult")
+      .build()
 
     val methodSpecs = operationGroup.operations.map(::createSimplifiedMethod)
 
@@ -82,40 +104,40 @@ class ClientGenerator(configuration: JavaConfiguration) : (JavaSpecification) ->
     val operationSpecificResultClasses = operationGroup.operations.map(::createClassForOperationSpecificResult)
 
     val classSpec = TypeSpec.classBuilder(operationGroup.javaIdentifier + CLIENT_CLASS_NAME_SUFFIX)
-        .addJavadoc("Contains methods for all API operations tagged \"${operationGroup.originalTag}\".")
-        .addModifiers(Modifier.PUBLIC)
-        .addFields(genericTypeConstants)
-        .addField(requestExecutorFieldSpec)
-        .addField(returningResultFieldSpec)
-        .addMethod(constructorSpec)
-        .addMethod(returningSuccessfulResultGetterMethodSpec)
-        .addMethods(methodSpecs)
-        .addType(returningResultSubclass)
-        .addTypes(operationSpecificResultClasses)
-        .build()
+      .addJavadoc("Contains methods for all API operations tagged \"${operationGroup.originalTag}\".")
+      .addModifiers(Modifier.PUBLIC)
+      .addFields(genericTypeConstants)
+      .addField(requestExecutorFieldSpec)
+      .addField(returningResultFieldSpec)
+      .addMethod(constructorSpec)
+      .addMethod(returningSuccessfulResultGetterMethodSpec)
+      .addMethods(methodSpecs)
+      .addType(returningResultSubclass)
+      .addTypes(operationSpecificResultClasses)
+      .build()
 
     return JavaFile.builder(apiPackage, classSpec)
-        .skipJavaLangImports(true)
-        .build()
+      .skipJavaLangImports(true)
+      .build()
   }
 
   private fun generateTypeTokenConstants(operationGroup: JavaOperationGroup): Set<FieldSpec> {
     return operationGroup.operations
-        .flatMap { it.allReturnTypes }
-        .filter { it.isGenericType }
-        .map(::generateTypeTokenConstant)
-        .toSet()
+      .flatMap { it.allReturnTypes }
+      .filter { it.isGenericType }
+      .map(::generateTypeTokenConstant)
+      .toSet()
   }
 
   private fun generateTypeTokenConstant(type: JavaAnyType): FieldSpec {
     val initializer = CodeBlock.of(
-        "new \$T<\$T>(){}.getType()",
-        "com.google.gson.reflect.TypeToken".toClassName(),
-        type.toTypeName()
+      "new \$T<\$T>(){}.getType()",
+      "com.google.gson.reflect.TypeToken".toClassName(),
+      type.toTypeName(),
     )
     return FieldSpec.builder("java.lang.reflect.Type".toClassName(), constantsNameForGenericType(type), Modifier.PUBLIC, Modifier.STATIC, Modifier.FINAL)
-        .initializer(initializer)
-        .build()
+      .initializer(initializer)
+      .build()
   }
 
   private fun constantsNameForGenericType(type: JavaAnyType): String = when (type) {
@@ -131,6 +153,7 @@ class ClientGenerator(configuration: JavaConfiguration) : (JavaSpecification) ->
     val returnType = when {
       // There are multiple success entity types, so return the successful response object.
       operation.successTypes.size > 1 -> typeNameOfResultClass(operation)
+
       // There is a single entity type that all successful responses use or no entity at all.
       else -> operation.successTypes.firstOrNull()?.toTypeName()
     }
@@ -145,10 +168,10 @@ class ClientGenerator(configuration: JavaConfiguration) : (JavaSpecification) ->
     }
 
     return TypeSpec.classBuilder("ReturningResult")
-        .addJavadoc("Contains methods returning operation specific result classes, allowing inspection of the operations' responses.")
-        .addModifiers(Modifier.PUBLIC)
-        .addMethods(methodSpecs)
-        .build()
+      .addJavadoc("Contains methods returning operation specific result classes, allowing inspection of the operations' responses.")
+      .addModifiers(Modifier.PUBLIC)
+      .addMethods(methodSpecs)
+      .build()
   }
 
   private fun createCodeOfMethodReturningResult(operation: JavaOperation): CodeBlock {
@@ -162,27 +185,27 @@ class ClientGenerator(configuration: JavaConfiguration) : (JavaSpecification) ->
     operation.parameters.forEach { parameter ->
       when (parameter) {
         is JavaRegularParameter -> codeBuilder.addStatement(
-            "builder.parameter(\$S, \$T.\$L, \$L, \$N)",
-            parameter.originalName,
-            SupportTypes.ParameterLocation,
-            parameter.location.name,
-            parameter.required,
-            parameter.javaParameterName
+          "builder.parameter(\$S, \$T.\$L, \$L, \$N)",
+          parameter.originalName,
+          SupportTypes.ParameterLocation,
+          parameter.location.name,
+          parameter.required,
+          parameter.javaParameterName,
         )
 
         is JavaBodyParameter -> codeBuilder.addStatement(
-            "builder.requestBody(\$S, \$L, \$N)",
-            parameter.mediaType,
-            parameter.required,
-            parameter.javaParameterName
+          "builder.requestBody(\$S, \$L, \$N)",
+          parameter.mediaType,
+          parameter.required,
+          parameter.javaParameterName,
         )
 
         is JavaMultipartBodyParameter -> codeBuilder.addStatement(
-            "builder.requestBodyPart(\$T.\$L, \$S, \$N)",
-            SupportTypes.BodyPartType,
-            parameter.bodyPartType.name,
-            parameter.originalName,
-            parameter.javaParameterName
+          "builder.requestBodyPart(\$T.\$L, \$S, \$N)",
+          SupportTypes.BodyPartType,
+          parameter.bodyPartType.name,
+          parameter.originalName,
+          parameter.javaParameterName,
         )
       }
     }
@@ -227,27 +250,27 @@ class ClientGenerator(configuration: JavaConfiguration) : (JavaSpecification) ->
   }
 
   private fun getAllErrorWithEntityExceptionsFor(operation: JavaOperation): List<TypeName> =
-      operation.failureTypes.distinct().map(::errorWithEntityExceptionClassName)
+    operation.failureTypes.distinct().map(::errorWithEntityExceptionClassName)
 
   private fun createMethodForOperation(
-      operation: JavaOperation,
-      returnType: TypeName?,
-      code: CodeBlock,
-      additionalExceptions: List<TypeName> = emptyList()
+    operation: JavaOperation,
+    returnType: TypeName?,
+    code: CodeBlock,
+    additionalExceptions: List<TypeName> = emptyList(),
   ): MethodSpec {
     val parameters = operation.parameters.map(::toParameterSpec)
 
     return MethodSpec.methodBuilder(operation.javaMethodName)
-        .doIfNotNull(operation.javadoc) { addJavadoc("\$L", it) }
-        .addModifiers(Modifier.PUBLIC)
-        .doIfNotNull(returnType) { returns(returnType) }
-        .addParameters(parameters)
-        .addException(SupportTypes.ApiClientIoException)
-        .addException(SupportTypes.ApiClientValidationException)
-        .addException(SupportTypes.ApiClientIncompatibleResponseException)
-        .addExceptions(additionalExceptions)
-        .addCode(code)
-        .build()
+      .doIfNotNull(operation.javadoc) { addJavadoc("\$L", it) }
+      .addModifiers(Modifier.PUBLIC)
+      .doIfNotNull(returnType) { returns(returnType) }
+      .addParameters(parameters)
+      .addException(SupportTypes.ApiClientIoException)
+      .addException(SupportTypes.ApiClientValidationException)
+      .addException(SupportTypes.ApiClientIncompatibleResponseException)
+      .addExceptions(additionalExceptions)
+      .addCode(code)
+      .build()
   }
 
   private fun toTypeExpression(javaType: JavaAnyType): CodeBlock = when {
@@ -265,10 +288,10 @@ class ClientGenerator(configuration: JavaConfiguration) : (JavaSpecification) ->
     codeBuilder.add("\n")
 
     codeBuilder.addStatement(
-        "\$T result = returningResult.\$N(\$L)",
-        typeNameOfResultClass(operation),
-        operation.javaMethodName,
-        operation.parameters.joinToString(", ") { it.javaParameterName }
+      "\$T result = returningResult.\$N(\$L)",
+      typeNameOfResultClass(operation),
+      operation.javaMethodName,
+      operation.parameters.joinToString(", ") { it.javaParameterName },
     )
 
     if (operation.failureTypes.isNotEmpty()) {
@@ -331,34 +354,34 @@ class ClientGenerator(configuration: JavaConfiguration) : (JavaSpecification) ->
 
   private fun createClassForErrorWithEntityException(entityType: JavaAnyType): JavaFile {
     val constructorSpec = MethodSpec.constructorBuilder()
-        .addModifiers(Modifier.PUBLIC)
-        .addParameter(SupportTypes.ApiResponse, "response")
-        .addStatement("super(response)")
-        .build()
+      .addModifiers(Modifier.PUBLIC)
+      .addParameter(SupportTypes.ApiResponse, "response")
+      .addStatement("super(response)")
+      .build()
 
     val methodSpecGetEntity = MethodSpec.methodBuilder("getEntity")
-        .addAnnotation("java.lang.Override".toClassName())
-        .addModifiers(Modifier.PUBLIC)
-        .returns(entityType.toTypeName())
-        .addStatement("return (\$T) super.getEntity()", entityType.toTypeName())
-        .build()
+      .addAnnotation("java.lang.Override".toClassName())
+      .addModifiers(Modifier.PUBLIC)
+      .returns(entityType.toTypeName())
+      .addStatement("return (\$T) super.getEntity()", entityType.toTypeName())
+      .build()
 
     val classSpec = TypeSpec.classBuilder(errorWithEntityExceptionClassName(entityType))
-        .addJavadoc("Exception for errors where the API returned an entity of type {@code ${entityType.name.simpleName}}.")
-        .addModifiers(Modifier.PUBLIC)
-        .superclass(SupportTypes.ApiClientErrorWithEntityException)
-        .addMethod(constructorSpec)
-        .addMethod(methodSpecGetEntity)
-        .build()
+      .addJavadoc("Exception for errors where the API returned an entity of type {@code ${entityType.name.simpleName}}.")
+      .addModifiers(Modifier.PUBLIC)
+      .superclass(SupportTypes.ApiClientErrorWithEntityException)
+      .addMethod(constructorSpec)
+      .addMethod(methodSpecGetEntity)
+      .build()
 
     return JavaFile.builder(apiPackage, classSpec)
-        .skipJavaLangImports(true)
-        .build()
+      .skipJavaLangImports(true)
+      .build()
   }
 
   private fun errorWithEntityExceptionClassName(entityType: JavaAnyType): ClassName = ClassName.get(
-      apiPackage,
-      "ApiClientErrorWith${entityType.name.simpleName}EntityException"
+    apiPackage,
+    "ApiClientErrorWith${entityType.name.simpleName}EntityException",
   )
 
   private fun createClassForOperationSpecificResult(operation: JavaOperation): TypeSpec {
@@ -366,48 +389,48 @@ class ClientGenerator(configuration: JavaConfiguration) : (JavaSpecification) ->
     val responseFieldSpec = FieldSpec.builder(SupportTypes.ApiResponse, "response", Modifier.PRIVATE, Modifier.FINAL).build()
 
     val constructorSpec = MethodSpec.constructorBuilder()
-        .addModifiers(Modifier.PUBLIC)
-        .addParameter(SupportTypes.ApiResponse, "response")
-        .addStatement("this.response = response")
-        .build()
+      .addModifiers(Modifier.PUBLIC)
+      .addParameter(SupportTypes.ApiResponse, "response")
+      .addStatement("this.response = response")
+      .build()
 
     val getResponseMethodSpec = MethodSpec.methodBuilder("getResponse")
-        .addJavadoc("Returns the ApiResponse instance with the details of the operation's HTTP response.")
-        .addModifiers(Modifier.PUBLIC)
-        .returns(SupportTypes.ApiResponse)
-        .addStatement("return response")
-        .build()
+      .addJavadoc("Returns the ApiResponse instance with the details of the operation's HTTP response.")
+      .addModifiers(Modifier.PUBLIC)
+      .returns(SupportTypes.ApiResponse)
+      .addStatement("return response")
+      .build()
 
     val getStatusMethodSpec = MethodSpec.methodBuilder("getStatus")
-        .addJavadoc("Returns the HTTP status code of the operation's response.")
-        .addModifiers(Modifier.PUBLIC)
-        .returns(TypeName.INT)
-        .addStatement("return response.getStatusCode()")
-        .build()
+      .addJavadoc("Returns the HTTP status code of the operation's response.")
+      .addModifiers(Modifier.PUBLIC)
+      .returns(TypeName.INT)
+      .addStatement("return response.getStatusCode()")
+      .build()
 
     val isSuccessfulMethodSpec = MethodSpec.methodBuilder("isSuccessful")
-        .addJavadoc("Returns whether the response has a status code in the range 200 to 299.")
-        .addModifiers(Modifier.PUBLIC)
-        .returns(TypeName.BOOLEAN)
-        .addStatement("return response.isSuccessful()")
-        .build()
+      .addJavadoc("Returns whether the response has a status code in the range 200 to 299.")
+      .addModifiers(Modifier.PUBLIC)
+      .returns(TypeName.BOOLEAN)
+      .addStatement("return response.isSuccessful()")
+      .build()
 
     val statusQueryMethodSpecs = createStatusQueryMethods(operation)
     val entityGetterMethodSpecs = createEntityGetterMethods(operation)
     val equalsHashCodeAndToStringMethods = MethodsFromObject.generateEqualsHashCodeAndToString(className, listOf(responseFieldSpec))
 
     return TypeSpec.classBuilder(className)
-        .addModifiers(Modifier.PUBLIC, Modifier.STATIC)
-        .addJavadoc("Represents the result of calling operation \$L.", operation.javaMethodName)
-        .addField(responseFieldSpec)
-        .addMethod(constructorSpec)
-        .addMethod(getResponseMethodSpec)
-        .addMethod(getStatusMethodSpec)
-        .addMethod(isSuccessfulMethodSpec)
-        .addMethods(statusQueryMethodSpecs)
-        .addMethods(entityGetterMethodSpecs)
-        .addMethods(equalsHashCodeAndToStringMethods)
-        .build()
+      .addModifiers(Modifier.PUBLIC, Modifier.STATIC)
+      .addJavadoc("Represents the result of calling operation \$L.", operation.javaMethodName)
+      .addField(responseFieldSpec)
+      .addMethod(constructorSpec)
+      .addMethod(getResponseMethodSpec)
+      .addMethod(getStatusMethodSpec)
+      .addMethod(isSuccessfulMethodSpec)
+      .addMethods(statusQueryMethodSpecs)
+      .addMethods(entityGetterMethodSpecs)
+      .addMethods(equalsHashCodeAndToStringMethods)
+      .build()
   }
 
   private fun createStatusQueryMethods(operation: JavaOperation): List<MethodSpec> {
@@ -415,6 +438,7 @@ class ClientGenerator(configuration: JavaConfiguration) : (JavaSpecification) ->
       when (val statusCode = response.statusCode) {
         // In case of the default status, allow querying for the entity types. If there are none, no method is needed and none is generated.
         DefaultStatusCode -> response.contents.map { it.javaType }.distinct().map(::createQueryMethodForDefaultStatus)
+
         is StatusCode -> if (response.contents.isEmpty()) {
           // If there is no content, allow querying for the status code.
           listOf(createQueryMethodForStatusCodeOnly(statusCode))
@@ -428,32 +452,32 @@ class ClientGenerator(configuration: JavaConfiguration) : (JavaSpecification) ->
 
   private fun createQueryMethodForDefaultStatus(entityType: JavaAnyType): MethodSpec {
     return MethodSpec.methodBuilder("isReturning${methodNameForEntityType(entityType)}")
-        .addJavadoc("Returns whether the response's entity is of type {@code \$T}.", entityType.toTypeName())
-        .addModifiers(Modifier.PUBLIC)
-        .returns(TypeName.BOOLEAN)
-        .addStatement("return response.getEntityType() == \$L", toTypeExpression(entityType))
-        .build()
+      .addJavadoc("Returns whether the response's entity is of type {@code \$T}.", entityType.toTypeName())
+      .addModifiers(Modifier.PUBLIC)
+      .returns(TypeName.BOOLEAN)
+      .addStatement("return response.getEntityType() == \$L", toTypeExpression(entityType))
+      .build()
   }
 
   private fun createQueryMethodForStatusCodeAndEntity(statusCode: StatusCode, entityType: JavaAnyType): MethodSpec {
     return MethodSpec.methodBuilder("isStatus${statusCode.code}Returning${methodNameForEntityType(entityType)}")
-        .addJavadoc(
-            "Returns whether the response's status code is ${statusCode.code}, while the response's entity is of type {@code \$T}.",
-            entityType.toTypeName()
-        )
-        .addModifiers(Modifier.PUBLIC)
-        .returns(TypeName.BOOLEAN)
-        .addStatement("return response.getStatusCode() == \$L && response.getEntityType() == \$L", statusCode.code, toTypeExpression(entityType))
-        .build()
+      .addJavadoc(
+        "Returns whether the response's status code is ${statusCode.code}, while the response's entity is of type {@code \$T}.",
+        entityType.toTypeName(),
+      )
+      .addModifiers(Modifier.PUBLIC)
+      .returns(TypeName.BOOLEAN)
+      .addStatement("return response.getStatusCode() == \$L && response.getEntityType() == \$L", statusCode.code, toTypeExpression(entityType))
+      .build()
   }
 
   private fun createQueryMethodForStatusCodeOnly(statusCode: StatusCode): MethodSpec {
     return MethodSpec.methodBuilder("isStatus${statusCode.code}WithoutEntity")
-        .addJavadoc("Returns whether the response's status code is ${statusCode.code}, while the response has no entity.")
-        .addModifiers(Modifier.PUBLIC)
-        .returns(TypeName.BOOLEAN)
-        .addStatement("return response.getStatusCode() == \$L", statusCode.code)
-        .build()
+      .addJavadoc("Returns whether the response's status code is ${statusCode.code}, while the response has no entity.")
+      .addModifiers(Modifier.PUBLIC)
+      .returns(TypeName.BOOLEAN)
+      .addStatement("return response.getStatusCode() == \$L", statusCode.code)
+      .build()
   }
 
   private fun methodNameForEntityType(type: JavaAnyType): String {
@@ -476,12 +500,12 @@ class ClientGenerator(configuration: JavaConfiguration) : (JavaSpecification) ->
   private fun createUnnamedEntityGetterMethod(type: JavaAnyType): MethodSpec {
     val typeName = type.toTypeName()
     return MethodSpec.methodBuilder("getEntity")
-        .addJavadoc("Returns the response's entity of type {@code \$T}.", typeName)
-        .doIf(type.isGenericType) { addAnnotation(toAnnotation("java.lang.SuppressWarnings", "unchecked")) }
-        .addModifiers(Modifier.PUBLIC)
-        .returns(typeName)
-        .addStatement("return (\$T) response.getEntity()", typeName)
-        .build()
+      .addJavadoc("Returns the response's entity of type {@code \$T}.", typeName)
+      .doIf(type.isGenericType) { addAnnotation(toAnnotation("java.lang.SuppressWarnings", "unchecked")) }
+      .addModifiers(Modifier.PUBLIC)
+      .returns(typeName)
+      .addStatement("return (\$T) response.getEntity()", typeName)
+      .build()
   }
 
   private fun createNamedEntityGetterMethods(type: JavaAnyType): List<MethodSpec> {
@@ -491,29 +515,29 @@ class ClientGenerator(configuration: JavaConfiguration) : (JavaSpecification) ->
   private fun createMethodGetEntityIf(type: JavaAnyType): MethodSpec {
     val typeName = type.toTypeName()
     return MethodSpec.methodBuilder("getEntityIf${methodNameForEntityType(type)}")
-        .addJavadoc(
-            "Returns the response's entity wrapped in {@code java.lang.Optional.of()} if it is of type {@code \$T}. Otherwise, returns {@code Optional.empty()}.",
-            typeName
-        )
-        .addModifiers(Modifier.PUBLIC)
-        .returns(ParameterizedTypeName.get(ClassName.get(Optional::class.java), typeName))
-        .addStatement("return Optional.ofNullable(\$N())", nameForMethodGetEntityAs(type))
-        .build()
+      .addJavadoc(
+        "Returns the response's entity wrapped in {@code java.lang.Optional.of()} if it is of type {@code \$T}. Otherwise, returns {@code Optional.empty()}.",
+        typeName,
+      )
+      .addModifiers(Modifier.PUBLIC)
+      .returns(ParameterizedTypeName.get(ClassName.get(Optional::class.java), typeName))
+      .addStatement("return Optional.ofNullable(\$N())", nameForMethodGetEntityAs(type))
+      .build()
   }
 
   private fun createMethodGetEntityAs(type: JavaAnyType): MethodSpec {
     val typeName = type.toTypeName()
     return MethodSpec.methodBuilder(nameForMethodGetEntityAs(type))
-        .addJavadoc("Returns the response's entity if it is of type {@code \$T}. Otherwise, returns null.", typeName)
-        .doIf(type.isGenericType) { addAnnotation(toAnnotation("java.lang.SuppressWarnings", "unchecked")) }
-        .addModifiers(Modifier.PUBLIC)
-        .returns(typeName)
-        .beginControlFlow("if (response.getEntityType() == \$L)", toTypeExpression(type))
-        .addStatement("return (\$T) response.getEntity()", typeName)
-        .nextControlFlow("else")
-        .addStatement("return null")
-        .endControlFlow()
-        .build()
+      .addJavadoc("Returns the response's entity if it is of type {@code \$T}. Otherwise, returns null.", typeName)
+      .doIf(type.isGenericType) { addAnnotation(toAnnotation("java.lang.SuppressWarnings", "unchecked")) }
+      .addModifiers(Modifier.PUBLIC)
+      .returns(typeName)
+      .beginControlFlow("if (response.getEntityType() == \$L)", toTypeExpression(type))
+      .addStatement("return (\$T) response.getEntity()", typeName)
+      .nextControlFlow("else")
+      .addStatement("return null")
+      .endControlFlow()
+      .build()
   }
 
   private fun nameForMethodGetEntityAs(type: JavaAnyType) = "getEntityAs${methodNameForEntityType(type)}"

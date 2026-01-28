@@ -3,11 +3,11 @@ package io.github.ruedigerk.contractfirst.generator.openapi
 import io.github.ruedigerk.contractfirst.generator.parser.Parseable
 
 /**
- * Represents the unique identifier of a schema, using the schema position to uniquely identify it. 
+ * Represents the unique identifier of a schema, using the schema position to uniquely identify it.
  */
 class SchemaId private constructor(
-    val position: Position,
-    val source: Parseable
+  val position: Position,
+  val source: Parseable,
 ) {
 
   override fun equals(other: Any?): Boolean {

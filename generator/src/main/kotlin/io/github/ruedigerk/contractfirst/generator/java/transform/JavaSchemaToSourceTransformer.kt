@@ -2,15 +2,29 @@ package io.github.ruedigerk.contractfirst.generator.java.transform
 
 import io.github.ruedigerk.contractfirst.generator.java.Identifiers.toJavaConstant
 import io.github.ruedigerk.contractfirst.generator.java.Identifiers.toJavaIdentifier
-import io.github.ruedigerk.contractfirst.generator.java.model.*
-import io.github.ruedigerk.contractfirst.generator.openapi.*
+import io.github.ruedigerk.contractfirst.generator.java.model.EnumConstant
+import io.github.ruedigerk.contractfirst.generator.java.model.JavaAnyType
+import io.github.ruedigerk.contractfirst.generator.java.model.JavaClassFile
+import io.github.ruedigerk.contractfirst.generator.java.model.JavaEnumFile
+import io.github.ruedigerk.contractfirst.generator.java.model.JavaProperty
+import io.github.ruedigerk.contractfirst.generator.java.model.JavaSourceFile
+import io.github.ruedigerk.contractfirst.generator.java.model.JavaType
+import io.github.ruedigerk.contractfirst.generator.java.model.JavaTypeName
+import io.github.ruedigerk.contractfirst.generator.openapi.ArraySchema
+import io.github.ruedigerk.contractfirst.generator.openapi.EnumSchema
+import io.github.ruedigerk.contractfirst.generator.openapi.MapSchema
+import io.github.ruedigerk.contractfirst.generator.openapi.ObjectSchema
+import io.github.ruedigerk.contractfirst.generator.openapi.PrimitiveSchema
+import io.github.ruedigerk.contractfirst.generator.openapi.Schema
+import io.github.ruedigerk.contractfirst.generator.openapi.SchemaId
+import io.github.ruedigerk.contractfirst.generator.openapi.SchemaProperty
 
 /**
  * Transforms the parsed schemas into Java source file representations, appropriate for code generation.
  */
 class JavaSchemaToSourceTransformer(
-    private val schemas: Map<SchemaId, Schema>,
-    private val types: Map<SchemaId, JavaAnyType>
+  private val schemas: Map<SchemaId, Schema>,
+  private val types: Map<SchemaId, JavaAnyType>,
 ) {
 
   fun transform(): List<JavaSourceFile> = schemas.mapNotNull { (id, schema) -> toJavaSourceFile(id, schema) }
@@ -39,7 +53,7 @@ class JavaSchemaToSourceTransformer(
   private fun toJavaProperty(property: SchemaProperty): JavaProperty {
     val type = types[property.schema]!!
 
-    val initializer = when(type.name) {
+    val initializer = when (type.name) {
       JavaTypeName.SET -> JavaType(JavaTypeName.HASH_SET)
       JavaTypeName.LIST -> JavaType(JavaTypeName.ARRAY_LIST)
       JavaTypeName.MAP -> JavaType(JavaTypeName.HASH_MAP)
@@ -47,12 +61,12 @@ class JavaSchemaToSourceTransformer(
     }
 
     return JavaProperty(
-        property.name.toJavaIdentifier(),
-        JavadocHelper.toJavadoc(schemas[property.schema]!!),
-        property.name,
-        property.required,
-        type,
-        initializer
+      property.name.toJavaIdentifier(),
+      JavadocHelper.toJavadoc(schemas[property.schema]!!),
+      property.name,
+      property.required,
+      type,
+      initializer,
     )
   }
 

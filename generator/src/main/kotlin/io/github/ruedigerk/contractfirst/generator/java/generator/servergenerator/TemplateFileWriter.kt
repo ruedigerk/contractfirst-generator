@@ -14,7 +14,7 @@ class TemplateFileWriter(private val configuration: JavaConfiguration) {
     val packageAsDirectory = destinationPackage.replace('.', '/')
     val destinationDirectory = File(configuration.outputDir).resolve(packageAsDirectory)
     val templateInputStream = loadResource("/io/github/ruedigerk/contractfirst/generator/templates/$templateDir/$templateFile")
-    
+
     destinationDirectory.mkdirs()
 
     destinationDirectory.resolve(templateFile).outputStream().buffered().use { outputStream ->
@@ -24,7 +24,7 @@ class TemplateFileWriter(private val configuration: JavaConfiguration) {
   }
 
   private fun loadResource(location: String): InputStream = javaClass.getResourceAsStream(location)
-      ?: throw IllegalStateException("Resource file $location not found")
+    ?: throw IllegalStateException("Resource file $location not found")
 
   private fun BufferedOutputStream.writePackageStatement(destinationPackage: String) = with(this.writer()) {
     write("package $destinationPackage;\n\n")

@@ -40,6 +40,6 @@ data class BodyPart(
     /**
      * A binary/file body part that is serialized like an attachment, with a file name and a media type.
      */
-    ATTACHMENT
+    ATTACHMENT,
   }
 }

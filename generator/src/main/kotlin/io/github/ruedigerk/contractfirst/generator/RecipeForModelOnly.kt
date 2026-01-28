@@ -14,14 +14,14 @@ import java.io.File
  * A recipe for generating only model code from a set of JSON-Schema files. Does not generate any REST-operation code.
  */
 class RecipeForModelOnly(
-    private val log: Log,
-    private val configuration: Configuration
+  private val log: Log,
+  private val configuration: Configuration,
 ) : () -> Unit {
 
   override operator fun invoke() {
     val modelFiles = findModelFiles(configuration)
     val parsedSchemas = ResolvingSchemaParser.parseAndResolveAll(log, modelFiles)
-    
+
     val javaConfiguration = JavaConfiguration.forModelOnly(configuration)
     val types = JavaSchemaToTypeTransformer(log, parsedSchemas, javaConfiguration, emptyMap()).transform()
     val sourceFiles = JavaSchemaToSourceTransformer(parsedSchemas, types).transform()
@@ -37,8 +37,8 @@ class RecipeForModelOnly(
     }
 
     val modelFiles = modelDirectory.walk()
-        .filter { it.name.endsWith(".yaml") || it.name.endsWith(".json") }
-        .toList()
+      .filter { it.name.endsWith(".yaml") || it.name.endsWith(".json") }
+      .toList()
 
     if (modelFiles.isEmpty()) {
       throw InvalidConfigurationException("No YAML or JSON model files found for inputContractFile: \"$modelDirectory\".")

@@ -3,8 +3,8 @@ package io.github.ruedigerk.contractfirst.generator.java.transform
 import io.github.ruedigerk.contractfirst.generator.java.model.JavaTypeName
 
 /**
- * Used to find unique names for types that might otherwise have duplicated names. 
- * 
+ * Used to find unique names for types that might otherwise have duplicated names.
+ *
  * This class is stateful, as it maintains a set of already encountered names.
  */
 class TypeNameUniquifier {

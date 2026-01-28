@@ -19,23 +19,23 @@ sealed interface JavaParameter {
  * Represents a path, query, header or cookie parameter of an operation of the contract.
  */
 data class JavaRegularParameter(
-    override val javaParameterName: String,
-    override val javadoc: String?,
-    override val required: Boolean,
-    override val javaType: JavaAnyType,
-    val location: ParameterLocation,
-    val originalName: String
+  override val javaParameterName: String,
+  override val javadoc: String?,
+  override val required: Boolean,
+  override val javaType: JavaAnyType,
+  val location: ParameterLocation,
+  val originalName: String,
 ) : JavaParameter
 
 /**
  * Represents the single body parameter of an operation of the contract.
  */
 data class JavaBodyParameter(
-    override val javaParameterName: String,
-    override val javadoc: String?,
-    override val required: Boolean,
-    override val javaType: JavaAnyType,
-    val mediaType: String
+  override val javaParameterName: String,
+  override val javadoc: String?,
+  override val required: Boolean,
+  override val javaType: JavaAnyType,
+  val mediaType: String,
 ) : JavaParameter
 
 /**
@@ -44,12 +44,12 @@ data class JavaBodyParameter(
  * Note: the Java type for binary parameters/attachments is framework-specific and may be generated differently from the javaType property here.
  */
 data class JavaMultipartBodyParameter(
-    override val javaParameterName: String,
-    override val javadoc: String?,
-    override val required: Boolean,
-    override val javaType: JavaAnyType,
-    val originalName: String,
-    val bodyPartType: BodyPartType,
+  override val javaParameterName: String,
+  override val javadoc: String?,
+  override val required: Boolean,
+  override val javaType: JavaAnyType,
+  val originalName: String,
+  val bodyPartType: BodyPartType,
 ) : JavaParameter {
 
   /**
@@ -74,6 +74,6 @@ data class JavaMultipartBodyParameter(
      * The body part is binary data, like a file, and typically needs framework-specific handling. Note that the body part can also represent an array of
      * binaries.
      */
-    ATTACHMENT
+    ATTACHMENT,
   }
 }

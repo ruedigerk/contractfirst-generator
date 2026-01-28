@@ -4,12 +4,11 @@ import io.github.ruedigerk.contractfirst.generator.integrationtest.generated.cli
 import io.github.ruedigerk.contractfirst.generator.integrationtest.generated.client.model.CItem
 import io.github.ruedigerk.contractfirst.generator.integrationtest.generated.server.model.SItem
 import io.github.ruedigerk.contractfirst.generator.integrationtest.spec.EmbeddedJaxRsServerSpecification
-import spock.lang.Subject
-
 import jakarta.ws.rs.GET
 import jakarta.ws.rs.Path
 import jakarta.ws.rs.core.MediaType
 import jakarta.ws.rs.core.Response
+import spock.lang.Subject
 
 /**
  * Test for HTTP methods POST, PUT and PATCH without request body. Background is the OkHttp client requiring these methods to always send a request body.

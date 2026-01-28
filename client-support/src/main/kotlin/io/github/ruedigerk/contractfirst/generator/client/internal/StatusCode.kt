@@ -11,9 +11,9 @@ class StatusCode private constructor(private val code: Int?) {
   override fun equals(other: Any?): Boolean {
     if (this === other) return true
     if (javaClass != other?.javaClass) return false
-    
+
     val that = other as StatusCode
-    
+
     return code == that.code
   }
 

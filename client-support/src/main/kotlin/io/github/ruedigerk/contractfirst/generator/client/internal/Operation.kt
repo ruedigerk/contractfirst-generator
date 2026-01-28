@@ -40,9 +40,9 @@ class Operation private constructor(builder: Builder) {
 
   private val allAcceptedMediaTypes: List<String>
     get() = responseDefinitions.values
-        .flatMap { responseDefinitions -> responseDefinitions.map { it.contentType } }
-        .filterNotNull()
-        .distinct()
+      .flatMap { responseDefinitions -> responseDefinitions.map { it.contentType } }
+      .filterNotNull()
+      .distinct()
 
   /**
    * Returns the Java type of the response definition that matches the servers returned status code and content type. If no response definition is matching,
@@ -108,14 +108,17 @@ class Operation private constructor(builder: Builder) {
 
   private fun extractParameters(location: ParameterLocation, parameters: List<Parameter>): Map<String, Parameter> {
     return parameters
-        .filter { it.location == location }
-        .associateBy { it.name }
+      .filter { it.location == location }
+      .associateBy { it.name }
   }
 
   /**
    * Builder for instances of class Operation.
    */
-  class Builder(val path: String, val method: String) {
+  class Builder(
+    val path: String,
+    val method: String,
+  ) {
 
     val parameters: MutableList<Parameter> = ArrayList()
     val responseDefinitions: MutableList<ResponseDefinition> = ArrayList()

@@ -2,16 +2,23 @@ package io.github.ruedigerk.contractfirst.generator.parser
 
 import io.github.ruedigerk.contractfirst.generator.NotSupportedException
 import io.github.ruedigerk.contractfirst.generator.logging.Log
-import io.github.ruedigerk.contractfirst.generator.openapi.*
-import io.github.ruedigerk.contractfirst.generator.parser.Strings.normalize
+import io.github.ruedigerk.contractfirst.generator.openapi.ArraySchema
+import io.github.ruedigerk.contractfirst.generator.openapi.EnumSchema
+import io.github.ruedigerk.contractfirst.generator.openapi.MapSchema
+import io.github.ruedigerk.contractfirst.generator.openapi.ObjectSchema
+import io.github.ruedigerk.contractfirst.generator.openapi.PrimitiveSchema
+import io.github.ruedigerk.contractfirst.generator.openapi.PrimitiveType
+import io.github.ruedigerk.contractfirst.generator.openapi.Schema
+import io.github.ruedigerk.contractfirst.generator.openapi.SchemaId
+import io.github.ruedigerk.contractfirst.generator.openapi.SchemaProperty
 import java.io.File
 
 /**
  * A parser for JSON Schema files in either JSON oder YAML format.
  */
 class ResolvingSchemaParser(
-    private val log: Log,
-    private val parseableCache: ParseableCache,
+  private val log: Log,
+  private val parseableCache: ParseableCache,
 ) {
 
   private val schemasToParse = ArrayDeque<Parseable>()
@@ -54,7 +61,9 @@ class ResolvingSchemaParser(
     log.debug { "Parsing schema ${parseable.position}" }
 
     if (parseable.isReference()) {
-      throw IllegalArgumentException("Parseable supplied to parseSchema must not be a schema reference, but was ${parseable.getReference()} at ${parseable.position}")
+      throw IllegalArgumentException(
+        "Parseable supplied to parseSchema must not be a schema reference, but was ${parseable.getReference()} at ${parseable.position}",
+      )
     }
 
     val type = parseable.optionalField("type").string()
@@ -85,10 +94,10 @@ class ResolvingSchemaParser(
     val enumValues = parseable.requiredField("enum").requireArray().requireNonEmpty().stringElements()
 
     return EnumSchema(
-        parseable.optionalField("title").string().normalize(),
-        parseable.optionalField("description").string().normalize(),
-        enumValues,
-        parseable.position
+      parseable.optionalField("title").string().normalize(),
+      parseable.optionalField("description").string().normalize(),
+      enumValues,
+      parseable.position,
     )
   }
 
@@ -97,30 +106,30 @@ class ResolvingSchemaParser(
     val itemsSchema = dereferenceAndRememberSchema(itemsParseable)
 
     return ArraySchema(
-        parseable.optionalField("title").string().normalize(),
-        parseable.optionalField("description").string().normalize(),
-        itemsSchema,
-        parseable.optionalField("uniqueItems").boolean() ?: false,
-        parseable.optionalField("minItems").int(),
-        parseable.optionalField("maxItems").int(),
-        parseable.position
+      parseable.optionalField("title").string().normalize(),
+      parseable.optionalField("description").string().normalize(),
+      itemsSchema,
+      parseable.optionalField("uniqueItems").boolean() ?: false,
+      parseable.optionalField("minItems").int(),
+      parseable.optionalField("maxItems").int(),
+      parseable.position,
     )
   }
 
   private fun toPrimitiveSchema(primitiveType: PrimitiveType, parseable: Parseable): PrimitiveSchema {
     return PrimitiveSchema(
-        parseable.optionalField("title").string().normalize(),
-        parseable.optionalField("description").string().normalize(),
-        primitiveType,
-        parseable.optionalField("format").string().normalize(),
-        parseable.optionalField("minimum").number(),
-        parseable.optionalField("maximum").number(),
-        parseable.optionalField("exclusiveMinimum").boolean() ?: false,
-        parseable.optionalField("exclusiveMaximum").boolean() ?: false,
-        parseable.optionalField("minLength").int(),
-        parseable.optionalField("maxLength").int(),
-        parseable.optionalField("pattern").string(),
-        parseable.position
+      parseable.optionalField("title").string().normalize(),
+      parseable.optionalField("description").string().normalize(),
+      primitiveType,
+      parseable.optionalField("format").string().normalize(),
+      parseable.optionalField("minimum").number(),
+      parseable.optionalField("maximum").number(),
+      parseable.optionalField("exclusiveMinimum").boolean() ?: false,
+      parseable.optionalField("exclusiveMaximum").boolean() ?: false,
+      parseable.optionalField("minLength").int(),
+      parseable.optionalField("maxLength").int(),
+      parseable.optionalField("pattern").string(),
+      parseable.position,
     )
   }
 
@@ -131,11 +140,12 @@ class ResolvingSchemaParser(
     val additionalProperties = parseable.optionalField("additionalProperties").let { if (!it.isPresent() || !it.isObject()) null else it }
 
     return when {
-      properties != null && additionalProperties != null -> {
-        throw NotSupportedException("Object schemas having both properties and additionalProperties are not supported, just either or, at ${parseable.position}")
-      }
+      properties != null && additionalProperties != null -> throw NotSupportedException(
+        "Object schemas having both properties and additionalProperties are not supported, just either or, at ${parseable.position}",
+      )
 
       additionalProperties != null -> toMapSchema(parseable, additionalProperties)
+
       else -> toObjectSchema(parseable)
     }
   }
@@ -144,12 +154,12 @@ class ResolvingSchemaParser(
     val valuesSchema = dereferenceAndRememberSchema(valuesParseable)
 
     return MapSchema(
-        parseable.optionalField("title").string().normalize(),
-        parseable.optionalField("description").string().normalize(),
-        valuesSchema,
-        parseable.optionalField("minItems").int(),
-        parseable.optionalField("maxItems").int(),
-        parseable.position
+      parseable.optionalField("title").string().normalize(),
+      parseable.optionalField("description").string().normalize(),
+      valuesSchema,
+      parseable.optionalField("minItems").int(),
+      parseable.optionalField("maxItems").int(),
+      parseable.position,
     )
   }
 
@@ -161,10 +171,10 @@ class ResolvingSchemaParser(
     }
 
     return ObjectSchema(
-        parseable.optionalField("title").string().normalize(),
-        parseable.optionalField("description").string().normalize(),
-        properties,
-        parseable.position
+      parseable.optionalField("title").string().normalize(),
+      parseable.optionalField("description").string().normalize(),
+      properties,
+      parseable.position,
     )
   }
 

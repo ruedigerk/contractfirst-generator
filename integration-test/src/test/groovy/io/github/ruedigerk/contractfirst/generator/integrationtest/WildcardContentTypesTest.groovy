@@ -3,10 +3,9 @@ package io.github.ruedigerk.contractfirst.generator.integrationtest
 import io.github.ruedigerk.contractfirst.generator.integrationtest.generated.client.api.WildcardContentTypesApiClient
 import io.github.ruedigerk.contractfirst.generator.integrationtest.generated.server.resources.WildcardContentTypesApi
 import io.github.ruedigerk.contractfirst.generator.integrationtest.spec.EmbeddedJaxRsServerSpecification
+import jakarta.ws.rs.core.Response
 import okhttp3.logging.HttpLoggingInterceptor
 import spock.lang.Subject
-
-import jakarta.ws.rs.core.Response
 
 /**
  * Test for wildcards in response content types.

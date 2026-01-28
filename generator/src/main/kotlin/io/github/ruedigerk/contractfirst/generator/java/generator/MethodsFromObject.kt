@@ -1,6 +1,10 @@
 package io.github.ruedigerk.contractfirst.generator.java.generator
 
-import com.squareup.javapoet.*
+import com.squareup.javapoet.ClassName
+import com.squareup.javapoet.FieldSpec
+import com.squareup.javapoet.MethodSpec
+import com.squareup.javapoet.NameAllocator
+import com.squareup.javapoet.TypeName
 import java.util.*
 import javax.lang.model.element.Modifier
 
@@ -8,9 +12,9 @@ import javax.lang.model.element.Modifier
  * Used for generating the methods inherited from Object: equals, hashCode and toString.
  */
 object MethodsFromObject {
-  
+
   fun generateEqualsHashCodeAndToString(thisClassName: ClassName, fields: List<FieldSpec>): List<MethodSpec> =
-      listOf(generateEquals(thisClassName, fields), generateHashCode(fields), generateToString(thisClassName, fields))
+    listOf(generateEquals(thisClassName, fields), generateHashCode(fields), generateToString(thisClassName, fields))
 
   private fun generateEquals(thisTypeName: TypeName, fields: List<FieldSpec>): MethodSpec {
     val localNameAllocator = NameAllocator()
@@ -20,10 +24,10 @@ object MethodsFromObject {
     val otherName = localNameAllocator.newName("o")
 
     val result = MethodSpec.methodBuilder("equals")
-        .addAnnotation(Override::class.java)
-        .addModifiers(Modifier.PUBLIC)
-        .returns(Boolean::class.javaPrimitiveType)
-        .addParameter(Any::class.java, parameterName)
+      .addAnnotation(Override::class.java)
+      .addModifiers(Modifier.PUBLIC)
+      .returns(Boolean::class.javaPrimitiveType)
+      .addParameter(Any::class.java, parameterName)
 
     if (fields.isEmpty()) {
       result.addStatement("return getClass() == \$N.getClass()", parameterName)
@@ -53,9 +57,9 @@ object MethodsFromObject {
     fields.forEach { localNameAllocator.newName(it.name, it) }
 
     val result = MethodSpec.methodBuilder("hashCode")
-        .addAnnotation(Override::class.java)
-        .addModifiers(Modifier.PUBLIC)
-        .returns(Int::class.javaPrimitiveType)
+      .addAnnotation(Override::class.java)
+      .addModifiers(Modifier.PUBLIC)
+      .returns(Int::class.javaPrimitiveType)
 
     if (fields.isEmpty()) {
       result.addStatement("return 0")
@@ -100,9 +104,9 @@ object MethodsFromObject {
     fields.forEach { nameAllocator.newName(it.name, it) }
 
     val result = MethodSpec.methodBuilder("toString")
-        .addAnnotation(Override::class.java)
-        .addModifiers(Modifier.PUBLIC)
-        .returns(String::class.java)
+      .addAnnotation(Override::class.java)
+      .addModifiers(Modifier.PUBLIC)
+      .returns(String::class.java)
 
     val builderName = nameAllocator.newName("builder")
     result.addStatement("$1T $2N = new $1T()", StringBuilder::class.java, builderName)

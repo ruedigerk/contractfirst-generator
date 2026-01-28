@@ -5,11 +5,12 @@ package io.github.ruedigerk.contractfirst.generator.client
  * by the status code and the entity returned by the server.
  */
 abstract class ApiClientErrorWithEntityException protected constructor(
-    
-    /**
-     * The response sent by the server.
-     */
-    val response: ApiResponse
+
+  /**
+   * The response sent by the server.
+   */
+  val response: ApiResponse,
+
 ) : ApiClientException(toMessage(response)) {
 
   /**
@@ -35,8 +36,8 @@ abstract class ApiClientErrorWithEntityException protected constructor(
     private fun toMessage(response: ApiResponse): String {
       val request = response.request
       return "Error with entity for " + request.method + " " + request.url +
-          ", status=" + response.statusCode + " " + response.httpStatusMessage +
-          ", entity=" + response.entity
+        ", status=" + response.statusCode + " " + response.httpStatusMessage +
+        ", entity=" + response.entity
     }
   }
 }

@@ -21,10 +21,10 @@ sealed interface Schema {
  * Represents an object schema.
  */
 data class ObjectSchema(
-    override val title: String?,
-    override val description: String?,
-    val properties: List<SchemaProperty>,
-    override val position: Position,
+  override val title: String?,
+  override val description: String?,
+  val properties: List<SchemaProperty>,
+  override val position: Position,
 ) : Schema {
 
   override var embeddedIn: Schema? = null
@@ -34,22 +34,22 @@ data class ObjectSchema(
  * Represents a property of an object schema.
  */
 data class SchemaProperty(
-    val name: String,
-    val required: Boolean,
-    val schema: SchemaId
+  val name: String,
+  val required: Boolean,
+  val schema: SchemaId,
 )
 
 /**
  * Represents an array schema.
  */
 data class ArraySchema(
-    override val title: String?,
-    override val description: String?,
-    val itemSchema: SchemaId,
-    val uniqueItems: Boolean,
-    val minItems: Int?,
-    val maxItems: Int?,
-    override val position: Position,
+  override val title: String?,
+  override val description: String?,
+  val itemSchema: SchemaId,
+  val uniqueItems: Boolean,
+  val minItems: Int?,
+  val maxItems: Int?,
+  override val position: Position,
 ) : Schema {
 
   override var embeddedIn: Schema? = null
@@ -59,12 +59,12 @@ data class ArraySchema(
  * Represents a special object schema whose property names are not known but only their types, i.e. an additionalProperties schema.
  */
 data class MapSchema(
-    override val title: String?,
-    override val description: String?,
-    val valuesSchema: SchemaId,
-    val minItems: Int?,
-    val maxItems: Int?,
-    override val position: Position,
+  override val title: String?,
+  override val description: String?,
+  val valuesSchema: SchemaId,
+  val minItems: Int?,
+  val maxItems: Int?,
+  override val position: Position,
 ) : Schema {
 
   override var embeddedIn: Schema? = null
@@ -75,10 +75,10 @@ data class MapSchema(
  * Currently, enums are always assumed to have type "string".
  */
 data class EnumSchema(
-    override val title: String?,
-    override val description: String?,
-    val values: List<String>,
-    override val position: Position,
+  override val title: String?,
+  override val description: String?,
+  val values: List<String>,
+  override val position: Position,
 ) : Schema {
 
   override var embeddedIn: Schema? = null
@@ -88,38 +88,37 @@ data class EnumSchema(
  * Represents a schema of a "primitive" type, i.e. a type that is just a boolean, string or number.
  */
 data class PrimitiveSchema(
-    override val title: String?,
-    override val description: String?,
-    val type: PrimitiveType,
-    val format: String?,
-    val minimum: BigDecimal?,
-    val maximum: BigDecimal?,
-    val exclusiveMinimum: Boolean,
-    val exclusiveMaximum: Boolean,
-    val minLength: Int?,
-    val maxLength: Int?,
-    val pattern: String?,
-    override val position: Position,
+  override val title: String?,
+  override val description: String?,
+  val type: PrimitiveType,
+  val format: String?,
+  val minimum: BigDecimal?,
+  val maximum: BigDecimal?,
+  val exclusiveMinimum: Boolean,
+  val exclusiveMaximum: Boolean,
+  val minLength: Int?,
+  val maxLength: Int?,
+  val pattern: String?,
+  override val position: Position,
 ) : Schema {
 
   override var embeddedIn: Schema? = null
 
   val dataType: DataType = when (type) {
-    PrimitiveType.BOOLEAN -> DataType.BOOLEAN
-    PrimitiveType.INTEGER -> {
-      when (format) {
-        "int32" -> DataType.INT_32
-        "int64" -> DataType.INT_64
-        else -> DataType.INTEGER
-      }
+    PrimitiveType.BOOLEAN -> {
+      DataType.BOOLEAN
     }
 
-    PrimitiveType.NUMBER -> {
-      when (format) {
-        "float" -> DataType.FLOAT
-        "double" -> DataType.DOUBLE
-        else -> DataType.NUMBER
-      }
+    PrimitiveType.INTEGER -> when (format) {
+      "int32" -> DataType.INT_32
+      "int64" -> DataType.INT_64
+      else -> DataType.INTEGER
+    }
+
+    PrimitiveType.NUMBER -> when (format) {
+      "float" -> DataType.FLOAT
+      "double" -> DataType.DOUBLE
+      else -> DataType.NUMBER
     }
 
     PrimitiveType.STRING -> when (format) {
@@ -141,7 +140,7 @@ enum class PrimitiveType {
   BOOLEAN,
   INTEGER,
   NUMBER,
-  STRING
+  STRING,
 }
 
 /**

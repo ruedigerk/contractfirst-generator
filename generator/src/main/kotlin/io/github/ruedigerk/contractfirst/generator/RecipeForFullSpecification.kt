@@ -15,8 +15,8 @@ import io.github.ruedigerk.contractfirst.generator.parser.ContractParser
  * A recipe for generating REST-operation and model code from an OpenAPI specification file.
  */
 class RecipeForFullSpecification(
-    private val log: Log,
-    private val configuration: Configuration,
+  private val log: Log,
+  private val configuration: Configuration,
 ) : () -> Unit {
 
   override operator fun invoke() {

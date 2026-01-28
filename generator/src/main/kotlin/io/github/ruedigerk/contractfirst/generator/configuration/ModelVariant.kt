@@ -6,5 +6,5 @@ package io.github.ruedigerk.contractfirst.generator.configuration
 enum class ModelVariant {
 
   GSON,
-  JACKSON
+  JACKSON,
 }

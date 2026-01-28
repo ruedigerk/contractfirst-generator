@@ -1,7 +1,12 @@
 package io.github.ruedigerk.contractfirst.generator.java.generator
 
-import io.github.ruedigerk.contractfirst.generator.java.model.*
+import io.github.ruedigerk.contractfirst.generator.java.model.JavaAnyType
+import io.github.ruedigerk.contractfirst.generator.java.model.JavaBodyParameter
+import io.github.ruedigerk.contractfirst.generator.java.model.JavaMultipartBodyParameter
 import io.github.ruedigerk.contractfirst.generator.java.model.JavaMultipartBodyParameter.BodyPartType.ATTACHMENT
+import io.github.ruedigerk.contractfirst.generator.java.model.JavaParameter
+import io.github.ruedigerk.contractfirst.generator.java.model.JavaRegularParameter
+import io.github.ruedigerk.contractfirst.generator.java.model.JavaTypeName
 
 /**
  * Utility functions for handling Java parameters.

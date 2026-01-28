@@ -37,7 +37,7 @@ class ParseableCache {
    * Recursively dereferences the supplied parseable if it is a reference, else returns the supplied parseable.
    */
   fun resolveWhileReference(parseable: Parseable): Parseable = if (parseable.isReference()) resolveReferenceChain(parseable) else parseable
-  
+
   /**
    * Resolves the parseable that is referenced by the supplied parseable. If the referenced parseable is itself a reference, repeat the process until a
    * non-reference parseable is found or a cycle is detected.
@@ -48,12 +48,14 @@ class ParseableCache {
 
     do {
       if (!visitedPositions.add(currentParseable.position)) {
-        throw ParserContentException("Cyclic references detected at ${currentParseable.position}, starting with ${originParseable.getReference()} at ${originParseable.position}")
+        throw ParserContentException(
+          "Cyclic references detected at ${currentParseable.position}, starting with ${originParseable.getReference()} at ${originParseable.position}",
+        )
       }
 
       currentParseable = resolveReferenceOnce(currentParseable)
     } while (currentParseable.isReference())
-    
+
     return currentParseable
   }
 
@@ -63,7 +65,10 @@ class ParseableCache {
     try {
       return get(referencedPosition)
     } catch (e: ParserFileNotFoundException) {
-      throw ParserContentException("Reference '${parseable.getReference()}' is invalid, file '${referencedPosition.file}' does not exist at ${parseable.position}", e)
+      throw ParserContentException(
+        "Reference '${parseable.getReference()}' is invalid, file '${referencedPosition.file}' does not exist at ${parseable.position}",
+        e,
+      )
     }
   }
 }

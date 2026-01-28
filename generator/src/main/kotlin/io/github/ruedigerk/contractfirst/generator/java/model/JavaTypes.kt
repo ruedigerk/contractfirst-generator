@@ -15,9 +15,9 @@ sealed interface JavaAnyType {
   /**
    * Rewrites a JavaType or the element type of a JavaCollectionType if the existing type name matches.
    */
-  fun rewriteSimpleType(replacedType: JavaTypeName, replacementType: JavaTypeName): JavaAnyType = when {
-    this is JavaType && name == replacedType -> copy(name = replacementType)
-    this is JavaCollectionType && elementType is JavaType && elementType.name == replacedType -> copy(elementType = elementType.copy(name = replacementType))
+  fun rewriteSimpleType(replacedType: JavaTypeName, replacementType: JavaTypeName): JavaAnyType = when (this) {
+    is JavaType if name == replacedType -> copy(name = replacementType)
+    is JavaCollectionType if elementType is JavaType && elementType.name == replacedType -> copy(elementType = elementType.copy(name = replacementType))
     else -> this
   }
 }
@@ -26,8 +26,8 @@ sealed interface JavaAnyType {
  * Represent a non-generic Java type.
  */
 data class JavaType(
-    override val name: JavaTypeName,
-    override val validations: List<TypeValidation> = emptyList()
+  override val name: JavaTypeName,
+  override val validations: List<TypeValidation> = emptyList(),
 ) : JavaAnyType {
 
   override fun toString(): String = "$name"
@@ -37,9 +37,9 @@ data class JavaType(
  * Represent a collection type, like List and Set.
  */
 data class JavaCollectionType(
-    override val name: JavaTypeName,
-    val elementType: JavaAnyType,
-    override val validations: List<TypeValidation>
+  override val name: JavaTypeName,
+  val elementType: JavaAnyType,
+  override val validations: List<TypeValidation>,
 ) : JavaAnyType {
 
   override fun toString(): String = "$name<$elementType>"
@@ -49,8 +49,8 @@ data class JavaCollectionType(
  * Represent a collection of type Map, with the keys having type String and the values having the specified type.
  */
 data class JavaMapType(
-    val valuesType: JavaAnyType,
-    override val validations: List<TypeValidation>
+  val valuesType: JavaAnyType,
+  override val validations: List<TypeValidation>,
 ) : JavaAnyType {
 
   override val name: JavaTypeName

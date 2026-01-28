@@ -5,10 +5,19 @@ import com.squareup.javapoet.MethodSpec
 import com.squareup.javapoet.ParameterSpec
 import com.squareup.javapoet.TypeSpec
 import io.github.ruedigerk.contractfirst.generator.java.generator.Annotations.toAnnotation
-import io.github.ruedigerk.contractfirst.generator.java.generator.JavapoetExtensions.doIfNotNull
 import io.github.ruedigerk.contractfirst.generator.java.generator.TypeNames.toClassName
-import io.github.ruedigerk.contractfirst.generator.java.model.*
-import io.github.ruedigerk.contractfirst.generator.openapi.ParameterLocation.*
+import io.github.ruedigerk.contractfirst.generator.java.generator.doIfNotNull
+import io.github.ruedigerk.contractfirst.generator.java.model.JavaAnyType
+import io.github.ruedigerk.contractfirst.generator.java.model.JavaBodyParameter
+import io.github.ruedigerk.contractfirst.generator.java.model.JavaMultipartBodyParameter
+import io.github.ruedigerk.contractfirst.generator.java.model.JavaOperation
+import io.github.ruedigerk.contractfirst.generator.java.model.JavaParameter
+import io.github.ruedigerk.contractfirst.generator.java.model.JavaRegularParameter
+import io.github.ruedigerk.contractfirst.generator.java.model.JavaTypeName
+import io.github.ruedigerk.contractfirst.generator.openapi.ParameterLocation.COOKIE
+import io.github.ruedigerk.contractfirst.generator.openapi.ParameterLocation.HEADER
+import io.github.ruedigerk.contractfirst.generator.openapi.ParameterLocation.PATH
+import io.github.ruedigerk.contractfirst.generator.openapi.ParameterLocation.QUERY
 
 /**
  * Spring Web MVC-specific implementation of the ServerGeneratorVariant.
@@ -30,13 +39,13 @@ class SpringWebServerGeneratorVariant : ServerGeneratorVariant {
 
   override fun addAnnotationsToOperationMethod(builder: MethodSpec.Builder, operation: JavaOperation) {
     val annotationBuilder = AnnotationSpec.builder("org.springframework.web.bind.annotation.RequestMapping".toClassName())
-        .addMember("method", "\$T.\$L", "org.springframework.web.bind.annotation.RequestMethod".toClassName(), operation.httpMethod.name)
-        .addMember("value", "\$S", operation.path)
-        .doIfNotNull(operation.requestBodyMediaType) { addMember("consumes", "\$S", operation.requestBodyMediaType) }
+      .addMember("method", "\$T.\$L", "org.springframework.web.bind.annotation.RequestMethod".toClassName(), operation.httpMethod.name)
+      .addMember("value", "\$S", operation.path)
+      .doIfNotNull(operation.requestBodyMediaType) { addMember("consumes", "\$S", operation.requestBodyMediaType) }
 
     val producedMediaTypes = operation.responses.flatMap { response -> response.contents.map { it.mediaType } }
-        .sorted()
-        .distinct()
+      .sorted()
+      .distinct()
     producedMediaTypes.forEach { annotationBuilder.addMember("produces", "\$S", it) }
 
     builder.addAnnotation(annotationBuilder.build())
@@ -70,7 +79,8 @@ class SpringWebServerGeneratorVariant : ServerGeneratorVariant {
 
   override fun buildResponseWithEntity(): String = ".body(entity)"
 
-  override fun rewriteResponseBodyType(javaType: JavaAnyType): JavaAnyType = javaType.rewriteSimpleType(JavaTypeName.INPUT_STREAM, BINARY_RESPONSE_BODY_TYPE)
+  override fun rewriteResponseBodyType(javaType: JavaAnyType): JavaAnyType =
+    javaType.rewriteSimpleType(JavaTypeName.INPUT_STREAM, BINARY_RESPONSE_BODY_TYPE)
 
   private companion object {
 

@@ -6,12 +6,11 @@ import io.github.ruedigerk.contractfirst.generator.integrationtest.generated.cli
 import io.github.ruedigerk.contractfirst.generator.integrationtest.generated.client.model.CProblematicName
 import io.github.ruedigerk.contractfirst.generator.integrationtest.generated.client.model.CProblematicNameProblematC
 import io.github.ruedigerk.contractfirst.generator.integrationtest.spec.EmbeddedJaxRsServerSpecification
-import spock.lang.Subject
-
 import jakarta.ws.rs.Consumes
 import jakarta.ws.rs.POST
 import jakarta.ws.rs.Path
 import jakarta.ws.rs.Produces
+import spock.lang.Subject
 
 /**
  * Tests serialization of models with properties that are not valid Java identifiers.

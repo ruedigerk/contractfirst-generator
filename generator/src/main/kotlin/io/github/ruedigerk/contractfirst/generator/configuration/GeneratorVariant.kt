@@ -8,7 +8,8 @@ enum class GeneratorVariant(private val associatedGeneratorSupplier: () -> Gener
   CLIENT_OKHTTP({ GeneratorType.CLIENT }),
   SERVER_JAX_RS({ GeneratorType.SERVER }),
   SERVER_SPRING_WEB({ GeneratorType.SERVER }),
-  MODEL_ONLY({ GeneratorType.MODEL_ONLY });
+  MODEL_ONLY({ GeneratorType.MODEL_ONLY }),
+  ;
 
   val associatedGenerator: GeneratorType
     get() = associatedGeneratorSupplier()

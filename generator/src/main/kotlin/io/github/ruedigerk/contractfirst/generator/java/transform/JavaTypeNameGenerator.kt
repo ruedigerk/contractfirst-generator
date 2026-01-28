@@ -14,15 +14,15 @@ import java.io.File
  * Generates names for schemas that are generated as Java source files.
  */
 class JavaTypeNameGenerator(
-    private val log: Log,
-    private val configuration: JavaConfiguration,
-    private val operationMethodNames: Map<Operation.PathAndMethod, String>
+  private val log: Log,
+  private val configuration: JavaConfiguration,
+  private val operationMethodNames: Map<Operation.PathAndMethod, String>,
 ) {
 
   private val strippedSchemaDirPrefix: String? =
-      configuration.outputJavaPackageSchemaDirectoryPrefix.takeIf { configuration.outputJavaPackageMirrorsSchemaDirectory }
-          ?.normalizePathSeparators()
-          ?.dropLastWhile { it == '/' }
+    configuration.outputJavaPackageSchemaDirectoryPrefix.takeIf { configuration.outputJavaPackageMirrorsSchemaDirectory }
+      ?.normalizePathSeparators()
+      ?.dropLastWhile { it == '/' }
 
   fun determineName(position: Position): JavaTypeName {
     return nameForContractDefinedType(position) ?: nameSchemaFileDefinedType(position)
@@ -88,7 +88,7 @@ class JavaTypeNameGenerator(
 
     do {
       val (matcherName, result) = anyMatchesStart(nestedMatchers, remaining)
-          ?: throw IllegalArgumentException("Unsupported nesting for type, parent: $parent, nesting: $rest")
+        ?: throw IllegalArgumentException("Unsupported nesting for type, parent: $parent, nesting: $rest")
 
       remaining = result.rest
 
@@ -104,9 +104,9 @@ class JavaTypeNameGenerator(
 
   private fun anyMatchesStart(matchers: Map<String, PositionPathMatcher>, path: List<String>): Pair<String, PositionPathMatcher.Result>? {
     return matchers.mapValues { (_, matcher) -> matcher.matchesStart(path) }
-        .mapNotNull { (matcherName, matchResult) -> matchResult?.let { matcherName to it } }
-        .also { if (it.size > 1) throw IllegalStateException("List of match results has multiple entries: $it") }
-        .firstOrNull()
+      .mapNotNull { (matcherName, matchResult) -> matchResult?.let { matcherName to it } }
+      .also { if (it.size > 1) throw IllegalStateException("List of match results has multiple entries: $it") }
+      .firstOrNull()
   }
 
   private fun nameForPathCategory(matcherName: String, result: Map<String, String>): JavaTypeName {
@@ -129,16 +129,16 @@ class JavaTypeNameGenerator(
   private companion object {
 
     private val pathMatchers = mapOf(
-        "componentSchema" to PositionPathMatcher.of("components,schemas,<typeName>"),
-        "pathParameter" to PositionPathMatcher.of("paths,<path>,parameters,<parameterName>,schema"),
-        "operationParameter" to PositionPathMatcher.of("paths,<path>,<method>,parameters,<parameterName>,schema"),
-        "requestBody" to PositionPathMatcher.of("paths,<path>,<method>,requestBody,content,<mediaType>,schema"),
-        "response" to PositionPathMatcher.of("paths,<path>,<method>,responses,<statusCode>,content,<mediaType>,schema"),
+      "componentSchema" to PositionPathMatcher.of("components,schemas,<typeName>"),
+      "pathParameter" to PositionPathMatcher.of("paths,<path>,parameters,<parameterName>,schema"),
+      "operationParameter" to PositionPathMatcher.of("paths,<path>,<method>,parameters,<parameterName>,schema"),
+      "requestBody" to PositionPathMatcher.of("paths,<path>,<method>,requestBody,content,<mediaType>,schema"),
+      "response" to PositionPathMatcher.of("paths,<path>,<method>,responses,<statusCode>,content,<mediaType>,schema"),
     )
 
     private val nestedMatchers = mapOf(
-        "objectProperty" to PositionPathMatcher.of("properties,<propertyName>"),
-        "arrayItems" to PositionPathMatcher.of("items"),
+      "objectProperty" to PositionPathMatcher.of("properties,<propertyName>"),
+      "arrayItems" to PositionPathMatcher.of("items"),
     )
   }
 }

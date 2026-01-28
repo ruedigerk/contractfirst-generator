@@ -9,8 +9,8 @@ import java.net.URISyntaxException
  * Represents the position during parsing as the combination of the parsed file together with a path to the position in the file.
  */
 data class Position private constructor(
-    val file: File,
-    val path: List<String>
+  val file: File,
+  val path: List<String>,
 ) {
 
   operator fun plus(additional: String): Position = Position(file, path + additional)

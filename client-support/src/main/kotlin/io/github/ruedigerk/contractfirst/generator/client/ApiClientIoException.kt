@@ -11,7 +11,7 @@ class ApiClientIoException : ApiClientException {
    * The description of the request that lead to the IOException.
    */
   val request: ApiRequest?
-  
+
   /**
    * The incomplete response from the server, if available.
    */
@@ -37,8 +37,8 @@ class ApiClientIoException : ApiClientException {
     private fun toMessage(message: String, incompleteResponse: IncompleteResponse): String {
       val request = incompleteResponse.request
       return message +
-          ", for " + request.method + " " + request.url +
-          ", status=" + incompleteResponse.statusCode + " " + incompleteResponse.httpStatusMessage
+        ", for " + request.method + " " + request.url +
+        ", status=" + incompleteResponse.statusCode + " " + incompleteResponse.httpStatusMessage
     }
   }
 }
