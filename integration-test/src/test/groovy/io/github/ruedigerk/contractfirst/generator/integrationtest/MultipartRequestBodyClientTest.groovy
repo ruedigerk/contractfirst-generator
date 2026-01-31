@@ -18,7 +18,7 @@ import spock.lang.Subject
 class MultipartRequestBodyClientTest extends EmbeddedJaxRsServerSpecification {
 
   @Subject
-  MultipartRequestBodyApiClient apiClient = new MultipartRequestBodyApiClient(apiClientSupport)
+  MultipartRequestBodyApiClient apiClient = new MultipartRequestBodyApiClient(apiRequestExecutor)
 
   @Override
   Class<?> getTestResource() {

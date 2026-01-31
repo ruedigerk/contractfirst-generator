@@ -11,7 +11,7 @@ import spock.lang.Subject
 class PostWithoutBodyTest extends EmbeddedJaxRsServerSpecification {
 
   @Subject
-  PostWithoutBodyApiClient apiClient = new PostWithoutBodyApiClient(apiClientSupport)
+  PostWithoutBodyApiClient apiClient = new PostWithoutBodyApiClient(apiRequestExecutor)
 
   @Override
   Class<?> getTestResource() {

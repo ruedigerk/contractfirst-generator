@@ -15,7 +15,7 @@ import spock.lang.Subject
 class PayloadVariantsTest extends EmbeddedJaxRsServerSpecification {
 
   @Subject
-  PayloadVariantsApiClient apiClient = new PayloadVariantsApiClient(apiClientSupport)
+  PayloadVariantsApiClient apiClient = new PayloadVariantsApiClient(apiRequestExecutor)
 
   @Override
   Class<?> getTestResource() {
@@ -36,7 +36,7 @@ class PayloadVariantsTest extends EmbeddedJaxRsServerSpecification {
     then:
     result.isSuccessful()
     result.isStatus204WithoutEntity()
-    
+
     and:
     response.request.url == "$BASE_URL/itemBinaries"
     response.request.method == "POST"
@@ -65,7 +65,7 @@ class PayloadVariantsTest extends EmbeddedJaxRsServerSpecification {
     then:
     result.isStatus200ReturningListOfCItem()
     result.entityAsListOfCItem == expectedOutput
-    
+
     and:
     response.request.url == "$BASE_URL/items"
     response.request.method == "POST"
@@ -95,7 +95,7 @@ class PayloadVariantsTest extends EmbeddedJaxRsServerSpecification {
 
     then:
     result.isStatus200ReturningInputStream()
-    
+
     and:
     response.request.url == "$BASE_URL/itemBinaries"
     response.request.method == "PUT"

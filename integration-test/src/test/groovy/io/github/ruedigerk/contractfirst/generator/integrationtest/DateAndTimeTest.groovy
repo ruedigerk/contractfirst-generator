@@ -18,7 +18,7 @@ import java.time.OffsetDateTime
 class DateAndTimeTest extends EmbeddedJaxRsServerSpecification {
 
   @Subject
-  TimeApiClient apiClient = new TimeApiClient(apiClientSupport)
+  TimeApiClient apiClient = new TimeApiClient(apiRequestExecutor)
 
   @Override
   Class<?> getTestResource() {

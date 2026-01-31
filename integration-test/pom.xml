@@ -6,7 +6,7 @@
 
    <description>
       This module is used as an integration test of the generator. The Maven plugin is
-      used to generate client and server and the generated code is test via an embedded
+      used to generate client and server and the generated code is tested via an embedded
       JAX-RS server implementation.
    </description>
 

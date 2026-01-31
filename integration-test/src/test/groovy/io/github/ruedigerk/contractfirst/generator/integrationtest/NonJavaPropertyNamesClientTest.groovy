@@ -18,7 +18,7 @@ import spock.lang.Subject
 class NonJavaPropertyNamesClientTest extends EmbeddedJaxRsServerSpecification {
 
   @Subject
-  NonJavaPropertyNamesApiClient apiClient = new NonJavaPropertyNamesApiClient(apiClientSupport)
+  NonJavaPropertyNamesApiClient apiClient = new NonJavaPropertyNamesApiClient(apiRequestExecutor)
 
   @Override
   Class<?> getTestResource() {

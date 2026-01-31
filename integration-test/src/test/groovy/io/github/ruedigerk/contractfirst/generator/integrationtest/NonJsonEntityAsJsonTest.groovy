@@ -11,12 +11,12 @@ import jakarta.ws.rs.core.Response
 import spock.lang.Subject
 
 /**
- * Test for HTTP methods POST, PUT and PATCH without request body. Background is the OkHttp client requiring these methods to always send a request body.
+ * Test for the generated client to handle a JSON response when the contract declares only non-JSON content types.
  */
 class NonJsonEntityAsJsonTest extends EmbeddedJaxRsServerSpecification {
 
   @Subject
-  NonJsonEntityAsJsonApiClient apiClient = new NonJsonEntityAsJsonApiClient(apiClientSupport)
+  NonJsonEntityAsJsonApiClient apiClient = new NonJsonEntityAsJsonApiClient(apiRequestExecutor)
 
   @Override
   Class<?> getTestResource() {

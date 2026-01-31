@@ -13,7 +13,7 @@ import spock.lang.Subject
 class WildcardContentTypesTest extends EmbeddedJaxRsServerSpecification {
 
   @Subject
-  WildcardContentTypesApiClient apiClient = new WildcardContentTypesApiClient(apiClientSupport)
+  WildcardContentTypesApiClient apiClient = new WildcardContentTypesApiClient(apiRequestExecutor)
 
   @Override
   Class<?> getTestResource() {

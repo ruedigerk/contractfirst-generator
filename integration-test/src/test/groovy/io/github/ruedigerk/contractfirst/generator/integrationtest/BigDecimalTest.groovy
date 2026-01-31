@@ -12,7 +12,7 @@ import spock.lang.Unroll
 class BigDecimalTest extends EmbeddedJaxRsServerSpecification {
 
   @Subject
-  BigDecimalsApiClient apiClient = new BigDecimalsApiClient(apiClientSupport)
+  BigDecimalsApiClient apiClient = new BigDecimalsApiClient(apiRequestExecutor)
 
   @Override
   Class<?> getTestResource() {

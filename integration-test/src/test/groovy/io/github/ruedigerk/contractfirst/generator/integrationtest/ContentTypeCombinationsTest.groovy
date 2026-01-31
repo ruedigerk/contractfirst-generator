@@ -19,9 +19,9 @@ class ContentTypeCombinationsTest extends EmbeddedJaxRsServerSpecification {
   private static final CBook CBOOK = new CBook(title: "The Book", isbn: "The ISBN")
   private static final CCtcError CCTCERROR = new CCtcError(code: "Error")
   private static final CSevereCtcError CSEVERECTCERROR = new CSevereCtcError(code: 42)
-  
+
   @Subject
-  ContentTypeCombinationsApiClient apiClient = new ContentTypeCombinationsApiClient(apiClientSupport)
+  ContentTypeCombinationsApiClient apiClient = new ContentTypeCombinationsApiClient(apiRequestExecutor)
 
   @Override
   Class<?> getTestResource() {
@@ -31,7 +31,7 @@ class ContentTypeCombinationsTest extends EmbeddedJaxRsServerSpecification {
   def "getDefaultOnly"() {
     when:
     def result = apiClient.returningResult().getDefaultOnly("success")
-    
+
     then:
     result.isReturningCBook()
     result.entity == CBOOK
@@ -49,7 +49,7 @@ class ContentTypeCombinationsTest extends EmbeddedJaxRsServerSpecification {
   def "getSuccessOnly"() {
     when:
     def result = apiClient.returningResult().getSuccessOnly()
-    
+
     then:
     result.isStatus200ReturningCBook()
     result.entity == CBOOK
@@ -58,10 +58,10 @@ class ContentTypeCombinationsTest extends EmbeddedJaxRsServerSpecification {
   def "getFailureOnly"() {
     given:
     def expectedErrorEntity = new CCtcError(code: "FailureOnly")
-    
+
     when:
     def result = apiClient.returningResult().getFailureOnly()
-    
+
     then:
     result.isStatus400ReturningCCtcError()
     result.entity == expectedErrorEntity

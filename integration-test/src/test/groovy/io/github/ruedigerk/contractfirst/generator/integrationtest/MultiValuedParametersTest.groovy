@@ -7,14 +7,14 @@ import io.github.ruedigerk.contractfirst.generator.integrationtest.generated.ser
 import io.github.ruedigerk.contractfirst.generator.integrationtest.spec.EmbeddedJaxRsServerSpecification
 import spock.lang.Subject
 
-import static io.github.ruedigerk.contractfirst.generator.integrationtest.MultiValuedParametersTest.EmbeddedServerResource.* 
+import static io.github.ruedigerk.contractfirst.generator.integrationtest.MultiValuedParametersTest.EmbeddedServerResource.*
 /**
  * Tests support for array-valued parameters of different types.
  */
 class MultiValuedParametersTest extends EmbeddedJaxRsServerSpecification {
 
   @Subject
-  MultiValuedParametersApiClient apiClient = new MultiValuedParametersApiClient(apiClientSupport)
+  MultiValuedParametersApiClient apiClient = new MultiValuedParametersApiClient(apiRequestExecutor)
 
   @Override
   Class<?> getTestResource() {

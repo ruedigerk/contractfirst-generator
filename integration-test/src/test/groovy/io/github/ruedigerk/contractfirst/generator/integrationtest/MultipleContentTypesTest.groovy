@@ -13,7 +13,7 @@ import spock.lang.Subject
 class MultipleContentTypesTest extends EmbeddedJaxRsServerSpecification {
 
   @Subject
-  MultipleContentTypesApiClient apiClient = new MultipleContentTypesApiClient(apiClientSupport)
+  MultipleContentTypesApiClient apiClient = new MultipleContentTypesApiClient(apiRequestExecutor)
 
   @Override
   Class<?> getTestResource() {
@@ -95,8 +95,8 @@ class MultipleContentTypesTest extends EmbeddedJaxRsServerSpecification {
     response.statusCode == 200
     response.httpStatusMessage == "OK"
     response.contentType == "application/pdf"
-    response.entityType == InputStream
     response.entity instanceof InputStream
+    response.entityType == InputStream
 
     when:
     result = apiClient.getManual("text/plain")
