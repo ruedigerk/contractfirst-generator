@@ -85,6 +85,7 @@
       <module>generator-test-spring</module>
       <module>gson-date-time-support</module>
       <module>integration-test</module>
+      <module>integration-test-spring</module>
       <module>maven-plugin</module>
       <module>server-support</module>
    </modules>
@@ -249,7 +250,7 @@
                   <releaseProfiles>release</releaseProfiles>
                </configuration>
             </plugin>
-            
+
             <plugin>
                <!-- For publishing to the Sonatype Central Publisher Portal -->
                <!-- See: https://central.sonatype.org/publish/publish-portal-maven/ -->
@@ -262,6 +263,7 @@
                   <publishingServerId>central</publishingServerId>
                   <excludeArtifacts>
                      <excludeArtifact>contractfirst-generator-integration-test</excludeArtifact>
+                     <excludeArtifact>contractfirst-generator-integration-test-spring</excludeArtifact>
                      <excludeArtifact>contractfirst-generator-compat-1.7-test</excludeArtifact>
                      <excludeArtifact>contractfirst-generator-test-spring</excludeArtifact>
                   </excludeArtifacts>
@@ -269,7 +271,7 @@
                   <waitUntil>validated</waitUntil>
                </configuration>
             </plugin>
-            
+
             <!-- Define Versions of the Apache-Maven-Plugins -->
             <plugin>
                <artifactId>maven-clean-plugin</artifactId>

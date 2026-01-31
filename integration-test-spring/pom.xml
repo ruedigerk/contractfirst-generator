@@ -1,0 +1,207 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<project xmlns="http://maven.apache.org/POM/4.0.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/maven-v4_0_0.xsd">
+   <modelVersion>4.0.0</modelVersion>
+
+   <artifactId>contractfirst-generator-integration-test-spring</artifactId>
+
+   <description>
+      This module is used as an integration test of the Spring server generator.
+      The Maven plugin is used to generate client and server and the generated
+      code is test via Spring Boot integration tests.
+   </description>
+
+   <parent>
+      <groupId>io.github.ruedigerk.contractfirst.generator</groupId>
+      <artifactId>contractfirst-generator-parent</artifactId>
+      <version>1.9.1-SNAPSHOT</version>
+   </parent>
+
+   <build>
+      <plugins>
+         <plugin>
+            <!-- Compile Java sources -->
+            <artifactId>maven-compiler-plugin</artifactId>
+         </plugin>
+
+         <plugin>
+            <!-- Groovy-Plugin for testing with Spock -->
+            <groupId>org.codehaus.gmavenplus</groupId>
+            <artifactId>gmavenplus-plugin</artifactId>
+         </plugin>
+
+         <plugin>
+            <!-- Skip creating a JAR file, as this module contains only test code -->
+            <artifactId>maven-jar-plugin</artifactId>
+            <configuration>
+               <skipIfEmpty>true</skipIfEmpty>
+            </configuration>
+         </plugin>
+
+         <plugin>
+            <!-- The generator in the latest version -->
+            <artifactId>contractfirst-generator-maven-plugin</artifactId>
+            <groupId>io.github.ruedigerk.contractfirst.generator</groupId>
+            <version>${project.version}</version>
+            <configuration>
+               <addAsTestSource>true</addAsTestSource>
+            </configuration>
+            <executions>
+               <execution>
+                  <id>generate-testsuite-server-code</id>
+                  <goals>
+                     <goal>generate</goal>
+                  </goals>
+                  <configuration>
+                     <generator>server</generator>
+                     <generatorVariant>spring-web</generatorVariant>
+                     <modelVariant>jackson</modelVariant>
+                     <inputContractFile>${project.basedir}/src/test/contract/testsuite.yaml</inputContractFile>
+                     <outputDir>${project.build.directory}/generated-test-sources/integrationtest-spring</outputDir>
+                     <outputJavaBasePackage>io.github.ruedigerk.contractfirst.generator.integrationtest.generated.server</outputJavaBasePackage>
+                     <outputJavaModelNamePrefix>S</outputJavaModelNamePrefix>
+                  </configuration>
+               </execution>
+               <execution>
+                  <id>generate-testsuite-client-code</id>
+                  <goals>
+                     <goal>generate</goal>
+                  </goals>
+                  <configuration>
+                     <generator>client</generator>
+                     <inputContractFile>${project.basedir}/src/test/contract/testsuite.yaml</inputContractFile>
+                     <outputDir>${project.build.directory}/generated-test-sources/integrationtest-spring</outputDir>
+                     <outputJavaBasePackage>io.github.ruedigerk.contractfirst.generator.integrationtest.generated.client</outputJavaBasePackage>
+                     <outputJavaModelNamePrefix>C</outputJavaModelNamePrefix>
+                  </configuration>
+               </execution>
+
+               <execution>
+                  <id>generate-content-type-combinations-server-code</id>
+                  <goals>
+                     <goal>generate</goal>
+                  </goals>
+                  <configuration>
+                     <generator>server</generator>
+                     <generatorVariant>spring-web</generatorVariant>
+                     <modelVariant>jackson</modelVariant>
+                     <inputContractFile>${project.basedir}/src/test/contract/content-type-combinations.yaml</inputContractFile>
+                     <outputDir>${project.build.directory}/generated-test-sources/integrationtest-spring</outputDir>
+                     <outputJavaBasePackage>io.github.ruedigerk.contractfirst.generator.combinations.generated.server</outputJavaBasePackage>
+                     <outputJavaModelNamePrefix>S</outputJavaModelNamePrefix>
+                  </configuration>
+               </execution>
+               <execution>
+                  <id>generate-content-type-combinations-client-code</id>
+                  <goals>
+                     <goal>generate</goal>
+                  </goals>
+                  <configuration>
+                     <generator>client</generator>
+                     <inputContractFile>${project.basedir}/src/test/contract/content-type-combinations.yaml</inputContractFile>
+                     <outputDir>${project.build.directory}/generated-test-sources/integrationtest-spring</outputDir>
+                     <outputJavaBasePackage>io.github.ruedigerk.contractfirst.generator.combinations.generated.client</outputJavaBasePackage>
+                     <outputJavaModelNamePrefix>C</outputJavaModelNamePrefix>
+                  </configuration>
+               </execution>
+            </executions>
+         </plugin>
+      </plugins>
+   </build>
+
+   <dependencyManagement>
+      <dependencies>
+         <dependency>
+            <!-- Import dependency management from Spring Boot -->
+            <groupId>org.springframework.boot</groupId>
+            <artifactId>spring-boot-dependencies</artifactId>
+            <version>4.0.2</version>
+            <type>pom</type>
+            <scope>import</scope>
+         </dependency>
+      </dependencies>
+   </dependencyManagement>
+
+   <dependencies>
+      <!-- ################### -->
+      <!-- Server dependencies -->
+      <!-- ################### -->
+      <dependency>
+         <!-- Spring Boot Web MVC dependency for REST support -->
+         <groupId>org.springframework.boot</groupId>
+         <artifactId>spring-boot-starter-webmvc</artifactId>
+         <scope>test</scope>
+      </dependency>
+      <dependency>
+         <!-- Jakarta Validation support for Spring -->
+         <groupId>org.springframework.boot</groupId>
+         <artifactId>spring-boot-starter-validation</artifactId>
+         <scope>test</scope>
+      </dependency>
+      <dependency>
+         <!-- Spring Boot Test for integration testing the Spring application -->
+         <groupId>org.springframework.boot</groupId>
+         <artifactId>spring-boot-starter-test</artifactId>
+         <scope>test</scope>
+         <exclusions>
+            <exclusion>
+               <!-- Exclude JUnit Vintage engine because Spock brings its own JUnit engine. -->
+               <groupId>org.junit.vintage</groupId>
+               <artifactId>*</artifactId>
+            </exclusion>
+            <exclusion>
+               <!-- Exclude JUnit Jupiter engine because Spock brings its own JUnit engine. -->
+               <groupId>org.junit.jupiter</groupId>
+               <artifactId>*</artifactId>
+            </exclusion>
+            <exclusion>
+               <!-- Exclude Mockito because Spock has its own mocking. -->
+               <groupId>org.mockito</groupId>
+               <artifactId>*</artifactId>
+            </exclusion>
+         </exclusions>
+      </dependency>
+      <dependency>
+         <!-- For the generated nullability annotations -->
+         <groupId>com.google.code.findbugs</groupId>
+         <artifactId>jsr305</artifactId>
+         <version>3.0.2</version>
+         <scope>test</scope>
+      </dependency>
+
+      <!-- ################### -->
+      <!-- Client dependencies -->
+      <!-- ################### -->
+      <dependency>
+         <groupId>io.github.ruedigerk.contractfirst.generator</groupId>
+         <artifactId>contractfirst-generator-client-support</artifactId>
+         <version>${project.version}</version>
+         <scope>test</scope>
+      </dependency>
+
+      <!-- ####################### -->
+      <!-- Test framework and libs -->
+      <!-- ####################### -->
+      <dependency>
+         <!-- For testing with Spock -->
+         <groupId>org.apache.groovy</groupId>
+         <artifactId>groovy</artifactId>
+         <version>${groovy.version}</version>
+         <scope>test</scope>
+      </dependency>
+      <dependency>
+         <!-- For testing with Spock -->
+         <groupId>org.spockframework</groupId>
+         <artifactId>spock-core</artifactId>
+         <version>${spock.version}</version>
+         <scope>test</scope>
+      </dependency>
+      <dependency>
+         <!-- Spring support for Spock -->
+         <groupId>org.spockframework</groupId>
+         <artifactId>spock-spring</artifactId>
+         <version>${spock.version}</version>
+         <scope>test</scope>
+      </dependency>
+   </dependencies>
+
+</project>

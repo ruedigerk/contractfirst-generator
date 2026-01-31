@@ -1,9 +1,18 @@
 Ideas and Todos
 ===============
 
-- Add multipart body integration tests for JAX-RS server
-- Add integration tests for Spring server
+- JavaAnyType.toTypeName(withValidationAnnotations: Boolean = false) -> Is withValidationAnnotations actually required??? Aren't the annotations on TypeName 
+  ignored?
+- Add multipart body unit tests for JAX-RS and Spring server (in addition to client) 
+- Add multipart body integration tests for JAX-RS and Spring server
+- Add "@Valid/@Validated" (?) annotations to Object-typed ("complex") requests body parameters (and other places?)
+- Add @Nonnull annotation to typesafe response builder method parameters.
 - Support jSpecify nullability annotations in addition to jsr305.
+- Research: can multiple content types for request bodies be supported (when they define differing schemas)?
+  See JavaOperationTransformer.toBodyParameter and https://spec.openapis.org/oas/v3.0.3#considerations-for-file-uploads
+- Research: does OpenAPI support sending/receiving request/response bodies of primitive type, especially string? Or only JSON and binary?
+- Test/research multipart body as response body.
+- Research text/plain request/response bodies.
 - Support inner Enums (and classes?) for model.
 - Implement all-in-one contract functionality without swagger-parser. 
 
