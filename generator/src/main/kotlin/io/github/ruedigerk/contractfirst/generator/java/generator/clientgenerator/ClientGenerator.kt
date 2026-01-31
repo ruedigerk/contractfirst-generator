@@ -542,6 +542,9 @@ class ClientGenerator(configuration: JavaConfiguration) : (JavaSpecification) ->
 
   private fun nameForMethodGetEntityAs(type: JavaAnyType) = "getEntityAs${methodNameForEntityType(type)}"
 
+  /**
+   * Contains the class names of types used in the client support lib.
+   */
   private object SupportTypes {
 
     val ApiClientErrorWithEntityException = "$SUPPORT_PACKAGE.ApiClientErrorWithEntityException".toClassName()

@@ -53,9 +53,10 @@ data class JavaMultipartBodyParameter(
 ) : JavaParameter {
 
   /**
-   * This needs to be in sync with enum "BodyPart.Type" of the client support module!
+   * This specifies the category, the type of a single part of a multipart body falls into.
    *
    * See: https://spec.openapis.org/oas/v3.0.3#special-considerations-for-multipart-content
+   * Note: This needs to be in sync with enum "BodyPart.Type" of the client support module!
    */
   enum class BodyPartType {
 

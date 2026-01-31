@@ -9,7 +9,7 @@ import io.github.ruedigerk.contractfirst.generator.java.model.JavaRegularParamet
 import io.github.ruedigerk.contractfirst.generator.java.model.JavaTypeName
 
 /**
- * Utility functions for handling Java parameters.
+ * Utility functions for handling Java parameter types.
  */
 object JavaParameters {
 

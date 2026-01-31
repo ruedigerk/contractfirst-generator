@@ -10,7 +10,10 @@ sealed interface JavaAnyType {
   val validations: List<TypeValidation>
 
   val isGenericType: Boolean
-    get() = this !is JavaType
+    get() = when (this) {
+      is JavaType -> false
+      is JavaCollectionType, is JavaMapType -> true
+    }
 
   /**
    * Rewrites a JavaType or the element type of a JavaCollectionType if the existing type name matches.
@@ -23,7 +26,7 @@ sealed interface JavaAnyType {
 }
 
 /**
- * Represent a non-generic Java type.
+ * Represent a non-generic Java type like java.lang.String or a generated class.
  */
 data class JavaType(
   override val name: JavaTypeName,
@@ -34,7 +37,7 @@ data class JavaType(
 }
 
 /**
- * Represent a collection type, like List and Set.
+ * Represent a generic collection type, with a type parameter for the element type, like List<String> or Set<Entity>.
  */
 data class JavaCollectionType(
   override val name: JavaTypeName,
@@ -46,7 +49,8 @@ data class JavaCollectionType(
 }
 
 /**
- * Represent a collection of type Map, with the keys having type String and the values having the specified type.
+ * Represent a Map type, with the keys having type String and the type of the values being represented as a type parameter, e.g., Map<String, Integer> or
+ * Map<String, Entity>.
  */
 data class JavaMapType(
   val valuesType: JavaAnyType,

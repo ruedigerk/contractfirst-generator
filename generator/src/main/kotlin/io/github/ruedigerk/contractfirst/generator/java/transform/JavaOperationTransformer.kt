@@ -44,8 +44,8 @@ class JavaOperationTransformer(
 ) {
 
   /**
-   * During the transformation, the IDs of all schemas that are used a form bodies of operations are collected here. For these schemas, no Java source files
-   * need to be generated as form body schemas are generated as additional method parameters.
+   * During the transformation, the IDs of all schemas that are used as form bodies of operations are collected here. For these schemas, no Java source
+   * files need to be generated as form body schemas are generated as additional method parameters.
    */
   private val formBodySchemaIds = mutableSetOf<SchemaId>()
 
@@ -127,7 +127,7 @@ class JavaOperationTransformer(
   }
 
   /**
-   * Determines the type of the body part parameter, i.e. one of: primitive, complex or attachment.
+   * Determines the type of the body part parameter, i.e., one of: primitive, complex or attachment.
    *
    * See: https://spec.openapis.org/oas/v3.0.3#special-considerations-for-multipart-content
    * See: https://swagger.io/docs/specification/describing-request-body/multipart-requests/
@@ -147,7 +147,7 @@ class JavaOperationTransformer(
         is EnumSchema -> PRIMITIVE
         is ObjectSchema -> COMPLEX
         is MapSchema -> COMPLEX
-        is ArraySchema -> COMPLEX
+        is ArraySchema -> COMPLEX // TODO: Arrays of primitives should be transported as text/plain (but with what formatting?)
       }
     }
   }
