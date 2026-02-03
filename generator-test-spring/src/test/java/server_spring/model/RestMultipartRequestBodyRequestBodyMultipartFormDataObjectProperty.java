@@ -1,0 +1,59 @@
+package server_spring.model;
+
+import jakarta.validation.constraints.NotNull;
+import java.util.Objects;
+
+public class RestMultipartRequestBodyRequestBodyMultipartFormDataObjectProperty {
+  @NotNull
+  private String a;
+
+  private Long b;
+
+  public RestMultipartRequestBodyRequestBodyMultipartFormDataObjectProperty a(String a) {
+    this.a = a;
+    return this;
+  }
+
+  public String getA() {
+    return a;
+  }
+
+  public void setA(String a) {
+    this.a = a;
+  }
+
+  public RestMultipartRequestBodyRequestBodyMultipartFormDataObjectProperty b(Long b) {
+    this.b = b;
+    return this;
+  }
+
+  public Long getB() {
+    return b;
+  }
+
+  public void setB(Long b) {
+    this.b = b;
+  }
+
+  @Override
+  public boolean equals(Object other) {
+    if (other == this) return true;
+    if (other == null || getClass() != other.getClass()) return false;
+    RestMultipartRequestBodyRequestBodyMultipartFormDataObjectProperty o = (RestMultipartRequestBodyRequestBodyMultipartFormDataObjectProperty) other;
+    return Objects.equals(a, o.a)
+        && Objects.equals(b, o.b);
+  }
+
+  @Override
+  public int hashCode() {
+    return Objects.hash(a, b);
+  }
+
+  @Override
+  public String toString() {
+    StringBuilder builder = new StringBuilder();
+    builder.append(", a=").append(a);
+    builder.append(", b=").append(b);
+    return builder.replace(0, 2, "RestMultipartRequestBodyRequestBodyMultipartFormDataObjectProperty{").append('}').toString();
+  }
+}

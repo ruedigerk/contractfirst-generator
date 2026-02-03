@@ -5,6 +5,7 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.validation.annotation.Validated;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestMethod;
+import org.springframework.web.bind.annotation.RequestParam;
 import server_spring.model.RestFailure;
 import server_spring.model.RestGetInlineObjectInArrayResponse200ApplicationJsonItem;
 import server_spring.resources.support.ResponseWrapper;
@@ -20,6 +21,16 @@ public interface TestcasesApi {
       produces = "application/json"
   )
   GetInlineObjectInArrayResponse getInlineObjectInArray();
+
+  /**
+   * Testing that enums of a type different from string are supported by ignoring the enum part of the type.
+   */
+  @RequestMapping(
+      method = RequestMethod.POST,
+      value = "/nonStringEnumTypeIsIgnored"
+  )
+  NonStringEnumTypeIsIgnoredResponse nonStringEnumTypeIsIgnored(
+      @RequestParam(name = "booleanEnum", required = false) Boolean booleanEnum);
 
   class GetInlineObjectInArrayResponse extends ResponseWrapper {
     private GetInlineObjectInArrayResponse(ResponseEntity delegate) {
@@ -38,6 +49,20 @@ public interface TestcasesApi {
 
     public static GetInlineObjectInArrayResponse withCustomResponse(ResponseEntity response) {
       return new GetInlineObjectInArrayResponse(response);
+    }
+  }
+
+  class NonStringEnumTypeIsIgnoredResponse extends ResponseWrapper {
+    private NonStringEnumTypeIsIgnoredResponse(ResponseEntity delegate) {
+      super(delegate);
+    }
+
+    public static NonStringEnumTypeIsIgnoredResponse with204() {
+      return new NonStringEnumTypeIsIgnoredResponse(ResponseEntity.status(204).build());
+    }
+
+    public static NonStringEnumTypeIsIgnoredResponse withCustomResponse(ResponseEntity response) {
+      return new NonStringEnumTypeIsIgnoredResponse(response);
     }
   }
 }

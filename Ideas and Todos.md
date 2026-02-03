@@ -2,7 +2,6 @@ Ideas and Todos
 ===============
 
 - Move all "production" sources from unit and integration tests to "test" sources.
-- Add @Valid annotations to Object-typed ("complex") (dissected) request body parameters (and other places?)
 - Add @Nonnull annotation to typesafe response builder method parameters.
 - Support jSpecify nullability annotations in addition to jsr305.
 - Research: can multiple content types for request bodies be supported (when they define differing schemas)?

@@ -11,7 +11,6 @@ class CompareGeneratedSpringCodeToReferenceTest extends Specification {
 
   static def serverHarness = new GeneratorHarness("testsuite.yaml", "server_spring", SERVER_SPRING_WEB, "Rest")
   static def combinationsHarness = new GeneratorHarness("content-type-combinations.yaml", "combinations_server_spring", SERVER_SPRING_WEB)
-  static def multipartHarness = new GeneratorHarness("multipart-request-body.yaml", "multipart_server_spring", SERVER_SPRING_WEB)
   static def parametersHarness = new GeneratorHarness("equally-named-parameters.yaml", "parameters_server_spring", SERVER_SPRING_WEB)
   static def validationsHarness = new GeneratorHarness("validations.yaml", "validations_server_spring", SERVER_SPRING_WEB)
   static def jsr305Harness = new GeneratorHarness("testsuite.yaml", "jsr305_server_spring", SERVER_SPRING_WEB, "", true)
@@ -46,22 +45,6 @@ class CompareGeneratedSpringCodeToReferenceTest extends Specification {
     fileName << combinationsHarness.relativePathNames
     referenceFile << combinationsHarness.referenceFiles
     generatedFile << combinationsHarness.generatedFiles
-  }
-
-  def "Multipart (Spring server): #fileName"() {
-    when:
-    multipartHarness.runGenerator()
-
-    then:
-    generatedFile.exists()
-
-    and:
-    generatedFile.text == referenceFile.text
-
-    where:
-    fileName << multipartHarness.relativePathNames
-    referenceFile << multipartHarness.referenceFiles
-    generatedFile << multipartHarness.generatedFiles
   }
 
   def "Operations with equally named parameters (Spring server): #fileName"() {
