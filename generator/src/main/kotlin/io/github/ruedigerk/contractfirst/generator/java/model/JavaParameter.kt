@@ -11,8 +11,6 @@ sealed interface JavaParameter {
   val javadoc: String?
   val required: Boolean
   val javaType: JavaAnyType
-
-  fun isCookieParameter(): Boolean = this is JavaRegularParameter && this.location == ParameterLocation.COOKIE
 }
 
 /**

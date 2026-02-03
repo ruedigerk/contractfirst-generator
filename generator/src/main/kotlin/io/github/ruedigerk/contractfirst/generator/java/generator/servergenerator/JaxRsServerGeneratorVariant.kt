@@ -38,7 +38,7 @@ object JaxRsServerGeneratorVariant : ServerGeneratorVariant {
   override val templateDirectory = "server_jax_rs"
 
   override fun specificationRewriter(): (JavaSpecification) -> JavaSpecification = JavaSpecRewriter(
-    parameterRewriter = listOf(
+    parameterRewriters = listOf(
       rewriteDissectedBodyParameterType(rewriteBinaryTypeTo(TypeName.EntityPart)),
       rewriteFormUrlEncodedBodyParameters,
       rewriteDissectedBodyParameters,

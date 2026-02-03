@@ -13,6 +13,10 @@ import io.github.ruedigerk.contractfirst.generator.java.Identifiers.toJavaConsta
 import io.github.ruedigerk.contractfirst.generator.java.Identifiers.toJavaTypeIdentifier
 import io.github.ruedigerk.contractfirst.generator.java.JavaConfiguration
 import io.github.ruedigerk.contractfirst.generator.java.generator.Annotations.toAnnotation
+import io.github.ruedigerk.contractfirst.generator.java.generator.JavaSpecRewriter
+import io.github.ruedigerk.contractfirst.generator.java.generator.JavaSpecRewriter.Companion.Rewriter
+import io.github.ruedigerk.contractfirst.generator.java.generator.JavaSpecRewriter.Companion.rewriteBinaryTypeTo
+import io.github.ruedigerk.contractfirst.generator.java.generator.JavaSpecRewriter.Companion.rewriteDissectedBodyParameterType
 import io.github.ruedigerk.contractfirst.generator.java.generator.MethodsFromObject
 import io.github.ruedigerk.contractfirst.generator.java.generator.TypeNames.toClassName
 import io.github.ruedigerk.contractfirst.generator.java.generator.TypeNames.toTypeName
@@ -22,7 +26,6 @@ import io.github.ruedigerk.contractfirst.generator.java.model.JavaAnyType
 import io.github.ruedigerk.contractfirst.generator.java.model.JavaBodyParameter
 import io.github.ruedigerk.contractfirst.generator.java.model.JavaCollectionType
 import io.github.ruedigerk.contractfirst.generator.java.model.JavaDissectedBodyParameter
-import io.github.ruedigerk.contractfirst.generator.java.model.JavaDissectedBodyParameter.BodyPartType.ATTACHMENT
 import io.github.ruedigerk.contractfirst.generator.java.model.JavaMapType
 import io.github.ruedigerk.contractfirst.generator.java.model.JavaOperation
 import io.github.ruedigerk.contractfirst.generator.java.model.JavaOperationGroup
@@ -32,6 +35,7 @@ import io.github.ruedigerk.contractfirst.generator.java.model.JavaSpecification
 import io.github.ruedigerk.contractfirst.generator.java.model.JavaType
 import io.github.ruedigerk.contractfirst.generator.java.model.JavaTypeName
 import io.github.ruedigerk.contractfirst.generator.openapi.DefaultStatusCode
+import io.github.ruedigerk.contractfirst.generator.openapi.ParameterLocation
 import io.github.ruedigerk.contractfirst.generator.openapi.StatusCode
 import java.io.File
 import java.util.*
@@ -46,22 +50,20 @@ class ClientGenerator(configuration: JavaConfiguration) : (JavaSpecification) ->
   private val apiPackage = configuration.apiPackage
 
   override operator fun invoke(specification: JavaSpecification) {
-    // The client does not generate cookie parameters. They have to be supplied by cookies in the HTTP client itself.
-    val specWithoutCookieParameters = removeAllCookieParameters(specification)
+    fun isCookieParameter(parameter: JavaParameter): Boolean = parameter is JavaRegularParameter && parameter.location == ParameterLocation.COOKIE
+    val removeCookieParameters: Rewriter<JavaOperation> = { copy(parameters = parameters.filterNot(::isCookieParameter)) }
 
-    generateApiClientClasses(specWithoutCookieParameters)
-    generateErrorWithEntityExceptionClasses(specWithoutCookieParameters)
+    val specRewriter = JavaSpecRewriter(
+      // The client does not generate cookie parameters. They have to be supplied by cookies in the HTTP client itself.
+      operationRewriters = listOf(removeCookieParameters),
+      parameterRewriters = listOf(rewriteDissectedBodyParameterType(rewriteBinaryTypeTo(AttachmentJavaTypeName))),
+    )
+
+    val rewrittenSpec = specRewriter(specification)
+
+    generateApiClientClasses(rewrittenSpec)
+    generateErrorWithEntityExceptionClasses(rewrittenSpec)
   }
-
-  private fun removeAllCookieParameters(specification: JavaSpecification): JavaSpecification = specification.copy(
-    operationGroups = specification.operationGroups.map { group ->
-      group.copy(
-        operations = group.operations.map { operation ->
-          operation.copy(parameters = operation.parameters.filterNot { it.isCookieParameter() })
-        },
-      )
-    },
-  )
 
   private fun generateApiClientClasses(specification: JavaSpecification) {
     specification.operationGroups.asSequence()
@@ -279,19 +281,7 @@ class ClientGenerator(configuration: JavaConfiguration) : (JavaSpecification) ->
   }
 
   private fun toParameterSpec(parameter: JavaParameter): ParameterSpec {
-    val parameterType = determineParameterType(parameter)
-    return ParameterSpec.builder(parameterType.toTypeName(), parameter.javaParameterName).build()
-  }
-
-  fun determineParameterType(parameter: JavaParameter): JavaAnyType {
-    return when (parameter) {
-      is JavaDissectedBodyParameter if (parameter.bodyPartType == ATTACHMENT) -> toBinaryParameterType(parameter)
-      else -> parameter.javaType
-    }
-  }
-
-  private fun toBinaryParameterType(parameter: JavaDissectedBodyParameter): JavaAnyType {
-    return parameter.javaType.rewriteSimpleType(JavaTypeName.INPUT_STREAM, AttachmentJavaTypeName)
+    return ParameterSpec.builder(parameter.javaType.toTypeName(), parameter.javaParameterName).build()
   }
 
   private fun createCodeOfSimplifiedMethod(operation: JavaOperation): CodeBlock {

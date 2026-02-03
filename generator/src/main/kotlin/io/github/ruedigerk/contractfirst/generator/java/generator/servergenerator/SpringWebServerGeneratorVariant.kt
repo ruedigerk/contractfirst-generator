@@ -36,12 +36,12 @@ object SpringWebServerGeneratorVariant : ServerGeneratorVariant {
   override val templateDirectory = "server_spring"
 
   override fun specificationRewriter(): (JavaSpecification) -> JavaSpecification = JavaSpecRewriter(
-    parameterRewriter = listOf(
+    parameterRewriters = listOf(
       rewriteBodyParameterType(rewriteBinaryTypeTo(TypeNames.Resource)),
       rewriteDissectedBodyParameterType(rewriteBinaryTypeTo(TypeNames.MultipartFile)),
       rewriteFormUrlEncodedBodyParameters,
     ),
-    responseContentRewriter = listOf(
+    responseContentRewriters = listOf(
       rewriteResponseContentType(rewriteBinaryTypeTo(TypeNames.Resource)),
     ),
   )

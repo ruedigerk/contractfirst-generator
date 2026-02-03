@@ -1,11 +1,8 @@
 Ideas and Todos
 ===============
 
-- Replace ClientGenerator.removeAllCookieParameters with JavaSpecRewriter, getting rid of determineParameterType.
 - Move all "production" sources from unit and integration tests to "test" sources.
-- JavaAnyType.toTypeName(withValidationAnnotations: Boolean = false) -> Is withValidationAnnotations actually required??? Aren't the annotations on TypeName 
-  ignored?
-- Add "@Valid/@Validated" (?) annotations to Object-typed ("complex") requests body parameters (and other places?)
+- Add @Valid annotations to Object-typed ("complex") (dissected) request body parameters (and other places?)
 - Add @Nonnull annotation to typesafe response builder method parameters.
 - Support jSpecify nullability annotations in addition to jsr305.
 - Research: can multiple content types for request bodies be supported (when they define differing schemas)?

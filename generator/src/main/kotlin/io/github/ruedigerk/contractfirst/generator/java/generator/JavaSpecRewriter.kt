@@ -20,8 +20,9 @@ import io.github.ruedigerk.contractfirst.generator.java.model.JavaTypeName
  * Helps in rewriting a JavaSpecification, especially the parameters and response contents, and their types.
  */
 class JavaSpecRewriter(
-  private val parameterRewriter: List<Rewriter<JavaParameter>> = listOf(),
-  private val responseContentRewriter: List<Rewriter<JavaContent>> = listOf(),
+  private val operationRewriters: List<Rewriter<JavaOperation>> = listOf(),
+  private val parameterRewriters: List<Rewriter<JavaParameter>> = listOf(),
+  private val responseContentRewriters: List<Rewriter<JavaContent>> = listOf(),
 ) : (JavaSpecification) -> JavaSpecification {
 
   override operator fun invoke(specification: JavaSpecification): JavaSpecification {
@@ -35,19 +36,18 @@ class JavaSpecRewriter(
   }
 
   private fun rewriteOperation(operation: JavaOperation): JavaOperation {
-    val parameters = operation.parameters.map(::rewriteParameter)
-    val responses = operation.responses.map(::rewriteResponse)
-    return operation.copy(parameters = parameters, responses = responses)
+    val rewrittenOperation = operationRewriters.rewrite(operation)
+    val parameters = rewrittenOperation.parameters.map { parameterRewriters.rewrite(it) }
+    val responses = rewrittenOperation.responses.map(::rewriteResponse)
+    return rewrittenOperation.copy(parameters = parameters, responses = responses)
   }
 
   private fun rewriteResponse(response: JavaResponse): JavaResponse {
-    val contents = response.contents.map { content -> rewriteResponseContent(content) }
+    val contents = response.contents.map { responseContentRewriters.rewrite(it) }
     return response.copy(contents = contents)
   }
 
-  private fun rewriteParameter(parameter: JavaParameter): JavaParameter = parameterRewriter.fold(parameter) { parameter, rewriter -> rewriter(parameter) }
-
-  private fun rewriteResponseContent(content: JavaContent): JavaContent = responseContentRewriter.fold(content) { content, rewriter -> rewriter(content) }
+  private fun <T> List<Rewriter<T>>.rewrite(subject: T): T = fold(subject) { subject, rewriter -> rewriter(subject) }
 
   /**
    * Contains [Rewriter]s and functions to compose [Rewriter]s with, to be used with [JavaSpecRewriter].
