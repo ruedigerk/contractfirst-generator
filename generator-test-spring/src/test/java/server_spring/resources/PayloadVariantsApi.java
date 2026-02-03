@@ -2,7 +2,6 @@ package server_spring.resources;
 
 import jakarta.validation.Valid;
 import jakarta.validation.constraints.NotNull;
-import java.io.InputStream;
 import java.util.List;
 import org.springframework.core.io.Resource;
 import org.springframework.http.ResponseEntity;
@@ -61,8 +60,7 @@ public interface PayloadVariantsApi {
           "application/octet-stream"
       }
   )
-  UploadAndReturnBinaryResponse uploadAndReturnBinary(
-      @RequestBody @NotNull InputStream requestBody);
+  UploadAndReturnBinaryResponse uploadAndReturnBinary(@RequestBody @NotNull Resource requestBody);
 
   class FilterItemsResponse extends ResponseWrapper {
     private FilterItemsResponse(ResponseEntity delegate) {

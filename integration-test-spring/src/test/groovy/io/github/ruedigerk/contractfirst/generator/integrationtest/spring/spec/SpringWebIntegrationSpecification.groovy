@@ -4,12 +4,19 @@ import io.github.ruedigerk.contractfirst.generator.client.ApiRequestExecutor
 import okhttp3.OkHttpClient
 import okhttp3.logging.HttpLoggingInterceptor
 import org.springframework.boot.test.context.SpringBootTest
+import org.springframework.test.annotation.DirtiesContext
 import spock.lang.Shared
 import spock.lang.Specification
 
 /**
  * Superclass for Spock tests that do Spring integration testing.
+ *
+ * DirtiesContext is used to prevent caching the context, as each test uses different beans, preventing reuse anyway. Also, avoids subsequent tests failing with
+ * a "Port already in use" error due to using WebEnvironment.DEFINED_PORT.
+ *
+ * See: https://stackoverflow.com/a/50412277
  */
+@DirtiesContext
 @SpringBootTest(webEnvironment = SpringBootTest.WebEnvironment.DEFINED_PORT, classes = SpringIntegrationTestApplication)
 abstract class SpringWebIntegrationSpecification extends Specification {
 
@@ -23,9 +30,8 @@ abstract class SpringWebIntegrationSpecification extends Specification {
     // Define the port for the embedded web server to listen on.
     System.setProperty("server.port", PORT)
 
-    // Disable context caching as each test needs a different context anyway (each has its own RestController), and we can not have multiple web contexts
-    // listening on the same port, as we're using WebEnvironment.DEFINED_PORT.
-    System.setProperty("spring.test.context.cache.maxSize", "1")
+    // Disable the Spring logo to be printed.
+    System.setProperty("spring.main.banner-mode", "off")
   }
 
   @Shared

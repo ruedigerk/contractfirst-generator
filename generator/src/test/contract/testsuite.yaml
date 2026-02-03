@@ -67,6 +67,78 @@ paths:
               schema:
                 $ref: "#/components/schemas/Failure"
 
+  /multiValuedParametersTest/{pathParam}/{pathSetParam}:
+    post:
+      summary: Test for handling of multi-valued parameters.
+      operationId: multiValuedParametersTest
+      tags:
+        - MultiValuedParameters
+      parameters:
+        - name: testSelector
+          in: query
+          description: Selects the assertions to perform on the server.
+          required: true
+          schema:
+            type: string
+        - name: pathParam
+          in: path
+          description: Multi-valued path parameter.
+          required: true
+          schema:
+            type: array
+            items:
+              type: string
+        - name: queryParam
+          in: query
+          description: Multi-valued query parameter.
+          required: false
+          schema:
+            type: array
+            items:
+              $ref: "#/components/schemas/SimpleEnum"
+        - name: headerParam
+          in: header
+          description: Multi-valued header parameter.
+          required: false
+          schema:
+            type: array
+            items:
+              type: integer
+              format: int32
+        - name: pathSetParam
+          in: path
+          description: Multi-valued path parameter.
+          required: true
+          schema:
+            type: array
+            uniqueItems: true
+            items:
+              type: string
+        - name: querySetParam
+          in: query
+          description: Multi-valued query parameter.
+          required: false
+          schema:
+            type: array
+            uniqueItems: true
+            items:
+              $ref: "#/components/schemas/SimpleEnum"
+        - name: headerSetParam
+          in: header
+          description: Multi-valued header parameter.
+          required: false
+          schema:
+            type: array
+            uniqueItems: true
+            items:
+              type: integer
+              format: int32
+      responses:
+        204:
+          description: Ok, no content
+        default:
+          $ref: "#/components/responses/DefaultFailures"
+
   /items:
     post:
       summary: Test operation for generating generic types, e.g. List of Item.
@@ -88,7 +160,7 @@ paths:
             application/json:
               schema:
                 type: array
-                items: 
+                items:
                   $ref: "#/components/schemas/Item"
         default:
           $ref: "#/components/responses/DefaultFailures"
@@ -186,9 +258,9 @@ paths:
                 format: binary
         202:
           description: Returned a description of the manual instead.
-          content: 
+          content:
             text/plain:
-              schema: 
+              schema:
                 type: string
         204:
           description: Return nothing.
@@ -349,6 +421,24 @@ paths:
         204:
           description: Ok.
 
+  /nonStringEnumTypeIsIgnored:
+    post:
+      description: Testing that enums of a type different from string are supported by ignoring the enum part of the type.
+      operationId: nonStringEnumTypeIsIgnored
+      tags:
+        - testcases
+      parameters:
+        - name: booleanEnum
+          in: query
+          schema:
+            type: boolean
+            enum:
+              - true
+              - false
+      responses:
+        204:
+          description: Ok.
+
   /nonJavaPropertyNames:
     post:
       description: A test case for a JSON model with properties that are not legal Java identifiers.
@@ -384,6 +474,80 @@ paths:
             application/xml:
               schema:
                 $ref: "#/components/schemas/Item"
+
+  /formEncodedRequestBody:
+    post:
+      description: A test case for an x-www-form-urlencoded encoded request body.
+      tags:
+        - MultipartRequestBody
+      operationId: formEncodedRequestBody
+      requestBody:
+        required: true
+        content:
+          application/x-www-form-urlencoded:
+            schema:
+              type: object
+              properties:
+                stringProperty:
+                  type: string
+                integerProperty:
+                  type: integer
+                  format: int64
+                enumProperty:
+                  type: string
+                  enum:
+                    - first_value
+                    - second%value
+      responses:
+        204:
+          description: Ok.
+
+  /multipartRequestBody:
+    post:
+      description: A test case for a multipart/form-data encoded request body.
+      tags:
+        - MultipartRequestBody
+      operationId: multipartRequestBody
+      parameters:
+        - name: testSelector
+          in: query
+          description: Selects the assertions to perform on the server.
+          required: true
+          schema:
+            type: string
+      requestBody:
+        required: true
+        content:
+          multipart/form-data:
+            schema:
+              type: object
+              properties:
+                stringProperty:
+                  type: string
+                integerProperty:
+                  type: integer
+                  format: int64
+                objectProperty:
+                  type: object
+                  required:
+                    - a
+                  properties:
+                    a:
+                      type: string
+                    b:
+                      type: integer
+                      format: int64
+                firstBinary:
+                  type: string
+                  format: binary
+                additionalBinaries:
+                  type: array
+                  items:
+                    type: string
+                    format: binary
+      responses:
+        204:
+          description: Ok.
 
 components:
   schemas:
@@ -436,10 +600,10 @@ components:
         $ref: "#/components/schemas/Component"
     Manual:
       type: object
-      required: 
+      required:
         - title
         - content
-      properties: 
+      properties:
         title:
           type: string
         content:
@@ -502,6 +666,13 @@ components:
             - 1
             - two-point-zero
             - three?
+    SimpleEnum:
+      description: An enum with non-problematic constant names.
+      type: string
+      enum:
+        - FIRST
+        - SECOND
+        - THIRD
   responses:
     DefaultFailures:
       description: Some other error, like 500.

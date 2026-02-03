@@ -26,7 +26,7 @@ public interface WildcardContentTypesApi {
       }
   )
   GetWildcardContentTypesResponse getWildcardContentTypes(
-      @RequestHeader("testCaseSelector") String testCaseSelector);
+      @RequestHeader(name = "testCaseSelector", required = false) String testCaseSelector);
 
   class GetWildcardContentTypesResponse extends ResponseWrapper {
     private GetWildcardContentTypesResponse(ResponseEntity delegate) {

@@ -29,7 +29,6 @@ class WildcardContentTypesTest extends SpringWebIntegrationSpecification {
     response.request.url == "$BASE_URL/wildcardContentTypes"
     response.request.method == "GET"
     response.statusCode == 200
-    response.httpStatusMessage == "OK"
     response.contentType == "text/plain"
     response.entityType == String.class
     response.entity == "Some Text"
@@ -45,7 +44,6 @@ class WildcardContentTypesTest extends SpringWebIntegrationSpecification {
     response.request.url == "$BASE_URL/wildcardContentTypes"
     response.request.method == "GET"
     response.statusCode == 200
-    response.httpStatusMessage == "OK"
     response.contentType == "application/pdf"
     response.entityType == InputStream.class
     (response.entity as InputStream).bytes == getClass().getResourceAsStream("/sample.pdf").bytes

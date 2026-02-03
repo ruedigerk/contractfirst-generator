@@ -13,7 +13,6 @@ import io.github.ruedigerk.contractfirst.generator.java.Identifiers.toJavaConsta
 import io.github.ruedigerk.contractfirst.generator.java.Identifiers.toJavaTypeIdentifier
 import io.github.ruedigerk.contractfirst.generator.java.JavaConfiguration
 import io.github.ruedigerk.contractfirst.generator.java.generator.Annotations.toAnnotation
-import io.github.ruedigerk.contractfirst.generator.java.generator.JavaParameters
 import io.github.ruedigerk.contractfirst.generator.java.generator.MethodsFromObject
 import io.github.ruedigerk.contractfirst.generator.java.generator.TypeNames.toClassName
 import io.github.ruedigerk.contractfirst.generator.java.generator.TypeNames.toTypeName
@@ -22,8 +21,9 @@ import io.github.ruedigerk.contractfirst.generator.java.generator.doIfNotNull
 import io.github.ruedigerk.contractfirst.generator.java.model.JavaAnyType
 import io.github.ruedigerk.contractfirst.generator.java.model.JavaBodyParameter
 import io.github.ruedigerk.contractfirst.generator.java.model.JavaCollectionType
+import io.github.ruedigerk.contractfirst.generator.java.model.JavaDissectedBodyParameter
+import io.github.ruedigerk.contractfirst.generator.java.model.JavaDissectedBodyParameter.BodyPartType.ATTACHMENT
 import io.github.ruedigerk.contractfirst.generator.java.model.JavaMapType
-import io.github.ruedigerk.contractfirst.generator.java.model.JavaMultipartBodyParameter
 import io.github.ruedigerk.contractfirst.generator.java.model.JavaOperation
 import io.github.ruedigerk.contractfirst.generator.java.model.JavaOperationGroup
 import io.github.ruedigerk.contractfirst.generator.java.model.JavaParameter
@@ -124,7 +124,7 @@ class ClientGenerator(configuration: JavaConfiguration) : (JavaSpecification) ->
   private fun generateTypeTokenConstants(operationGroup: JavaOperationGroup): Set<FieldSpec> {
     return operationGroup.operations
       .flatMap { it.allReturnTypes }
-      .filter { it.isGenericType }
+      .filter { it.isGenericType() }
       .map(::generateTypeTokenConstant)
       .toSet()
   }
@@ -200,7 +200,7 @@ class ClientGenerator(configuration: JavaConfiguration) : (JavaSpecification) ->
           parameter.javaParameterName,
         )
 
-        is JavaMultipartBodyParameter -> codeBuilder.addStatement(
+        is JavaDissectedBodyParameter -> codeBuilder.addStatement(
           "builder.requestBodyPart(\$T.\$L, \$S, \$N)",
           SupportTypes.BodyPartType,
           parameter.bodyPartType.name,
@@ -210,7 +210,7 @@ class ClientGenerator(configuration: JavaConfiguration) : (JavaSpecification) ->
       }
     }
 
-    if (operation.parameters.any { it is JavaMultipartBodyParameter }) {
+    if (operation.parameters.any { it is JavaDissectedBodyParameter }) {
       codeBuilder.addStatement("builder.multipartRequestBody(\$S)", operation.requestBodyMediaType)
     }
 
@@ -274,13 +274,24 @@ class ClientGenerator(configuration: JavaConfiguration) : (JavaSpecification) ->
   }
 
   private fun toTypeExpression(javaType: JavaAnyType): CodeBlock = when {
-    javaType.isGenericType -> CodeBlock.of("\$L", constantsNameForGenericType(javaType))
+    javaType.isGenericType() -> CodeBlock.of("\$L", constantsNameForGenericType(javaType))
     else -> CodeBlock.of("\$T.class", javaType.toTypeName())
   }
 
   private fun toParameterSpec(parameter: JavaParameter): ParameterSpec {
-    val parameterType = JavaParameters.determineParameterType(parameter, AttachmentJavaTypeName)
+    val parameterType = determineParameterType(parameter)
     return ParameterSpec.builder(parameterType.toTypeName(), parameter.javaParameterName).build()
+  }
+
+  fun determineParameterType(parameter: JavaParameter): JavaAnyType {
+    return when (parameter) {
+      is JavaDissectedBodyParameter if (parameter.bodyPartType == ATTACHMENT) -> toBinaryParameterType(parameter)
+      else -> parameter.javaType
+    }
+  }
+
+  private fun toBinaryParameterType(parameter: JavaDissectedBodyParameter): JavaAnyType {
+    return parameter.javaType.rewriteSimpleType(JavaTypeName.INPUT_STREAM, AttachmentJavaTypeName)
   }
 
   private fun createCodeOfSimplifiedMethod(operation: JavaOperation): CodeBlock {
@@ -501,7 +512,7 @@ class ClientGenerator(configuration: JavaConfiguration) : (JavaSpecification) ->
     val typeName = type.toTypeName()
     return MethodSpec.methodBuilder("getEntity")
       .addJavadoc("Returns the response's entity of type {@code \$T}.", typeName)
-      .doIf(type.isGenericType) { addAnnotation(toAnnotation("java.lang.SuppressWarnings", "unchecked")) }
+      .doIf(type.isGenericType()) { addAnnotation(toAnnotation("java.lang.SuppressWarnings", "unchecked")) }
       .addModifiers(Modifier.PUBLIC)
       .returns(typeName)
       .addStatement("return (\$T) response.getEntity()", typeName)
@@ -529,7 +540,7 @@ class ClientGenerator(configuration: JavaConfiguration) : (JavaSpecification) ->
     val typeName = type.toTypeName()
     return MethodSpec.methodBuilder(nameForMethodGetEntityAs(type))
       .addJavadoc("Returns the response's entity if it is of type {@code \$T}. Otherwise, returns null.", typeName)
-      .doIf(type.isGenericType) { addAnnotation(toAnnotation("java.lang.SuppressWarnings", "unchecked")) }
+      .doIf(type.isGenericType()) { addAnnotation(toAnnotation("java.lang.SuppressWarnings", "unchecked")) }
       .addModifiers(Modifier.PUBLIC)
       .returns(typeName)
       .beginControlFlow("if (response.getEntityType() == \$L)", toTypeExpression(type))
@@ -565,7 +576,7 @@ class ClientGenerator(configuration: JavaConfiguration) : (JavaSpecification) ->
     const val CLIENT_CLASS_NAME_SUFFIX = "Client"
 
     /**
-     * The Attachment class is used for file/binary body parts of multipart bodies. It contains the content, file name and media type of the body part.
+     * The Attachment class is used for file/binary body parts of dissected bodies. It contains the content, file name and media type of the body part.
      */
     val AttachmentJavaTypeName = JavaTypeName(SUPPORT_PACKAGE, "Attachment")
   }

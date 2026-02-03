@@ -5,13 +5,23 @@ import com.squareup.javapoet.MethodSpec
 import com.squareup.javapoet.ParameterSpec
 import com.squareup.javapoet.TypeSpec
 import io.github.ruedigerk.contractfirst.generator.java.generator.Annotations.toAnnotation
+import io.github.ruedigerk.contractfirst.generator.java.generator.JavaSpecRewriter
+import io.github.ruedigerk.contractfirst.generator.java.generator.JavaSpecRewriter.Companion.Rewriter
+import io.github.ruedigerk.contractfirst.generator.java.generator.JavaSpecRewriter.Companion.rewriteBinaryTypeTo
+import io.github.ruedigerk.contractfirst.generator.java.generator.JavaSpecRewriter.Companion.rewriteDissectedBodyParameter
+import io.github.ruedigerk.contractfirst.generator.java.generator.JavaSpecRewriter.Companion.rewriteDissectedBodyParameterType
+import io.github.ruedigerk.contractfirst.generator.java.generator.JavaSpecRewriter.Companion.rewriteFormUrlEncodedBodyParameters
 import io.github.ruedigerk.contractfirst.generator.java.generator.doIfNotNull
-import io.github.ruedigerk.contractfirst.generator.java.model.JavaAnyType
-import io.github.ruedigerk.contractfirst.generator.java.model.JavaMultipartBodyParameter
+import io.github.ruedigerk.contractfirst.generator.java.model.JavaDissectedBodyParameter
+import io.github.ruedigerk.contractfirst.generator.java.model.JavaDissectedBodyParameter.BodyPartType.COMPLEX
+import io.github.ruedigerk.contractfirst.generator.java.model.JavaDissectedBodyParameter.BodyPartType.PRIMITIVE
+import io.github.ruedigerk.contractfirst.generator.java.model.JavaDissectedBodyParameter.DissectedMediaTypeFamily.MULTIPART
 import io.github.ruedigerk.contractfirst.generator.java.model.JavaOperation
 import io.github.ruedigerk.contractfirst.generator.java.model.JavaParameter
 import io.github.ruedigerk.contractfirst.generator.java.model.JavaRegularParameter
 import io.github.ruedigerk.contractfirst.generator.java.model.JavaResponse
+import io.github.ruedigerk.contractfirst.generator.java.model.JavaSpecification
+import io.github.ruedigerk.contractfirst.generator.java.model.JavaType
 import io.github.ruedigerk.contractfirst.generator.java.model.JavaTypeName
 import io.github.ruedigerk.contractfirst.generator.openapi.HttpMethod
 import io.github.ruedigerk.contractfirst.generator.openapi.ParameterLocation.COOKIE
@@ -22,16 +32,32 @@ import io.github.ruedigerk.contractfirst.generator.openapi.ParameterLocation.QUE
 /**
  * JAX-RS-specific implementation of the ServerGeneratorVariant.
  */
-class JaxRsServerGeneratorVariant : ServerGeneratorVariant {
+object JaxRsServerGeneratorVariant : ServerGeneratorVariant {
 
-  override val responseClassName: String
-    get() = "jakarta.ws.rs.core.Response"
+  override val responseClassName = "jakarta.ws.rs.core.Response"
+  override val templateDirectory = "server_jax_rs"
 
-  override val templateDirectory: String
-    get() = "server_jax_rs"
+  override fun specificationRewriter(): (JavaSpecification) -> JavaSpecification = JavaSpecRewriter(
+    parameterRewriter = listOf(
+      rewriteDissectedBodyParameterType(rewriteBinaryTypeTo(TypeName.EntityPart)),
+      rewriteFormUrlEncodedBodyParameters,
+      rewriteDissectedBodyParameters,
+    ),
+  )
 
-  override val attachmentTypeName: JavaTypeName
-    get() = JavaTypeName("jakarta.ws.rs.core", "EntityPart")
+  /**
+   * JAX-RS server only supports the types jakarta.ws.rs.core.EntityPart, java.io.InputStream, or String for method parameters representing parts of a
+   * dissected body. This rewrites all generated "JSON" types to either EntityPart or String.
+   *
+   * See:https://jakarta.ee/specifications/restful-ws/3.1/jakarta-restful-ws-spec-3.1.html#consuming_multipart_formdata
+   */
+  private val rewriteDissectedBodyParameters: Rewriter<JavaParameter> = rewriteDissectedBodyParameter(MULTIPART) {
+    when (bodyPartType) {
+      COMPLEX -> copy(javaType = JavaType(TypeName.EntityPart))
+      PRIMITIVE if (javaType.isGenerated()) -> copy(javaType = JavaType(JavaTypeName.STRING))
+      else -> this
+    }
+  }
 
   override fun addAnnotationsToJavaInterface(builder: TypeSpec.Builder) {
     builder.addAnnotation(pathAnnotation(""))
@@ -48,12 +74,12 @@ class JaxRsServerGeneratorVariant : ServerGeneratorVariant {
 
   override fun addAnnotationsToMethodParameter(builder: ParameterSpec.Builder, parameter: JavaParameter) {
     with(builder) {
-      doIfNotNull(parameter as? JavaRegularParameter) { addAnnotation(paramAnnotation(it)) }
-      doIfNotNull(parameter as? JavaMultipartBodyParameter) { addAnnotation(multipartAnnotation(it)) }
+      doIfNotNull(parameter as? JavaRegularParameter) { addAnnotation(regularParameterAnnotation(it)) }
+      doIfNotNull(parameter as? JavaDissectedBodyParameter) { addAnnotation(dissectedBodyParameterAnnotation(it)) }
     }
   }
 
-  private fun paramAnnotation(parameter: JavaRegularParameter): AnnotationSpec {
+  private fun regularParameterAnnotation(parameter: JavaRegularParameter): AnnotationSpec {
     val annotationName =
       when (parameter.location) {
         QUERY -> "QueryParam"
@@ -65,7 +91,8 @@ class JaxRsServerGeneratorVariant : ServerGeneratorVariant {
     return toAnnotation("jakarta.ws.rs.$annotationName", parameter.originalName)
   }
 
-  private fun multipartAnnotation(parameter: JavaMultipartBodyParameter): AnnotationSpec = toAnnotation("jakarta.ws.rs.FormParam", parameter.originalName)
+  private fun dissectedBodyParameterAnnotation(parameter: JavaDissectedBodyParameter): AnnotationSpec =
+    toAnnotation("jakarta.ws.rs.FormParam", parameter.originalName)
 
   private fun pathAnnotation(path: String) = toAnnotation("jakarta.ws.rs.Path", path)
 
@@ -83,5 +110,8 @@ class JaxRsServerGeneratorVariant : ServerGeneratorVariant {
 
   override fun buildResponseWithEntity(): String = ".entity(entity).build()"
 
-  override fun rewriteResponseBodyType(javaType: JavaAnyType): JavaAnyType = javaType
+  private object TypeName {
+
+    val EntityPart = JavaTypeName("jakarta.ws.rs.core", "EntityPart")
+  }
 }

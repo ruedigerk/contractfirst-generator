@@ -27,7 +27,7 @@ class IoExceptionsTest extends SpringWebIntegrationSpecification {
     then:
     def e = thrown ApiClientIoException
     e.message.contains("timeout")
-    e.message.contains("GET http://localhost:17249/manuals")
+    e.message.contains("GET http://$HOST:$PORT/manuals")
   }
 
   /**

@@ -1,4 +1,5 @@
 <configuration>
-   <!-- Uncomment the next line to enable logging in tests. -->
    <include resource="org/springframework/boot/logging/logback/base.xml" />
+   <!-- Comment out the next line to enable logging in tests. -->
+   <logger name="root" level="ERROR"/>
 </configuration>

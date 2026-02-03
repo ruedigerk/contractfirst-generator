@@ -9,7 +9,6 @@ import org.springframework.web.bind.annotation.RequestHeader;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestMethod;
 import org.springframework.web.bind.annotation.RequestParam;
-import org.springframework.web.bind.annotation.RequestPart;
 import parameters_server_spring.resources.support.ResponseWrapper;
 
 @Validated
@@ -23,12 +22,12 @@ public interface EquallyNamedParametersApi {
       consumes = "application/x-www-form-urlencoded"
   )
   GetEquallyNamedParametersResponse getEquallyNamedParameters(
-      @CookieValue("theParameter") String theParameterInCookie,
-      @RequestHeader("theParameter") String theParameterInHeader,
-      @PathVariable("theParameter") @NotNull String theParameterInPath,
-      @RequestParam("theParameter") String theParameterInQuery,
-      @RequestPart(value = "theParameter", required = false) String theParameterInBody,
-      @RequestPart(value = "other", required = false) String other);
+      @CookieValue(name = "theParameter", required = false) String theParameterInCookie,
+      @RequestHeader(name = "theParameter", required = false) String theParameterInHeader,
+      @PathVariable(name = "theParameter", required = true) @NotNull String theParameterInPath,
+      @RequestParam(name = "theParameter", required = false) String theParameterInQuery,
+      @RequestParam(name = "theParameter", required = false) String theParameterInBody,
+      @RequestParam(name = "other", required = false) String other);
 
   class GetEquallyNamedParametersResponse extends ResponseWrapper {
     private GetEquallyNamedParametersResponse(ResponseEntity delegate) {

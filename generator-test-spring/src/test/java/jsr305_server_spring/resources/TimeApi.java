@@ -28,11 +28,12 @@ public interface TimeApi {
       consumes = "application/json",
       produces = "application/json"
   )
-  UpdateTimeResponse updateTime(@PathVariable("timeId") @NotNull LocalDate timeId,
-      @RequestParam("queryTimeA") @NotNull LocalDate queryTimeA,
-      @RequestParam("queryTimeB") @NotNull OffsetDateTime queryTimeB,
-      @RequestHeader("headerTimeA") @NotNull LocalDate headerTimeA,
-      @RequestHeader("headerTimeB") @NotNull OffsetDateTime headerTimeB,
+  UpdateTimeResponse updateTime(
+      @PathVariable(name = "timeId", required = true) @NotNull LocalDate timeId,
+      @RequestParam(name = "queryTimeA", required = true) @NotNull LocalDate queryTimeA,
+      @RequestParam(name = "queryTimeB", required = true) @NotNull OffsetDateTime queryTimeB,
+      @RequestHeader(name = "headerTimeA", required = true) @NotNull LocalDate headerTimeA,
+      @RequestHeader(name = "headerTimeB", required = true) @NotNull OffsetDateTime headerTimeB,
       @RequestBody @NotNull @Valid Clock requestBody);
 
   class UpdateTimeResponse extends ResponseWrapper {

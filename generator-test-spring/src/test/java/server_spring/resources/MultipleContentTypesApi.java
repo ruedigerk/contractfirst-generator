@@ -26,7 +26,8 @@ public interface MultipleContentTypesApi {
           "text/plain"
       }
   )
-  GetManualResponse getManual(@RequestHeader("testCaseSelector") String testCaseSelector);
+  GetManualResponse getManual(
+      @RequestHeader(name = "testCaseSelector", required = false) String testCaseSelector);
 
   class GetManualResponse extends ResponseWrapper {
     private GetManualResponse(ResponseEntity delegate) {

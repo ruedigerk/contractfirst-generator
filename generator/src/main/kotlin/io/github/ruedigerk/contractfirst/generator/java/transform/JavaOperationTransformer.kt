@@ -8,11 +8,14 @@ import io.github.ruedigerk.contractfirst.generator.java.Identifiers.toJavaTypeId
 import io.github.ruedigerk.contractfirst.generator.java.model.JavaAnyType
 import io.github.ruedigerk.contractfirst.generator.java.model.JavaBodyParameter
 import io.github.ruedigerk.contractfirst.generator.java.model.JavaContent
-import io.github.ruedigerk.contractfirst.generator.java.model.JavaMultipartBodyParameter
-import io.github.ruedigerk.contractfirst.generator.java.model.JavaMultipartBodyParameter.BodyPartType
-import io.github.ruedigerk.contractfirst.generator.java.model.JavaMultipartBodyParameter.BodyPartType.ATTACHMENT
-import io.github.ruedigerk.contractfirst.generator.java.model.JavaMultipartBodyParameter.BodyPartType.COMPLEX
-import io.github.ruedigerk.contractfirst.generator.java.model.JavaMultipartBodyParameter.BodyPartType.PRIMITIVE
+import io.github.ruedigerk.contractfirst.generator.java.model.JavaDissectedBodyParameter
+import io.github.ruedigerk.contractfirst.generator.java.model.JavaDissectedBodyParameter.BodyPartType
+import io.github.ruedigerk.contractfirst.generator.java.model.JavaDissectedBodyParameter.BodyPartType.ATTACHMENT
+import io.github.ruedigerk.contractfirst.generator.java.model.JavaDissectedBodyParameter.BodyPartType.COMPLEX
+import io.github.ruedigerk.contractfirst.generator.java.model.JavaDissectedBodyParameter.BodyPartType.PRIMITIVE
+import io.github.ruedigerk.contractfirst.generator.java.model.JavaDissectedBodyParameter.DissectedMediaTypeFamily
+import io.github.ruedigerk.contractfirst.generator.java.model.JavaDissectedBodyParameter.DissectedMediaTypeFamily.FORM_URL_ENCODED
+import io.github.ruedigerk.contractfirst.generator.java.model.JavaDissectedBodyParameter.DissectedMediaTypeFamily.MULTIPART
 import io.github.ruedigerk.contractfirst.generator.java.model.JavaOperation
 import io.github.ruedigerk.contractfirst.generator.java.model.JavaOperationGroup
 import io.github.ruedigerk.contractfirst.generator.java.model.JavaParameter
@@ -91,48 +94,64 @@ class JavaOperationTransformer(
   }
 
   /**
-   * The request body can be transformed to multiple parameters, when the Content-Type is multipart or application/x-www-form-urlencoded.
+   * The request body can be dissected into multiple parameters, when the Content-Type is multipart or application/x-www-form-urlencoded.
    */
   private fun requestBodyToParameters(operation: Operation, requestBody: RequestBody): List<JavaParameter> {
     val content = requestBody.requireSingleContent(operation)
+    val dissectedMediaType = determineDissectedMediaTypeFamily(content.mediaType)
 
-    return if (content.mediaType == "application/x-www-form-urlencoded" || content.mediaType.startsWith("multipart/")) {
+    return if (dissectedMediaType != null) {
       formBodySchemaIds.add(content.schemaId)
       val schema = schemaFor(content.schemaId)
-      multipartBodyToRequestParameters(operation, schema, content.mediaType)
+      dissectedBodyToRequestParameters(operation, schema, content.mediaType, dissectedMediaType)
     } else {
       listOf(toBodyParameter(operation, requestBody))
     }
   }
 
-  private fun multipartBodyToRequestParameters(operation: Operation, schema: Schema, mediaType: String): List<JavaMultipartBodyParameter> {
+  /**
+   * Determines whether the supplied media type belongs to a family resulting in the body being handled as dissected parts, and returns the family the
+   * media type belongs to. Returns null when the supplied media type does not belong to a dissected family of media types.
+   */
+  private fun determineDissectedMediaTypeFamily(mediaType: String): DissectedMediaTypeFamily? = when {
+    mediaType.startsWith("application/x-www-form-urlencoded") -> FORM_URL_ENCODED
+    mediaType.startsWith("multipart/") -> MULTIPART
+    else -> null
+  }
+
+  private fun dissectedBodyToRequestParameters(
+    operation: Operation,
+    schema: Schema,
+    mediaType: String,
+    dissectedMediaTypeFamily: DissectedMediaTypeFamily,
+  ): List<JavaDissectedBodyParameter> {
     if (schema !is ObjectSchema) {
       throw ParserContentException(
         "For request bodies of media type $mediaType the schema must be an object schema, but was ${schema::class.simpleName} in operation at ${operation.position}",
       )
     }
 
-    return schema.properties.map { toJavaMultipartBodyParameter(it) }
+    return schema.properties.map { toJavaDissectedBodyParameter(it, dissectedMediaTypeFamily) }
   }
 
-  private fun toJavaMultipartBodyParameter(property: SchemaProperty): JavaMultipartBodyParameter {
-    return JavaMultipartBodyParameter(
-      property.name.toJavaIdentifier(),
-      schemaFor(property.schema).description,
-      property.required,
-      typeFor(property.schema),
-      property.name,
-      determineBodyPartType(property),
-    )
-  }
+  private fun toJavaDissectedBodyParameter(property: SchemaProperty, dissectedMediaTypeFamily: DissectedMediaTypeFamily) = JavaDissectedBodyParameter(
+    property.name.toJavaIdentifier(),
+    schemaFor(property.schema).description,
+    property.required,
+    typeFor(property.schema),
+    property.name,
+    determineDissectedBodyPartType(property),
+    dissectedMediaTypeFamily,
+  )
 
   /**
    * Determines the type of the body part parameter, i.e., one of: primitive, complex or attachment.
    *
+   * See: https://spec.openapis.org/oas/v3.0.3#support-for-x-www-form-urlencoded-request-bodies
    * See: https://spec.openapis.org/oas/v3.0.3#special-considerations-for-multipart-content
    * See: https://swagger.io/docs/specification/describing-request-body/multipart-requests/
    */
-  private fun determineBodyPartType(property: SchemaProperty): BodyPartType {
+  private fun determineDissectedBodyPartType(property: SchemaProperty): BodyPartType {
     return when (val schema = schemaFor(property.schema)) {
       is PrimitiveSchema -> if (schema.dataType == BINARY) ATTACHMENT else PRIMITIVE
 
@@ -147,7 +166,7 @@ class JavaOperationTransformer(
         is EnumSchema -> PRIMITIVE
         is ObjectSchema -> COMPLEX
         is MapSchema -> COMPLEX
-        is ArraySchema -> COMPLEX // TODO: Arrays of primitives should be transported as text/plain (but with what formatting?)
+        is ArraySchema -> COMPLEX
       }
     }
   }
@@ -176,8 +195,8 @@ class JavaOperationTransformer(
     parameter.description ?: JavadocHelper.toJavadoc(schemaFor(parameter.schema)),
     parameter.required,
     typeFor(parameter.schema),
-    parameter.location,
     parameter.name,
+    parameter.location,
   )
 
   /**
@@ -191,7 +210,7 @@ class JavaOperationTransformer(
         when (parameter) {
           is JavaBodyParameter -> parameter.copy(javaParameterName = parameter.javaParameterName + "Entity")
 
-          is JavaMultipartBodyParameter -> parameter.copy(javaParameterName = parameter.javaParameterName + "InBody")
+          is JavaDissectedBodyParameter -> parameter.copy(javaParameterName = parameter.javaParameterName + "InBody")
 
           is JavaRegularParameter -> parameter.copy(
             javaParameterName =

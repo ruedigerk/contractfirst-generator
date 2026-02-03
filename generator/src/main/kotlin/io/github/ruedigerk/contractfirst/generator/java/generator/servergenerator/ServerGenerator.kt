@@ -11,7 +11,6 @@ import io.github.ruedigerk.contractfirst.generator.java.Identifiers.mediaTypeToJ
 import io.github.ruedigerk.contractfirst.generator.java.JavaConfiguration
 import io.github.ruedigerk.contractfirst.generator.java.generator.Annotations
 import io.github.ruedigerk.contractfirst.generator.java.generator.Annotations.NOT_NULL_ANNOTATION
-import io.github.ruedigerk.contractfirst.generator.java.generator.JavaParameters
 import io.github.ruedigerk.contractfirst.generator.java.generator.TypeNames.toClassName
 import io.github.ruedigerk.contractfirst.generator.java.generator.TypeNames.toTypeName
 import io.github.ruedigerk.contractfirst.generator.java.generator.doIf
@@ -41,13 +40,16 @@ class ServerGenerator(private val configuration: JavaConfiguration) : (JavaSpeci
   private val variant = selectVariant(configuration.generatorVariant)
 
   private fun selectVariant(generatorVariant: GeneratorVariant) = when (generatorVariant) {
-    GeneratorVariant.SERVER_JAX_RS -> JaxRsServerGeneratorVariant()
-    GeneratorVariant.SERVER_SPRING_WEB -> SpringWebServerGeneratorVariant()
+    GeneratorVariant.SERVER_JAX_RS -> JaxRsServerGeneratorVariant
+    GeneratorVariant.SERVER_SPRING_WEB -> SpringWebServerGeneratorVariant
     else -> error("Unsupported server generator variant $generatorVariant")
   }
 
   override operator fun invoke(specification: JavaSpecification) {
-    specification.operationGroups.asSequence()
+    // Rewrite the types in the specification according to the variant.
+    val rewrittenSpecification = variant.specificationRewriter()(specification)
+
+    rewrittenSpecification.operationGroups.asSequence()
       .map(::toJavaInterface)
       .forEach { it.writeTo(outputDir) }
 
@@ -83,10 +85,9 @@ class ServerGenerator(private val configuration: JavaConfiguration) : (JavaSpeci
   }
 
   private fun toParameterSpec(parameter: JavaParameter): ParameterSpec {
-    val parameterType = JavaParameters.determineParameterType(parameter, variant.attachmentTypeName)
     val typeValidationAnnotations = parameter.javaType.validations.map(Annotations::toAnnotation)
 
-    return ParameterSpec.builder(parameterType.toTypeName(), parameter.javaParameterName)
+    return ParameterSpec.builder(parameter.javaType.toTypeName(), parameter.javaParameterName)
       .also { variant.addAnnotationsToMethodParameter(it, parameter) }
       .doIf(parameter.required) { addAnnotation(NOT_NULL_ANNOTATION) }
       .addAnnotations(typeValidationAnnotations)
@@ -145,12 +146,11 @@ class ServerGenerator(private val configuration: JavaConfiguration) : (JavaSpeci
     val statusCode = (response.statusCode as StatusCode).code
     val mediaTypeAsIdentifier = content.mediaType.mediaTypeToJavaIdentifier()
     val methodName = "with$statusCode$mediaTypeAsIdentifier"
-    val bodyParameterType = variant.rewriteResponseBodyType(content.javaType)
 
     return MethodSpec.methodBuilder(methodName)
       .addModifiers(PUBLIC, STATIC)
       .returns(typesafeResponseClass)
-      .addParameter(bodyParameterType.toTypeName(), "entity")
+      .addParameter(content.javaType.toTypeName(), "entity")
       .addStatement(
         "return new \$T(\$T.status(\$L).header(\"Content-Type\", \$S)${variant.buildResponseWithEntity()})",
         typesafeResponseClass,

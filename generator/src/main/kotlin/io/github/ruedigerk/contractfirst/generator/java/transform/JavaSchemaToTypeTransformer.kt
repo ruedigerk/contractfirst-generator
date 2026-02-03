@@ -7,6 +7,7 @@ import io.github.ruedigerk.contractfirst.generator.java.model.JavaAnyType
 import io.github.ruedigerk.contractfirst.generator.java.model.JavaCollectionType
 import io.github.ruedigerk.contractfirst.generator.java.model.JavaMapType
 import io.github.ruedigerk.contractfirst.generator.java.model.JavaType
+import io.github.ruedigerk.contractfirst.generator.java.model.JavaTypeFlags.Generated
 import io.github.ruedigerk.contractfirst.generator.java.model.JavaTypeName
 import io.github.ruedigerk.contractfirst.generator.java.model.NumericValidationType.MAX
 import io.github.ruedigerk.contractfirst.generator.java.model.NumericValidationType.MIN
@@ -59,13 +60,14 @@ class JavaSchemaToTypeTransformer(
   private fun toGeneratedJavaType(schema: Schema, isEnum: Boolean): JavaType {
     // Objects without properties seem to be used in the wild. Special-case to java.lang.Object.
     if (schema is ObjectSchema && schema.properties.isEmpty()) {
-      return JavaType(JavaTypeName.OBJECT)
+      // Although the Object type from the standard library is used, it is treated as generated, because it would be if any properties had been specified.
+      return JavaType(JavaTypeName.OBJECT, flags = Generated)
     }
 
     val typeName = generateName(schema)
     val validations = if (isEnum) emptyList() else listOf(ValidatedValidation)
 
-    return JavaType(typeName, validations)
+    return JavaType(typeName, validations, Generated)
   }
 
   private fun generateName(schema: Schema): JavaTypeName {

@@ -145,9 +145,7 @@ class MultiValuedParametersTest extends SpringWebIntegrationSpecification {
           assert headerParam == [1, 2, 3]
           break
         case TEST_PATH_PARAMS:
-          // The client sends a path segment "path1,path2,path3" as by the OpenAPI spec but JAX-RS can not deserialize that to a list by default.
-          // See: https://docs.jboss.org/resteasy/docs/3.6.0.Final/userguide/html/StringConverter.html#d4e1631
-          assert pathParam == ["path1,path2,path3"]
+          assert pathParam == ["path1", "path2", "path3"]
           break
         case TEST_QUERY_SET_PARAMS:
           assert querySetParam == [SSimpleEnum.FIRST, SSimpleEnum.SECOND, SSimpleEnum.THIRD] as Set
@@ -156,9 +154,7 @@ class MultiValuedParametersTest extends SpringWebIntegrationSpecification {
           assert headerSetParam == [1, 2, 3] as Set
           break
         case TEST_PATH_SET_PARAMS:
-          // The client sends a path segment "path1,path2,path3" as by the OpenAPI spec but JAX-RS can not deserialize that to a list by default.
-          // See: https://docs.jboss.org/resteasy/docs/3.6.0.Final/userguide/html/StringConverter.html#d4e1631
-          assert pathSetParam == ["path1,path2,path3"] as Set
+          assert pathSetParam == ["path1", "path2", "path3"] as Set
           break
         default:
           throw new IllegalArgumentException("Unsupported test selector: $testSelector")

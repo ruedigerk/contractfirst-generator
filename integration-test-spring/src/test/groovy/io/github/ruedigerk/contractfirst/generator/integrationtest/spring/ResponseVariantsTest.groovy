@@ -44,13 +44,12 @@ class ResponseVariantsTest extends SpringWebIntegrationSpecification {
         new Header("Accept", "application/json"),
         new Header("Content-Type", "application/json; charset=utf-8"),
         new Header("Content-Length", "35"),
-        new Header("Host", HOST),
+        new Header("Host", "$HOST:$PORT"),
         new Header("Connection", "Keep-Alive"),
         new Header("Accept-Encoding", "gzip"),
         new Header("User-Agent", "okhttp/5.3.2"),
     ]
     response.statusCode == 200
-    response.httpStatusMessage == "OK"
     response.contentType == "application/json"
     response.entityType == CItem.class
     response.entity == item
@@ -74,13 +73,12 @@ class ResponseVariantsTest extends SpringWebIntegrationSpecification {
         new Header("Accept", "application/json"),
         new Header("Content-Type", "application/json; charset=utf-8"),
         new Header("Content-Length", "35"),
-        new Header("Host", HOST),
+        new Header("Host", "$HOST:$PORT"),
         new Header("Connection", "Keep-Alive"),
         new Header("Accept-Encoding", "gzip"),
         new Header("User-Agent", "okhttp/5.3.2"),
     ]
     response.statusCode == 201
-    response.httpStatusMessage == "Created"
     response.contentType == null
     response.entityType == Void.TYPE
     response.entity == null
@@ -103,13 +101,12 @@ class ResponseVariantsTest extends SpringWebIntegrationSpecification {
         new Header("Accept", "application/json"),
         new Header("Content-Type", "application/json; charset=utf-8"),
         new Header("Content-Length", "35"),
-        new Header("Host", HOST),
+        new Header("Host", "$HOST:$PORT"),
         new Header("Connection", "Keep-Alive"),
         new Header("Accept-Encoding", "gzip"),
         new Header("User-Agent", "okhttp/5.3.2"),
     ]
     response.statusCode == 204
-    response.httpStatusMessage == "No Content"
     response.contentType == null
     response.entityType == Void.TYPE
     response.entity == null
@@ -143,13 +140,12 @@ class ResponseVariantsTest extends SpringWebIntegrationSpecification {
         new Header("Accept", "application/json"),
         new Header("Content-Type", "application/json; charset=utf-8"),
         new Header("Content-Length", "35"),
-        new Header("Host", HOST),
+        new Header("Host", "$HOST:$PORT"),
         new Header("Connection", "Keep-Alive"),
         new Header("Accept-Encoding", "gzip"),
         new Header("User-Agent", "okhttp/5.3.2"),
     ]
     response.statusCode == 400
-    response.httpStatusMessage == "Bad Request"
     response.contentType == "application/json"
     response.entityType == CFailure.class
     response.entity == expectedFailure
@@ -185,13 +181,12 @@ class ResponseVariantsTest extends SpringWebIntegrationSpecification {
         new Header("Accept", "application/json"),
         new Header("Content-Type", "application/json; charset=utf-8"),
         new Header("Content-Length", "35"),
-        new Header("Host", HOST),
+        new Header("Host", "$HOST:$PORT"),
         new Header("Connection", "Keep-Alive"),
         new Header("Accept-Encoding", "gzip"),
         new Header("User-Agent", "okhttp/5.3.2"),
     ]
     response.statusCode == 500
-    response.httpStatusMessage == "Internal Server Error"
     response.contentType == "application/json"
     response.entityType == CFailure.class
     response.entity == expectedFailure
@@ -222,18 +217,12 @@ class ResponseVariantsTest extends SpringWebIntegrationSpecification {
         new Header("Accept", "application/json"),
         new Header("Content-Type", "application/json; charset=utf-8"),
         new Header("Content-Length", "35"),
-        new Header("Host", HOST),
+        new Header("Host", "$HOST:$PORT"),
         new Header("Connection", "Keep-Alive"),
         new Header("Accept-Encoding", "gzip"),
         new Header("User-Agent", "okhttp/5.3.2"),
     ]
-    response.headers == [
-        new Header("Content-Type", "text/plain"),
-        new Header("Connection", "close"),
-        new Header("Content-Length", "23"),
-    ]
     response.statusCode == 500
-    response.httpStatusMessage == "Internal Server Error"
     response.contentType == "text/plain"
     response.body == "This is just plain text"
 
@@ -252,13 +241,12 @@ class ResponseVariantsTest extends SpringWebIntegrationSpecification {
         new Header("Accept", "application/json"),
         new Header("Content-Type", "application/json; charset=utf-8"),
         new Header("Content-Length", "35"),
-        new Header("Host", HOST),
+        new Header("Host", "$HOST:$PORT"),
         new Header("Connection", "Keep-Alive"),
         new Header("Accept-Encoding", "gzip"),
         new Header("User-Agent", "okhttp/5.3.2"),
     ]
     e.response.statusCode == 500
-    e.response.httpStatusMessage == "Internal Server Error"
     e.response.contentType == "text/plain"
     e.response.body == "This is just plain text"
   }

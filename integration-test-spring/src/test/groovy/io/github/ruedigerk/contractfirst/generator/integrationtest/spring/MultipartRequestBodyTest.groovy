@@ -1,29 +1,26 @@
-package io.github.ruedigerk.contractfirst.generator.integrationtest
+package io.github.ruedigerk.contractfirst.generator.integrationtest.spring
 
 import io.github.ruedigerk.contractfirst.generator.client.Attachment
 import io.github.ruedigerk.contractfirst.generator.integrationtest.generated.client.api.MultipartRequestBodyApiClient
 import io.github.ruedigerk.contractfirst.generator.integrationtest.generated.client.model.CFormEncodedRequestBodyRequestBodyApplicationXWwwFormUrlencodedEnumProperty
 import io.github.ruedigerk.contractfirst.generator.integrationtest.generated.client.model.CMultipartRequestBodyRequestBodyMultipartFormDataObjectProperty
+import io.github.ruedigerk.contractfirst.generator.integrationtest.generated.server.model.SFormEncodedRequestBodyRequestBodyApplicationXWwwFormUrlencodedEnumProperty
 import io.github.ruedigerk.contractfirst.generator.integrationtest.generated.server.model.SMultipartRequestBodyRequestBodyMultipartFormDataObjectProperty
-import io.github.ruedigerk.contractfirst.generator.integrationtest.spec.EmbeddedJaxRsServerSpecification
-import jakarta.ws.rs.*
-import jakarta.ws.rs.core.MediaType
-import org.glassfish.jersey.media.multipart.FormDataBodyPart
-import org.glassfish.jersey.media.multipart.FormDataParam
+import io.github.ruedigerk.contractfirst.generator.integrationtest.generated.server.resources.MultipartRequestBodyApi
+import io.github.ruedigerk.contractfirst.generator.integrationtest.spring.spec.SpringWebIntegrationSpecification
+import org.springframework.test.context.ContextConfiguration
+import org.springframework.web.bind.annotation.RestController
+import org.springframework.web.multipart.MultipartFile
 import spock.lang.Subject
-
+  
 /**
  * Tests serialization of form encoded request bodies.
  */
-class MultipartRequestBodyClientTest extends EmbeddedJaxRsServerSpecification {
+@ContextConfiguration(classes = EmbeddedRestController)
+class MultipartRequestBodyTest extends SpringWebIntegrationSpecification {
 
   @Subject
   MultipartRequestBodyApiClient apiClient = new MultipartRequestBodyApiClient(apiRequestExecutor)
-
-  @Override
-  Class<?> getTestResource() {
-    EmbeddedServerResource
-  }
 
   def "Test form encoded request body"() {
     when:
@@ -71,38 +68,36 @@ class MultipartRequestBodyClientTest extends EmbeddedJaxRsServerSpecification {
   }
 
   static private InputStream getSamplePdfAsInputStream() {
-    MultipartRequestBodyClientTest.getResourceAsStream("/sample.pdf")
+    MultipartRequestBodyTest.getResourceAsStream("/sample.pdf")
   }
 
   /**
-   * JAX-RS resource implementation used in this test.
+   * Spring REST controller used in this test.
    */
-  @Path("")
-  static class EmbeddedServerResource {
+  @RestController
+  static class EmbeddedRestController implements MultipartRequestBodyApi {
 
-    @POST
-    @Path("/formEncodedRequestBody")
-    @Consumes("application/x-www-form-urlencoded")
-    void formEncodedRequestBody(
-        @FormParam("stringProperty") String stringProperty,
-        @FormParam("integerProperty") String integerProperty,
-        @FormParam("enumProperty") String enumProperty
+    @Override
+    FormEncodedRequestBodyResponse formEncodedRequestBody(
+        String stringProperty,
+        Long integerProperty,
+        String enumProperty
     ) {
       assert stringProperty == "a&1"
-      assert integerProperty == "42"
-      assert enumProperty == "second%value"
+      assert integerProperty == 42
+      assert enumProperty == SFormEncodedRequestBodyRequestBodyApplicationXWwwFormUrlencodedEnumProperty.SECOND_VALUE.toString()
+
+      return FormEncodedRequestBodyResponse.with204()
     }
 
-    @POST
-    @Path("/multipartRequestBody")
-    @Consumes("multipart/form-data")
-    void multipartRequestBody(
-        @QueryParam("testSelector") String testSelector,
-        @FormDataParam("stringProperty") String stringProperty,
-        @FormDataParam("integerProperty") Long integerProperty,
-        @FormDataParam("objectProperty") SMultipartRequestBodyRequestBodyMultipartFormDataObjectProperty objectProperty,
-        @FormDataParam("firstBinary") FormDataBodyPart firstBinary,
-        @FormDataParam("additionalBinaries") List<FormDataBodyPart> additionalBinaries
+    @Override
+    MultipartRequestBodyResponse multipartRequestBody(
+        String testSelector,
+        String stringProperty,
+        Long integerProperty,
+        SMultipartRequestBodyRequestBodyMultipartFormDataObjectProperty objectProperty,
+        MultipartFile firstBinary,
+        List<MultipartFile> additionalBinaries
     ) {
       if (testSelector == "optionalParametersMissing") {
         assert stringProperty == null
@@ -122,13 +117,15 @@ class MultipartRequestBodyClientTest extends EmbeddedJaxRsServerSpecification {
         verifyBodyPartIsPdf(additionalBinaries[0], "additionalBinaries", "sample-bytes.pdf")
         verifyBodyPartIsPdf(additionalBinaries[1], "additionalBinaries", "sample-is.pdf")
       }
+
+      return MultipartRequestBodyResponse.with204()
     }
 
-    private static void verifyBodyPartIsPdf(FormDataBodyPart bodyPart, String name, String fileName) {
+    private static void verifyBodyPartIsPdf(MultipartFile bodyPart, String name, String fileName) {
       assert bodyPart.name == name
-      assert bodyPart.contentDisposition.fileName == fileName
-      assert bodyPart.mediaType == new MediaType("application", "pdf")
-      assert bodyPart.getValueAs(byte[]) == getSamplePdfAsInputStream().bytes
+      assert bodyPart.originalFilename == fileName
+      assert bodyPart.contentType == "application/pdf"
+      assert bodyPart.bytes == getSamplePdfAsInputStream().bytes
     }
   }
 }

@@ -1,4 +1,4 @@
-package multipart.model;
+package server_jsr305.model;
 
 import com.google.gson.annotations.SerializedName;
 

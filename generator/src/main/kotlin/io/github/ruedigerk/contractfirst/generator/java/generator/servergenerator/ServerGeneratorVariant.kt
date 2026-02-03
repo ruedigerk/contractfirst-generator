@@ -3,10 +3,9 @@ package io.github.ruedigerk.contractfirst.generator.java.generator.servergenerat
 import com.squareup.javapoet.MethodSpec
 import com.squareup.javapoet.ParameterSpec
 import com.squareup.javapoet.TypeSpec
-import io.github.ruedigerk.contractfirst.generator.java.model.JavaAnyType
 import io.github.ruedigerk.contractfirst.generator.java.model.JavaOperation
 import io.github.ruedigerk.contractfirst.generator.java.model.JavaParameter
-import io.github.ruedigerk.contractfirst.generator.java.model.JavaTypeName
+import io.github.ruedigerk.contractfirst.generator.java.model.JavaSpecification
 
 /**
  * Implementations of this interface define the variants of the Java server code generator.
@@ -24,9 +23,10 @@ interface ServerGeneratorVariant {
   val templateDirectory: String
 
   /**
-   * The Java type name to use for parameters that represent attachment parts of multipart bodies.
+   * Returns a function rewriting Java specifications, and especially their types, to fit the variant. Likely based on
+   * [io.github.ruedigerk.contractfirst.generator.java.generator.JavaSpecRewriter].
    */
-  val attachmentTypeName: JavaTypeName
+  fun specificationRewriter(): (JavaSpecification) -> JavaSpecification
 
   /**
    * Allows the variant to add annotations to the Java interface generated for a group of operations.
@@ -47,10 +47,4 @@ interface ServerGeneratorVariant {
    * Returns a String representing the code to set a response entity/body of a response builder, and build it.
    */
   fun buildResponseWithEntity(): String
-
-  /**
-   * The Java type to use for binary response bodies in typesafe response class methods. By default, it would use InputStream, but variants can choose to
-   * rewrite it to framework-specific types.
-   */
-  fun rewriteResponseBodyType(javaType: JavaAnyType): JavaAnyType
 }

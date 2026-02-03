@@ -22,7 +22,8 @@ public interface BigDecimalsApi {
       value = "/bigDecimals",
       produces = "application/json"
   )
-  GetNumberResponse getNumber(@RequestParam("decimalNumber") @NotNull BigDecimal decimalNumber);
+  GetNumberResponse getNumber(
+      @RequestParam(name = "decimalNumber", required = true) @NotNull BigDecimal decimalNumber);
 
   class GetNumberResponse extends ResponseWrapper {
     private GetNumberResponse(ResponseEntity delegate) {

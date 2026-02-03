@@ -8,6 +8,7 @@ import io.github.ruedigerk.contractfirst.generator.integrationtest.generated.ser
 import io.github.ruedigerk.contractfirst.generator.integrationtest.spring.spec.SpringWebIntegrationSpecification
 import okhttp3.logging.HttpLoggingInterceptor
 import org.springframework.core.io.InputStreamResource
+import org.springframework.core.io.Resource
 import org.springframework.test.context.ContextConfiguration
 import org.springframework.web.bind.annotation.RestController
 import spock.lang.Subject
@@ -127,7 +128,7 @@ class PayloadVariantsTest extends SpringWebIntegrationSpecification {
     }
 
     @Override
-    UploadAndReturnBinaryResponse uploadAndReturnBinary(InputStream requestBody) {
+    UploadAndReturnBinaryResponse uploadAndReturnBinary(Resource requestBody) {
       return UploadAndReturnBinaryResponse.with200ApplicationOctetStream(new InputStreamResource(requestBody))
     }
   }

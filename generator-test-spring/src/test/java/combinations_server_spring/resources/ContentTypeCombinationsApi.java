@@ -20,7 +20,8 @@ public interface ContentTypeCombinationsApi {
       value = "/defaultOnly",
       produces = "application/json"
   )
-  GetDefaultOnlyResponse getDefaultOnly(@RequestHeader("testCaseSelector") String testCaseSelector);
+  GetDefaultOnlyResponse getDefaultOnly(
+      @RequestHeader(name = "testCaseSelector", required = false) String testCaseSelector);
 
   /**
    * Test case for only having a single successful response.
@@ -51,7 +52,7 @@ public interface ContentTypeCombinationsApi {
       produces = "application/json"
   )
   GetSuccessEntityAndErrorDefaultResponse getSuccessEntityAndErrorDefault(
-      @RequestHeader("testCaseSelector") String testCaseSelector);
+      @RequestHeader(name = "testCaseSelector", required = false) String testCaseSelector);
 
   /**
    * Test case for having multiple success entity types.
@@ -62,7 +63,7 @@ public interface ContentTypeCombinationsApi {
       produces = "application/json"
   )
   GetMultipleSuccessEntitiesResponse getMultipleSuccessEntities(
-      @RequestHeader("testCaseSelector") String testCaseSelector);
+      @RequestHeader(name = "testCaseSelector", required = false) String testCaseSelector);
 
   /**
    * Test case for having multiple successful responses without content.
@@ -72,7 +73,7 @@ public interface ContentTypeCombinationsApi {
       value = "/multipleSuccessResponsesWithoutContent"
   )
   GetMultipleSuccessResponsesWithoutContentResponse getMultipleSuccessResponsesWithoutContent(
-      @RequestHeader("testCaseSelector") String testCaseSelector);
+      @RequestHeader(name = "testCaseSelector", required = false) String testCaseSelector);
 
   /**
    * Test case for having multiple error entity types.
@@ -83,7 +84,7 @@ public interface ContentTypeCombinationsApi {
       produces = "application/json"
   )
   GetMultipleErrorEntitiesResponse getMultipleErrorEntities(
-      @RequestHeader("testCaseSelector") String testCaseSelector);
+      @RequestHeader(name = "testCaseSelector", required = false) String testCaseSelector);
 
   /**
    * Test case for returning content with status code 204.

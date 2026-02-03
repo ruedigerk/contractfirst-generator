@@ -1,5 +1,7 @@
-package multipart.api;
+package client_jsr305.api;
 
+import client_jsr305.model.FormEncodedRequestBodyRequestBodyApplicationXWwwFormUrlencodedEnumProperty;
+import client_jsr305.model.MultipartRequestBodyRequestBodyMultipartFormDataObjectProperty;
 import io.github.ruedigerk.contractfirst.generator.client.ApiClientIncompatibleResponseException;
 import io.github.ruedigerk.contractfirst.generator.client.ApiClientIoException;
 import io.github.ruedigerk.contractfirst.generator.client.ApiClientValidationException;
@@ -8,11 +10,10 @@ import io.github.ruedigerk.contractfirst.generator.client.ApiResponse;
 import io.github.ruedigerk.contractfirst.generator.client.Attachment;
 import io.github.ruedigerk.contractfirst.generator.client.internal.BodyPart;
 import io.github.ruedigerk.contractfirst.generator.client.internal.Operation;
+import io.github.ruedigerk.contractfirst.generator.client.internal.ParameterLocation;
 import io.github.ruedigerk.contractfirst.generator.client.internal.StatusCode;
 import java.util.List;
 import java.util.Objects;
-import multipart.model.FormEncodedRequestBodyRequestBodyApplicationXWwwFormUrlencodedEnumProperty;
-import multipart.model.MultipartRequestBodyRequestBodyMultipartFormDataObjectProperty;
 
 /**
  * Contains methods for all API operations tagged "MultipartRequestBody".
@@ -47,13 +48,15 @@ public class MultipartRequestBodyApiClient {
 
   /**
    * A test case for a multipart/form-data encoded request body.
+   *
+   * @param testSelector Selects the assertions to perform on the server.
    */
-  public void multipartRequestBody(String stringProperty, Long integerProperty,
+  public void multipartRequestBody(String testSelector, String stringProperty, Long integerProperty,
       MultipartRequestBodyRequestBodyMultipartFormDataObjectProperty objectProperty,
       Attachment firstBinary, List<Attachment> additionalBinaries) throws ApiClientIoException,
       ApiClientValidationException, ApiClientIncompatibleResponseException {
 
-    MultipartRequestBodyResult result = returningResult.multipartRequestBody(stringProperty, integerProperty, objectProperty, firstBinary, additionalBinaries);
+    MultipartRequestBodyResult result = returningResult.multipartRequestBody(testSelector, stringProperty, integerProperty, objectProperty, firstBinary, additionalBinaries);
   }
 
   /**
@@ -85,15 +88,18 @@ public class MultipartRequestBodyApiClient {
 
     /**
      * A test case for a multipart/form-data encoded request body.
+     *
+     * @param testSelector Selects the assertions to perform on the server.
      */
-    public MultipartRequestBodyResult multipartRequestBody(String stringProperty,
-        Long integerProperty,
+    public MultipartRequestBodyResult multipartRequestBody(String testSelector,
+        String stringProperty, Long integerProperty,
         MultipartRequestBodyRequestBodyMultipartFormDataObjectProperty objectProperty,
         Attachment firstBinary, List<Attachment> additionalBinaries) throws ApiClientIoException,
         ApiClientValidationException, ApiClientIncompatibleResponseException {
 
       Operation.Builder builder = new Operation.Builder("/multipartRequestBody", "POST");
 
+      builder.parameter("testSelector", ParameterLocation.QUERY, true, testSelector);
       builder.requestBodyPart(BodyPart.Type.PRIMITIVE, "stringProperty", stringProperty);
       builder.requestBodyPart(BodyPart.Type.PRIMITIVE, "integerProperty", integerProperty);
       builder.requestBodyPart(BodyPart.Type.COMPLEX, "objectProperty", objectProperty);

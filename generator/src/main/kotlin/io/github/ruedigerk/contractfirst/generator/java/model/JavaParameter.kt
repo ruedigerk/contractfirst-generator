@@ -16,6 +16,17 @@ sealed interface JavaParameter {
 }
 
 /**
+ * A parameter that is identified by a name in the OpenAPI contract and during HTTP transport.
+ */
+sealed interface JavaNamedParameter : JavaParameter {
+
+  /**
+   * The name of the parameter as defined in the OpenAPI contract and as it is used during HTTP transport.
+   */
+  val originalName: String
+}
+
+/**
  * Represents a path, query, header or cookie parameter of an operation of the contract.
  */
 data class JavaRegularParameter(
@@ -23,9 +34,9 @@ data class JavaRegularParameter(
   override val javadoc: String?,
   override val required: Boolean,
   override val javaType: JavaAnyType,
+  override val originalName: String,
   val location: ParameterLocation,
-  val originalName: String,
-) : JavaParameter
+) : JavaNamedParameter
 
 /**
  * Represents the single body parameter of an operation of the contract.
@@ -39,23 +50,26 @@ data class JavaBodyParameter(
 ) : JavaParameter
 
 /**
- * Represents a form field or multipart part of a form or multipart request body.
+ * Represents a parameter that results from dissecting the parts (form fields, or multipart parts) of a request body into individual parameters.
  *
- * Note: the Java type for binary parameters/attachments is framework-specific and may be generated differently from the javaType property here.
+ * See: https://spec.openapis.org/oas/v3.0.3#support-for-x-www-form-urlencoded-request-bodies
+ * See: https://spec.openapis.org/oas/v3.0.3#special-considerations-for-multipart-content
  */
-data class JavaMultipartBodyParameter(
+data class JavaDissectedBodyParameter(
   override val javaParameterName: String,
   override val javadoc: String?,
   override val required: Boolean,
   override val javaType: JavaAnyType,
-  val originalName: String,
+  override val originalName: String,
   val bodyPartType: BodyPartType,
-) : JavaParameter {
+  val dissectedMediaTypeFamily: DissectedMediaTypeFamily,
+) : JavaNamedParameter {
 
   /**
-   * This specifies the category, the type of a single part of a multipart body falls into.
+   * This specifies the category of the type of a single part of a dissected body falls into.
    *
    * See: https://spec.openapis.org/oas/v3.0.3#special-considerations-for-multipart-content
+   *
    * Note: This needs to be in sync with enum "BodyPart.Type" of the client support module!
    */
   enum class BodyPartType {
@@ -76,5 +90,16 @@ data class JavaMultipartBodyParameter(
      * binaries.
      */
     ATTACHMENT,
+  }
+
+  /**
+   * This enumeration represents the family of media types a dissected body part belongs to.
+   *
+   * Background: OpenAPI distinguishes two different families of media types that result in a request body to be handled as dissected into individual
+   * parts: form URL-encoded bodies (application/x-www-form-urlencoded) and multipart bodies (media types with a type of "multipart" and any subtype).
+   */
+  enum class DissectedMediaTypeFamily {
+    FORM_URL_ENCODED,
+    MULTIPART,
   }
 }

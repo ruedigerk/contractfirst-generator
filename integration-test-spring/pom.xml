@@ -30,11 +30,15 @@
          </plugin>
 
          <plugin>
-            <!-- Skip creating a JAR file, as this module contains only test code -->
+            <!-- Create a test JAR instead of a regular JAR, so the install-plugin does not complain. -->
             <artifactId>maven-jar-plugin</artifactId>
-            <configuration>
-               <skipIfEmpty>true</skipIfEmpty>
-            </configuration>
+            <executions>
+               <execution>
+                  <goals>
+                     <goal>test-jar</goal>
+                  </goals>
+               </execution>
+            </executions>
          </plugin>
 
          <plugin>

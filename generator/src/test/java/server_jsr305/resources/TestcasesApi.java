@@ -1,8 +1,10 @@
 package server_jsr305.resources;
 
 import jakarta.ws.rs.GET;
+import jakarta.ws.rs.POST;
 import jakarta.ws.rs.Path;
 import jakarta.ws.rs.Produces;
+import jakarta.ws.rs.QueryParam;
 import jakarta.ws.rs.core.Response;
 import java.util.List;
 import server_jsr305.model.Failure;
@@ -18,6 +20,15 @@ public interface TestcasesApi {
   @Path("/testcases")
   @Produces("application/json")
   GetInlineObjectInArrayResponse getInlineObjectInArray();
+
+  /**
+   * Testing that enums of a type different from string are supported by ignoring the enum part of the type.
+   */
+  @POST
+  @Path("/nonStringEnumTypeIsIgnored")
+  @Produces
+  NonStringEnumTypeIsIgnoredResponse nonStringEnumTypeIsIgnored(
+      @QueryParam("booleanEnum") Boolean booleanEnum);
 
   class GetInlineObjectInArrayResponse extends ResponseWrapper {
     private GetInlineObjectInArrayResponse(Response delegate) {
@@ -35,6 +46,20 @@ public interface TestcasesApi {
 
     public static GetInlineObjectInArrayResponse withCustomResponse(Response response) {
       return new GetInlineObjectInArrayResponse(response);
+    }
+  }
+
+  class NonStringEnumTypeIsIgnoredResponse extends ResponseWrapper {
+    private NonStringEnumTypeIsIgnoredResponse(Response delegate) {
+      super(delegate);
+    }
+
+    public static NonStringEnumTypeIsIgnoredResponse with204() {
+      return new NonStringEnumTypeIsIgnoredResponse(Response.status(204).build());
+    }
+
+    public static NonStringEnumTypeIsIgnoredResponse withCustomResponse(Response response) {
+      return new NonStringEnumTypeIsIgnoredResponse(response);
     }
   }
 }

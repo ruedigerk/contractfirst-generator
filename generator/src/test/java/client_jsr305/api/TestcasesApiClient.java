@@ -9,6 +9,7 @@ import io.github.ruedigerk.contractfirst.generator.client.ApiClientValidationExc
 import io.github.ruedigerk.contractfirst.generator.client.ApiRequestExecutor;
 import io.github.ruedigerk.contractfirst.generator.client.ApiResponse;
 import io.github.ruedigerk.contractfirst.generator.client.internal.Operation;
+import io.github.ruedigerk.contractfirst.generator.client.internal.ParameterLocation;
 import io.github.ruedigerk.contractfirst.generator.client.internal.StatusCode;
 import java.lang.reflect.Type;
 import java.util.List;
@@ -54,6 +55,15 @@ public class TestcasesApiClient {
   }
 
   /**
+   * Testing that enums of a type different from string are supported by ignoring the enum part of the type.
+   */
+  public void nonStringEnumTypeIsIgnored(Boolean booleanEnum) throws ApiClientIoException,
+      ApiClientValidationException, ApiClientIncompatibleResponseException {
+
+    NonStringEnumTypeIsIgnoredResult result = returningResult.nonStringEnumTypeIsIgnored(booleanEnum);
+  }
+
+  /**
    * Contains methods returning operation specific result classes, allowing inspection of the operations' responses.
    */
   public class ReturningResult {
@@ -71,6 +81,23 @@ public class TestcasesApiClient {
       ApiResponse response = requestExecutor.executeRequest(builder.build());
 
       return new GetInlineObjectInArrayResult(response);
+    }
+
+    /**
+     * Testing that enums of a type different from string are supported by ignoring the enum part of the type.
+     */
+    public NonStringEnumTypeIsIgnoredResult nonStringEnumTypeIsIgnored(Boolean booleanEnum) throws
+        ApiClientIoException, ApiClientValidationException, ApiClientIncompatibleResponseException {
+
+      Operation.Builder builder = new Operation.Builder("/nonStringEnumTypeIsIgnored", "POST");
+
+      builder.parameter("booleanEnum", ParameterLocation.QUERY, false, booleanEnum);
+
+      builder.response(StatusCode.of(204));
+
+      ApiResponse response = requestExecutor.executeRequest(builder.build());
+
+      return new NonStringEnumTypeIsIgnoredResult(response);
     }
   }
 
@@ -177,6 +204,65 @@ public class TestcasesApiClient {
       StringBuilder builder = new StringBuilder();
       builder.append(", response=").append(response);
       return builder.replace(0, 2, "GetInlineObjectInArrayResult{").append('}').toString();
+    }
+  }
+
+  /**
+   * Represents the result of calling operation nonStringEnumTypeIsIgnored.
+   */
+  public static class NonStringEnumTypeIsIgnoredResult {
+    private final ApiResponse response;
+
+    public NonStringEnumTypeIsIgnoredResult(ApiResponse response) {
+      this.response = response;
+    }
+
+    /**
+     * Returns the ApiResponse instance with the details of the operation's HTTP response.
+     */
+    public ApiResponse getResponse() {
+      return response;
+    }
+
+    /**
+     * Returns the HTTP status code of the operation's response.
+     */
+    public int getStatus() {
+      return response.getStatusCode();
+    }
+
+    /**
+     * Returns whether the response has a status code in the range 200 to 299.
+     */
+    public boolean isSuccessful() {
+      return response.isSuccessful();
+    }
+
+    /**
+     * Returns whether the response's status code is 204, while the response has no entity.
+     */
+    public boolean isStatus204WithoutEntity() {
+      return response.getStatusCode() == 204;
+    }
+
+    @Override
+    public boolean equals(Object other) {
+      if (other == this) return true;
+      if (other == null || getClass() != other.getClass()) return false;
+      NonStringEnumTypeIsIgnoredResult o = (NonStringEnumTypeIsIgnoredResult) other;
+      return Objects.equals(response, o.response);
+    }
+
+    @Override
+    public int hashCode() {
+      return Objects.hash(response);
+    }
+
+    @Override
+    public String toString() {
+      StringBuilder builder = new StringBuilder();
+      builder.append(", response=").append(response);
+      return builder.replace(0, 2, "NonStringEnumTypeIsIgnoredResult{").append('}').toString();
     }
   }
 }

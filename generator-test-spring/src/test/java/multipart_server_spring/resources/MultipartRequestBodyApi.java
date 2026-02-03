@@ -2,13 +2,13 @@ package multipart_server_spring.resources;
 
 import jakarta.validation.Valid;
 import java.util.List;
-import multipart_server_spring.model.FormEncodedRequestBodyRequestBodyApplicationXWwwFormUrlencodedEnumProperty;
 import multipart_server_spring.model.MultipartRequestBodyRequestBodyMultipartFormDataObjectProperty;
 import multipart_server_spring.resources.support.ResponseWrapper;
 import org.springframework.http.ResponseEntity;
 import org.springframework.validation.annotation.Validated;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestMethod;
+import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RequestPart;
 import org.springframework.web.multipart.MultipartFile;
 
@@ -23,9 +23,9 @@ public interface MultipartRequestBodyApi {
       consumes = "application/x-www-form-urlencoded"
   )
   FormEncodedRequestBodyResponse formEncodedRequestBody(
-      @RequestPart(value = "stringProperty", required = false) String stringProperty,
-      @RequestPart(value = "integerProperty", required = false) Long integerProperty,
-      @RequestPart(value = "enumProperty", required = false) FormEncodedRequestBodyRequestBodyApplicationXWwwFormUrlencodedEnumProperty enumProperty);
+      @RequestParam(name = "stringProperty", required = false) String stringProperty,
+      @RequestParam(name = "integerProperty", required = false) Long integerProperty,
+      @RequestParam(name = "enumProperty", required = false) String enumProperty);
 
   /**
    * A test case for a multipart/form-data encoded request body.
@@ -36,11 +36,11 @@ public interface MultipartRequestBodyApi {
       consumes = "multipart/form-data"
   )
   MultipartRequestBodyResponse multipartRequestBody(
-      @RequestPart(value = "stringProperty", required = false) String stringProperty,
-      @RequestPart(value = "integerProperty", required = false) Long integerProperty,
-      @RequestPart(value = "objectProperty", required = false) @Valid MultipartRequestBodyRequestBodyMultipartFormDataObjectProperty objectProperty,
-      @RequestPart(value = "firstBinary", required = false) MultipartFile firstBinary,
-      @RequestPart(value = "additionalBinaries", required = false) List<MultipartFile> additionalBinaries);
+      @RequestParam(name = "stringProperty", required = false) String stringProperty,
+      @RequestParam(name = "integerProperty", required = false) Long integerProperty,
+      @RequestPart(name = "objectProperty", required = false) @Valid MultipartRequestBodyRequestBodyMultipartFormDataObjectProperty objectProperty,
+      @RequestPart(name = "firstBinary", required = false) MultipartFile firstBinary,
+      @RequestPart(name = "additionalBinaries", required = false) List<MultipartFile> additionalBinaries);
 
   class FormEncodedRequestBodyResponse extends ResponseWrapper {
     private FormEncodedRequestBodyResponse(ResponseEntity delegate) {

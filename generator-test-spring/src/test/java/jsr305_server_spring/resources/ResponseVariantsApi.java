@@ -30,9 +30,11 @@ public interface ResponseVariantsApi {
       consumes = "application/json",
       produces = "application/json"
   )
-  CreateItemResponse createItem(@PathVariable("systemId") @NotNull String systemId,
-      @RequestParam("dryRun") Boolean dryRun, @RequestHeader("partNumber") Long partNumber,
-      @RequestHeader("testCaseSelector") String testCaseSelector,
+  CreateItemResponse createItem(
+      @PathVariable(name = "systemId", required = true) @NotNull String systemId,
+      @RequestParam(name = "dryRun", required = false) Boolean dryRun,
+      @RequestHeader(name = "partNumber", required = false) Long partNumber,
+      @RequestHeader(name = "testCaseSelector", required = false) String testCaseSelector,
       @RequestBody @NotNull @Valid Item requestBody);
 
   class CreateItemResponse extends ResponseWrapper {

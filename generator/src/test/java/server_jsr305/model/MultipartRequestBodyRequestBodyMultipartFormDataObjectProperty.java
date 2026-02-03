@@ -1,7 +1,9 @@
-package multipart.model;
+package server_jsr305.model;
 
 import jakarta.validation.constraints.NotNull;
 import java.util.Objects;
+import javax.annotation.Nonnull;
+import javax.annotation.Nullable;
 
 public class MultipartRequestBodyRequestBodyMultipartFormDataObjectProperty {
   @NotNull
@@ -9,29 +11,31 @@ public class MultipartRequestBodyRequestBodyMultipartFormDataObjectProperty {
 
   private Long b;
 
-  public MultipartRequestBodyRequestBodyMultipartFormDataObjectProperty a(String a) {
+  public MultipartRequestBodyRequestBodyMultipartFormDataObjectProperty a(@Nonnull String a) {
     this.a = a;
     return this;
   }
 
+  @Nonnull
   public String getA() {
     return a;
   }
 
-  public void setA(String a) {
+  public void setA(@Nonnull String a) {
     this.a = a;
   }
 
-  public MultipartRequestBodyRequestBodyMultipartFormDataObjectProperty b(Long b) {
+  public MultipartRequestBodyRequestBodyMultipartFormDataObjectProperty b(@Nullable Long b) {
     this.b = b;
     return this;
   }
 
+  @Nullable
   public Long getB() {
     return b;
   }
 
-  public void setB(Long b) {
+  public void setB(@Nullable Long b) {
     this.b = b;
   }
 

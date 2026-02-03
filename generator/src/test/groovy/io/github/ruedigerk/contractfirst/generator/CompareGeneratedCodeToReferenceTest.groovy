@@ -15,7 +15,6 @@ class CompareGeneratedCodeToReferenceTest extends Specification {
   static def combinationsServerHarness = new GeneratorHarness("src/test/contract/content-type-combinations.yaml", "combinations_server", SERVER_JAX_RS)
   static def combinationsClientHarness = new GeneratorHarness("src/test/contract/content-type-combinations.yaml", "combinations_client", CLIENT_OKHTTP)
   static def selfReferentialHarness = new GeneratorHarness("src/test/contract/self-referential-model.yaml", "selfreferential", CLIENT_OKHTTP)
-  static def multipartHarness = new GeneratorHarness("src/test/contract/multipart-request-body.yaml", "multipart", CLIENT_OKHTTP)
   static def parametersServerHarness = new GeneratorHarness("src/test/contract/equally-named-parameters.yaml", "parameters_server", SERVER_JAX_RS)
   static def parametersClientHarness = new GeneratorHarness("src/test/contract/equally-named-parameters.yaml", "parameters_client", CLIENT_OKHTTP)
   static def validationsHarness = new GeneratorHarness("src/test/contract/validations.yaml", "validations", SERVER_JAX_RS)
@@ -102,22 +101,6 @@ class CompareGeneratedCodeToReferenceTest extends Specification {
     fileName << selfReferentialHarness.relativePathNames
     referenceFile << selfReferentialHarness.referenceFiles
     generatedFile << selfReferentialHarness.generatedFiles
-  }
-
-  def "Multipart request body: #fileName"() {
-    when:
-    multipartHarness.runGenerator()
-
-    then:
-    generatedFile.exists()
-
-    and:
-    generatedFile.text == referenceFile.text
-
-    where:
-    fileName << multipartHarness.relativePathNames
-    referenceFile << multipartHarness.referenceFiles
-    generatedFile << multipartHarness.generatedFiles
   }
 
   def "Operations with equally named parameters (server): #fileName"() {
