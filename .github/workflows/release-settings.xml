@@ -15,10 +15,5 @@
          <username>${env.CENTRAL_USER_TOKEN_USERNAME}</username>
          <password>${env.CENTRAL_USER_TOKEN_PASSWORD}</password>
       </server>
-      <server>
-         <!-- For signing with GPG, see: https://github.com/actions/setup-java/blob/main/docs/advanced-usage.md#publishing-using-apache-maven -->
-         <id>gpg.passphrase</id>
-         <passphrase>${env.GPG_PRIVATE_KEY_PASSPHRASE}</passphrase>
-      </server>
    </servers>
 </settings>

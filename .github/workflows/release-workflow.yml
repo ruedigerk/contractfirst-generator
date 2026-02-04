@@ -30,13 +30,11 @@ jobs:
         with:
           ref: ${{ github.event.inputs.branch }}
       - name: Setup Java
-        uses: actions/setup-java@v5 # Also does set up Maven and GPG, see https://github.com/actions/setup-java
+        uses: actions/setup-java@v5 # Also sets up Maven, see https://github.com/actions/setup-java
         with:
           distribution: 'temurin'
           java-version: '25'
-          gpg-private-key: ${{ secrets.GPG_PRIVATE_KEY }}
-          gpg-passphrase: GPG_PRIVATE_KEY_PASSPHRASE
-          cache: 'maven'
+          # No GPG setup done here, I use Java-only signing, not GPG, see: https://stackoverflow.com/a/66218731
       - name: Configure Git User
         run: |
           git config user.email "ruedigerkeller@mail.de"
@@ -44,11 +42,12 @@ jobs:
       - name: Build & Deploy Release
         run: mvn release:clean release:prepare release:perform -B -e -s .github/workflows/release-settings.xml -DreleaseVersion=${{ github.event.inputs.releaseVersion }} -DdevelopmentVersion=${{ github.event.inputs.developmentVersion }}
         env:
-          GPG_PRIVATE_KEY_PASSPHRASE: ${{ secrets.GPG_PRIVATE_KEY_PASSPHRASE }}
           GITHUB_ACTOR: ${{ github.actor }}
           GITHUB_TOKEN: ${{ github.token }}
           CENTRAL_USER_TOKEN_USERNAME: ${{ secrets.CENTRAL_USER_TOKEN_USERNAME }}
           CENTRAL_USER_TOKEN_PASSWORD: ${{ secrets.CENTRAL_USER_TOKEN_PASSWORD }}
+          MAVEN_GPG_PASSPHRASE: ${{ secrets.GPG_PRIVATE_KEY_PASSPHRASE }}
+          MAVEN_GPG_KEY: ${{ secrets.GPG_PRIVATE_KEY }}
       - name: Display publishing URL
         run: |
           echo 'Release artifacts must be published manually.' >> $GITHUB_STEP_SUMMARY

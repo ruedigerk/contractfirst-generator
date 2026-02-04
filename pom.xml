@@ -228,12 +228,8 @@
                   </execution>
                </executions>
                <configuration>
-                  <!-- Prevent gpg from using pinentry programs, see https://github.com/actions/setup-java/blob/main/docs/advanced-usage.md#extra-setup-for-pomxml -->
-                  <gpgArguments>
-                     <arg>--batch</arg>
-                     <arg>--pinentry-mode</arg>
-                     <arg>loopback</arg>
-                  </gpgArguments>
+                  <!-- This uses the Java-only (Bouncy Castle) implementation, see: https://stackoverflow.com/a/66218731 -->
+                  <signer>bc</signer>
                </configuration>
             </plugin>
 
