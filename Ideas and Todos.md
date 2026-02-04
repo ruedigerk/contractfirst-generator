@@ -1,7 +1,6 @@
 Ideas and Todos
 ===============
 
-- Integration test: add missing tests for generated files (see todos).
 - Add @Nonnull annotation to typesafe response builder method parameters.
 - Support jSpecify nullability annotations in addition to jsr305.
 - Research: can multiple content types for request bodies be supported (when they define differing schemas)?

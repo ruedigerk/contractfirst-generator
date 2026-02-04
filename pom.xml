@@ -39,7 +39,6 @@
       <project.reporting.outputEncoding>UTF-8</project.reporting.outputEncoding>
 
       <!-- Language versions -->
-      <target-jdk.release>11</target-jdk.release>
       <target-jdk.version>11</target-jdk.version>
       <kotlin.version>2.3.0</kotlin.version>
       <groovy.version>4.0.29</groovy.version>
@@ -124,7 +123,7 @@
                <configuration>
                   <source>${target-jdk.version}</source>
                   <target>${target-jdk.version}</target>
-                  <release>${target-jdk.release}</release>
+                  <release>${target-jdk.version}</release>
                </configuration>
             </plugin>
 
@@ -201,7 +200,7 @@
                   </execution>
                </executions>
                <configuration>
-                  <jdkVersion>${target-jdk.release}</jdkVersion>
+                  <jdkVersion>${target-jdk.version}</jdkVersion>
                   <sourceDirectories>
                      <directory>${project.basedir}/src/main/kotlin</directory>
                   </sourceDirectories>

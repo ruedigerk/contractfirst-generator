@@ -1,7 +1,6 @@
 package io.github.ruedigerk.contractfirst.generator.integrationtest.spec
 
 import io.github.ruedigerk.contractfirst.generator.client.ApiRequestExecutor
-import io.github.ruedigerk.contractfirst.generator.integrationtest.EmbeddedJaxRsServer
 import okhttp3.OkHttpClient
 import okhttp3.logging.HttpLoggingInterceptor
 import spock.lang.Shared

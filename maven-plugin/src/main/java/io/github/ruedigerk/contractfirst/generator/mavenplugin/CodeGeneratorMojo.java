@@ -114,6 +114,12 @@ public class CodeGeneratorMojo extends AbstractMojo {
   private boolean outputJavaModelUseJsr305NullabilityAnnotations = false;
 
   /**
+   * Whether to add the generated sources directory to the Maven source roots; defaults to true
+   */
+  @Parameter(name = "addAsSourceRoot", property = "openapi.generator.maven.plugin.add-as-source-root", defaultValue = "true")
+  private boolean addAsSourceRoot = true;
+
+  /**
    * Whether to add the generated sources directory as a test source directory instead of a main compile source directory; defaults to false
    */
   @Parameter(name = "addAsTestSource", property = "openapi.generator.maven.plugin.add-as-test-source", defaultValue = "false")
@@ -144,7 +150,11 @@ public class CodeGeneratorMojo extends AbstractMojo {
 
     getLog().info("Running code generation for contract '" + config.getInputContractFile() + "'");
 
-    addGeneratedSourcesRoot(config);
+    if (addAsSourceRoot) {
+      addGeneratedSourcesRoot(config);
+    } else {
+      getLog().info("Skipped adding generated sources directory as Maven source root");
+    }
     runGenerator(config);
   }
 

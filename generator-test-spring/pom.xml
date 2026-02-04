@@ -17,7 +17,6 @@
 
    <properties>
       <!-- Spring requires at least Java 17 -->
-      <target-jdk.release>17</target-jdk.release>
       <target-jdk.version>17</target-jdk.version>
 
       <!-- Skip install and deploy as this module does not have a main artifact. -->
