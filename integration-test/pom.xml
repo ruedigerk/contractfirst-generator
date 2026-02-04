@@ -16,6 +16,12 @@
       <version>1.9.1-SNAPSHOT</version>
    </parent>
 
+   <properties>
+      <!-- Skip install and deploy as this module does not have a main artifact. -->
+      <maven.install.skip>true</maven.install.skip>
+      <maven.deploy.skip>true</maven.deploy.skip>
+   </properties>
+
    <build>
       <plugins>
          <plugin>
@@ -38,10 +44,13 @@
          </plugin>
 
          <plugin>
-            <!-- The generator in the latest version -->
+            <!-- The generator in the current version -->
             <artifactId>contractfirst-generator-maven-plugin</artifactId>
             <groupId>io.github.ruedigerk.contractfirst.generator</groupId>
             <version>${project.version}</version>
+            <configuration>
+               <addAsTestSource>true</addAsTestSource>
+            </configuration>
             <executions>
                <execution>
                   <id>generate-testsuite-server-code</id>
@@ -50,8 +59,8 @@
                   </goals>
                   <configuration>
                      <generator>server</generator>
-                     <inputContractFile>${project.basedir}/src/main/contract/testsuite.yaml</inputContractFile>
-                     <outputDir>${project.build.directory}/generated-sources/integrationtest</outputDir>
+                     <inputContractFile>${project.basedir}/src/test/contract/testsuite.yaml</inputContractFile>
+                     <outputDir>${project.build.directory}/generated-test-sources/integrationtest</outputDir>
                      <outputJavaBasePackage>io.github.ruedigerk.contractfirst.generator.integrationtest.generated.server</outputJavaBasePackage>
                      <outputJavaModelNamePrefix>S</outputJavaModelNamePrefix>
                   </configuration>
@@ -63,8 +72,8 @@
                   </goals>
                   <configuration>
                      <generator>client</generator>
-                     <inputContractFile>${project.basedir}/src/main/contract/testsuite.yaml</inputContractFile>
-                     <outputDir>${project.build.directory}/generated-sources/integrationtest</outputDir>
+                     <inputContractFile>${project.basedir}/src/test/contract/testsuite.yaml</inputContractFile>
+                     <outputDir>${project.build.directory}/generated-test-sources/integrationtest</outputDir>
                      <outputJavaBasePackage>io.github.ruedigerk.contractfirst.generator.integrationtest.generated.client</outputJavaBasePackage>
                      <outputJavaModelNamePrefix>C</outputJavaModelNamePrefix>
                   </configuration>
@@ -76,8 +85,8 @@
                   </goals>
                   <configuration>
                      <generator>server</generator>
-                     <inputContractFile>${project.basedir}/src/main/contract/content-type-combinations.yaml</inputContractFile>
-                     <outputDir>${project.build.directory}/generated-sources/integrationtest</outputDir>
+                     <inputContractFile>${project.basedir}/src/test/contract/content-type-combinations.yaml</inputContractFile>
+                     <outputDir>${project.build.directory}/generated-test-sources/integrationtest</outputDir>
                      <outputJavaBasePackage>io.github.ruedigerk.contractfirst.generator.combinations.generated.server</outputJavaBasePackage>
                      <outputJavaModelNamePrefix>S</outputJavaModelNamePrefix>
                   </configuration>
@@ -89,8 +98,8 @@
                   </goals>
                   <configuration>
                      <generator>client</generator>
-                     <inputContractFile>${project.basedir}/src/main/contract/content-type-combinations.yaml</inputContractFile>
-                     <outputDir>${project.build.directory}/generated-sources/integrationtest</outputDir>
+                     <inputContractFile>${project.basedir}/src/test/contract/content-type-combinations.yaml</inputContractFile>
+                     <outputDir>${project.build.directory}/generated-test-sources/integrationtest</outputDir>
                      <outputJavaBasePackage>io.github.ruedigerk.contractfirst.generator.combinations.generated.client</outputJavaBasePackage>
                      <outputJavaModelNamePrefix>C</outputJavaModelNamePrefix>
                   </configuration>
@@ -104,7 +113,8 @@
                   </goals>
                   <configuration>
                      <generator>server</generator>
-                     <inputContractFile>${project.basedir}/src/main/contract/minimal.yaml</inputContractFile>
+                     <inputContractFile>${project.basedir}/src/test/contract/minimal.yaml</inputContractFile>
+                     <outputDir>${project.build.directory}/generated-test-sources/contractfirst-generator</outputDir>
                      <outputJavaBasePackage>io.github.ruedigerk.contractfirst.generator.mojotest.defaults</outputJavaBasePackage>
                   </configuration>
                </execution>
@@ -116,7 +126,8 @@
                   </goals>
                   <configuration>
                      <generator>model-only</generator>
-                     <inputContractFile>src/main/contract/modelOnlySchemas</inputContractFile>
+                     <inputContractFile>${project.basedir}/src/test/contract/modelOnlySchemas</inputContractFile>
+                     <outputDir>${project.build.directory}/generated-test-sources/contractfirst-generator</outputDir>
                      <outputJavaBasePackage>io.github.ruedigerk.contractfirst.generator.mojotest.modelonly</outputJavaBasePackage>
                      <outputJavaModelUseJsr305NullabilityAnnotations>true</outputJavaModelUseJsr305NullabilityAnnotations>
                   </configuration>
@@ -145,91 +156,39 @@
    </build>
 
    <dependencies>
-      <!-- #################### -->
-      <!-- Compile dependencies -->
-      <!-- #################### -->
-
-      <!-- Dependencies of the generated server code -->
+      <!-- ################### -->
+      <!-- Server dependencies -->
+      <!-- ################### -->
       <dependency>
          <groupId>io.github.ruedigerk.contractfirst.generator</groupId>
          <artifactId>contractfirst-generator-server-support</artifactId>
          <version>${project.version}</version>
+         <scope>test</scope>
       </dependency>
       <dependency>
          <groupId>jakarta.ws.rs</groupId>
          <artifactId>jakarta.ws.rs-api</artifactId>
          <version>${jax-rs.version}</version>
+         <scope>test</scope>
       </dependency>
       <dependency>
          <groupId>jakarta.validation</groupId>
          <artifactId>jakarta.validation-api</artifactId>
          <version>${jakarta-validation.version}</version>
+         <scope>test</scope>
       </dependency>
       <dependency>
          <groupId>com.google.code.gson</groupId>
          <artifactId>gson</artifactId>
          <version>${gson.version}</version>
+         <scope>test</scope>
       </dependency>
       <dependency>
          <groupId>com.google.code.findbugs</groupId>
          <artifactId>jsr305</artifactId>
          <version>3.0.2</version>
-      </dependency>
-
-      <!-- Dependencies of the generated client code -->
-      <dependency>
-         <groupId>io.github.ruedigerk.contractfirst.generator</groupId>
-         <artifactId>contractfirst-generator-client-support</artifactId>
-         <version>${project.version}</version>
-      </dependency>
-
-      <!-- ################# -->
-      <!-- Test dependencies -->
-      <!-- ################# -->
-      <dependency>
-         <!-- To redirect JDK logging used by Grizzly server to slf4j -->
-         <groupId>org.slf4j</groupId>
-         <artifactId>jul-to-slf4j</artifactId>
-         <version>${slf4j.version}</version>
          <scope>test</scope>
       </dependency>
-      <dependency>
-         <!-- To suppress Grizzly logging in tests -->
-         <groupId>org.slf4j</groupId>
-         <artifactId>slf4j-nop</artifactId>
-         <version>${slf4j.version}</version>
-         <scope>test</scope>
-      </dependency>
-      <dependency>
-         <!-- For testing with Spock -->
-         <groupId>org.apache.groovy</groupId>
-         <artifactId>groovy</artifactId>
-         <version>${groovy.version}</version>
-         <scope>test</scope>
-      </dependency>
-      <dependency>
-         <!-- For testing with Spock -->
-         <groupId>org.spockframework</groupId>
-         <artifactId>spock-core</artifactId>
-         <version>${spock.version}</version>
-         <scope>test</scope>
-      </dependency>
-      <dependency>
-         <!-- Allows mocking of classes in Spock (in addition to interfaces). -->
-         <groupId>net.bytebuddy</groupId>
-         <artifactId>byte-buddy</artifactId>
-         <version>${byte-buddy.version}</version>
-         <scope>test</scope>
-      </dependency>
-      <dependency>
-         <!-- Allows mocking of classes without default constructor in Spock (together with ByteBuddy). -->
-         <groupId>org.objenesis</groupId>
-         <artifactId>objenesis</artifactId>
-         <version>${objenesis.version}</version>
-         <scope>test</scope>
-      </dependency>
-
-      <!-- Testing with embedded Jersey JAX-RS Server -->
       <dependency>
          <!-- Grizzly based Jersey test container -->
          <groupId>org.glassfish.jersey.containers</groupId>
@@ -249,6 +208,48 @@
          <groupId>org.glassfish.jersey.media</groupId>
          <artifactId>jersey-media-multipart</artifactId>
          <version>${jersey.version}</version>
+         <scope>test</scope>
+      </dependency>
+      <dependency>
+         <!-- To redirect JDK logging used by Grizzly server to slf4j -->
+         <groupId>org.slf4j</groupId>
+         <artifactId>jul-to-slf4j</artifactId>
+         <version>${slf4j.version}</version>
+         <scope>test</scope>
+      </dependency>
+      <dependency>
+         <!-- To suppress Grizzly logging in tests -->
+         <groupId>org.slf4j</groupId>
+         <artifactId>slf4j-nop</artifactId>
+         <version>${slf4j.version}</version>
+         <scope>test</scope>
+      </dependency>
+
+      <!-- ################### -->
+      <!-- Client dependencies -->
+      <!-- ################### -->
+      <dependency>
+         <groupId>io.github.ruedigerk.contractfirst.generator</groupId>
+         <artifactId>contractfirst-generator-client-support</artifactId>
+         <version>${project.version}</version>
+         <scope>test</scope>
+      </dependency>
+
+      <!-- ####################### -->
+      <!-- Test framework and libs -->
+      <!-- ####################### -->
+      <dependency>
+         <!-- For testing with Spock -->
+         <groupId>org.apache.groovy</groupId>
+         <artifactId>groovy</artifactId>
+         <version>${groovy.version}</version>
+         <scope>test</scope>
+      </dependency>
+      <dependency>
+         <!-- For testing with Spock -->
+         <groupId>org.spockframework</groupId>
+         <artifactId>spock-core</artifactId>
+         <version>${spock.version}</version>
          <scope>test</scope>
       </dependency>
    </dependencies>

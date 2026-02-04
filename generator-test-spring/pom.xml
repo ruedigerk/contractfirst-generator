@@ -6,7 +6,7 @@
    <name>${project.artifactId}</name>
 
    <description>
-      This module contains the Spring-related tests for the generator.
+      This module contains the Spring-related unit tests for the generator.
    </description>
 
    <parent>

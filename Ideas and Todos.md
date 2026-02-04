@@ -1,7 +1,7 @@
 Ideas and Todos
 ===============
 
-- Move all "production" sources from unit and integration tests to "test" sources.
+- Integration test: add missing tests for generated files (see todos).
 - Add @Nonnull annotation to typesafe response builder method parameters.
 - Support jSpecify nullability annotations in addition to jsr305.
 - Research: can multiple content types for request bodies be supported (when they define differing schemas)?
@@ -14,7 +14,6 @@ Ideas and Todos
 
 ## General / in the parser
 
-- HTTP methods GET and HEAD do not allow a request body -> adjust parser accordingly.
 - Support parameters defined with content instead of schema.
 - Add a usage description with examples to the help Mojo of the Maven plugin and to the project Readme file.
 - Add support for $refs with description, e.g., in object schema properties (although this is not supported by the JSON schema specification).

@@ -14,8 +14,12 @@
       <artifactId>contractfirst-generator-parent</artifactId>
       <version>1.9.1-SNAPSHOT</version>
    </parent>
-   
+
    <properties>
+      <!-- Skip install and deploy as this module does not have a main artifact. -->
+      <maven.install.skip>true</maven.install.skip>
+      <maven.deploy.skip>true</maven.deploy.skip>
+
       <!-- Latest Jersey version for Java EE and not yet Jakarta EE -->
       <jersey2.version>2.47</jersey2.version>
    </properties>
@@ -35,7 +39,7 @@
 
          <plugin>
             <!-- The generator in version 1.7 for testing backwards compatibility of the client-support JAR -->
-            <!-- Unfortunately, this version of the generator wasn't able to   -->
+            <!-- Unfortunately, this version of the generator wasn't able to generate sources as test sources.  -->
             <artifactId>contractfirst-generator-maven-plugin</artifactId>
             <groupId>io.github.ruedigerk.contractfirst.generator</groupId>
             <version>1.7.0</version>
