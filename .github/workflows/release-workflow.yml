@@ -37,6 +37,8 @@ jobs:
           gpg-private-key: ${{ secrets.GPG_PRIVATE_KEY }}
           gpg-passphrase: GPG_PRIVATE_KEY_PASSPHRASE
           cache: 'maven'
+      - name: Print generated settings.xml
+        run: cat ~/.m2/settings.xml
       - name: Configure Git User
         run: |
           git config user.email "ruedigerkeller@mail.de"
