@@ -31,20 +31,20 @@ public class CodeGeneratorMojo extends AbstractMojo {
   // See https://medium.com/swlh/step-by-step-guide-to-developing-a-custom-maven-plugin-b6e3a0e09966
 
   /**
-   * the path to the file containing the OpenAPI contract to use as input; in case of the model-only generator, this should point to a single JSON-Schema file
+   * The path to the file containing the OpenAPI contract to use as input; in case of the model-only generator, this should point to a single JSON-Schema file
    * in YAML or JSON format, or to a directory which is recursively searched for JSON-Schema files
    */
   @Parameter(name = "inputContractFile", property = "openapi.generator.maven.plugin.inputContractFile", required = true)
   private String inputContractFile;
 
   /**
-   * the type of generator to use for code generation; allowed values are: "server", "client", "model-only"
+   * The type of generator to use for code generation; allowed values are: "server", "client", "model-only"
    */
   @Parameter(name = "generator", property = "openapi.generator.maven.plugin.generator", required = true)
   private String generator;
 
   /**
-   * the variant of the generator to use for code generation; allowed values depend on the selected generator:
+   * The variant of the generator to use for code generation; allowed values depend on the selected generator:
    * <pre>
    *   - server generator: "jax-rs" (default), "spring-web"
    *   - client generator: "okhttp" (default)
@@ -55,13 +55,13 @@ public class CodeGeneratorMojo extends AbstractMojo {
   private String generatorVariant;
 
   /**
-   * the variant of the model to use for code generation; allowed values are: "gson", "jackson"
+   * The variant of the model to use for code generation; allowed values are: "gson", "jackson"
    */
   @Parameter(name = "modelVariant", property = "openapi.generator.maven.plugin.modelVariant", required = false, defaultValue = "gson")
   private String modelVariant;
 
   /**
-   * the target directory for writing the generated sources to
+   * The target directory for writing the generated sources to
    */
   @Parameter(
       name = "outputDir",
@@ -71,19 +71,19 @@ public class CodeGeneratorMojo extends AbstractMojo {
   private String outputDir;
 
   /**
-   * whether to output the parsed contract as an all-in-one contract
+   * Whether to output the parsed contract as an all-in-one contract
    */
   @Parameter(name = "outputContract", property = "openapi.generator.maven.plugin.outputContract", defaultValue = "false")
   private boolean outputContract = false;
 
   /**
-   * the file name of the all-in-one contract file to output; only used when outputContract is true
+   * The file name of the all-in-one contract file to output; only used when outputContract is true
    */
   @Parameter(name = "outputContractFile", property = "openapi.generator.maven.plugin.outputContractFile", defaultValue = "openapi.yaml")
   private String outputContractFile;
 
   /**
-   * the Java package to put generated classes into
+   * The Java package to put generated classes into
    */
   @Parameter(name = "outputJavaBasePackage", property = "openapi.generator.maven.plugin.outputJavaBasePackage", required = true)
   private String outputJavaBasePackage;
@@ -95,32 +95,32 @@ public class CodeGeneratorMojo extends AbstractMojo {
   private boolean outputJavaPackageMirrorsSchemaDirectory = false;
 
   /**
-   * the path prefix to cut from the schema file directories when determining Java packages for model files; defaults to the directory of the inputContractFile;
+   * The path prefix to cut from the schema file directories when determining Java packages for model files; defaults to the directory of the inputContractFile;
    * this is only used, when outputJavaPackageMirrorsSchemaDirectory is true
    */
   @Parameter(name = "outputJavaPackageSchemaDirectoryPrefix", property = "openapi.generator.maven.plugin.outputJavaPackageSchemaDirectoryPrefix")
   private String outputJavaPackageSchemaDirectoryPrefix;
 
   /**
-   * the prefix for Java model class names; defaults to the empty String
+   * The prefix for Java model class names; defaults to the empty String
    */
   @Parameter(name = "outputJavaModelNamePrefix", property = "openapi.generator.maven.plugin.outputJavaModelNamePrefix")
   private String outputJavaModelNamePrefix = "";
 
   /**
-   * whether to generate JSR-305 nullability annotations for the getter and setter methods of the model classes
+   * Whether to generate JSR-305 nullability annotations for the getter and setter methods of the model classes
    */
   @Parameter(name = "outputJavaModelUseJsr305NullabilityAnnotations", property = "openapi.generator.maven.plugin.outputJavaModelUseJsr305NullabilityAnnotations", defaultValue = "false")
   private boolean outputJavaModelUseJsr305NullabilityAnnotations = false;
 
   /**
-   * whether to add the generated sources directory as a test source directory instead of a main compile source directory; defaults to false
+   * Whether to add the generated sources directory as a test source directory instead of a main compile source directory; defaults to false
    */
   @Parameter(name = "addAsTestSource", property = "openapi.generator.maven.plugin.add-as-test-source", defaultValue = "false")
   private boolean addAsTestSource = false;
 
   /**
-   * skip execution of this plugin; defaults to false
+   * Skip execution of this plugin; defaults to false
    */
   @Parameter(name = "skip", property = "openapi.generator.maven.plugin.skip", defaultValue = "false")
   private boolean skip = false;
@@ -149,7 +149,7 @@ public class CodeGeneratorMojo extends AbstractMojo {
   }
 
   private String getConfigurationAsString() {
-    return "Configuration:" +
+    return "Mojo Configuration:" +
         "\n\tinputContractFile='" + inputContractFile + '\'' +
         "\n\tgenerator='" + generator + '\'' +
         "\n\tgeneratorVariant='" + generatorVariant + '\'' +

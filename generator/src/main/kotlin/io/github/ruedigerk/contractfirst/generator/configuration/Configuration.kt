@@ -51,6 +51,8 @@ data class Configuration(
     |outputContract=$outputContract
     |outputContractFile='$outputContractFile'
     |outputJavaBasePackage='$outputJavaBasePackage'
+    |outputJavaPackageMirrorsSchemaDirectory='$outputJavaPackageMirrorsSchemaDirectory'
+    |outputJavaPackageSchemaDirectoryPrefix='$outputJavaPackageSchemaDirectoryPrefix'
     |outputJavaModelNamePrefix='$outputJavaModelNamePrefix'
     |outputJavaModelUseJsr305NullabilityAnnotations='$outputJavaModelUseJsr305NullabilityAnnotations'
   """.trimMargin().prependIndent(indent)
