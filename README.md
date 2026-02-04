@@ -6,28 +6,41 @@ Contractfirst-Generator
 
 Contractfirst-Generator is a code generator for OpenAPI 3 contracts, enabling a contract-first approach to developing REST APIs.
 
-Currently, it consists of two different code generators:
-- a server generator for generating Java-based JAX-RS server stubs and 
-- a client generator for Java clients, using Gson and OkHttp.
+Currently, it consists of the following generators:
+- Server
+  - Jakarta Restful Web Services (JAX-RS): Generates interfaces to implement as JAX-RS resource classes, and model files (Gson or Jackson).
+  - Spring Web MVC: Generates interfaces to implement as Spring REST controllers, and model files (Gson or Jackson).
+- Client
+  - OkHttp/Gson: Generates a Java client based on OkHttp and Gson (Jackson is not supported).
+- Model-only
+  - With only schema files as input, generates the corresponding Java model files  (Gson or Jackson).
 
 
 Server Generator
 ----------------
 
-The server generator generates Java interfaces annotated with JAX-RS annotations, and a data model that can be serialized with Gson.
+The server generator generates annotated Java interfaces, and a data model that can be serialized as JSON.
 
 The server generator is intended to run during the generate-sources phase of Maven, so that the generated interfaces can be implemented in application code
 filling in the application logic.
 
-For the generated data model to be serialized to JSON properly, it is necessary to register Gson as a JAX-RS MessageBodyReader and MessageBodyWriter. This
-can be done by using the class `GsonMessageBodyHandler` from the contractfirst-generator-server-support artifact.
+Configuration:
+- Use the configuration option `generatorVariant` to select the framework, either `jax-rs` (default) or `spring-web`.
+- Use the configuration option `modelVariant` to select the JSON serializer, either `gson` or `jackson`.
+- For other configuration options, refer to the help output of the Maven plugin, using
+  `mvn io.github.ruedigerk.contractfirst.generator:contractfirst-generator-maven-plugin:help -Dgoal=generate -Ddetail`
 
-Here is an example for using the Maven plugin to generate server stubs:
+### JAX-RS
+
+For the generated data model to be serialized to JSON properly when using JAX-RS, it is necessary to register Gson as a JAX-RS MessageBodyReader and 
+MessageBodyWriter. This can be done by using the class `GsonMessageBodyHandler` from the `contractfirst-generator-server-support` artifact.
+
+Here is an example for using the Maven plugin to generate JAX-RS interfaces with a Gson model:
 
     <plugin>
        <artifactId>contractfirst-generator-maven-plugin</artifactId>
        <groupId>io.github.ruedigerk.contractfirst.generator</groupId>
-       <version>1.9.0</version>
+       <version>2.0.0</version>
        <executions>
           <execution>
              <id>generate-server</id>
@@ -49,13 +62,13 @@ The generated server code needs the following dependencies:
         <!-- Contains a JAX-RS ParamConverterProvider and a Gson MessageBodyHandler to support LocalDate and OffsetDateTime -->
         <groupId>io.github.ruedigerk.contractfirst.generator</groupId>
         <artifactId>contractfirst-generator-server-support</artifactId>
-        <version>1.9.0</version>
+        <version>2.0.0</version>
     </dependency>
     <dependency>
-        <!-- BeanValidation API for the generated data model -->
-        <groupId>javax.validation</groupId>
-        <artifactId>validation-api</artifactId>
-        <version>2.0.1.Final</version>
+        <!-- Jakarta Validation API for the generated data model -->
+        <groupId>jakarta.validation</groupId>
+        <artifactId>jakarta.validation-api</artifactId>
+        <version>3.0.2</version>
     </dependency>
     <dependency>
         <!-- Gson for serializing and deserializing the generated data model to and from JSON -->
@@ -72,18 +85,70 @@ Additionally, if using the option `outputJavaModelUseJsr305NullabilityAnnotation
         <version>3.0.2</version>
     </dependency>
 
+### Spring Web MVC
+
+Here is an example for using the Maven plugin to generate Spring REST controller interfaces with a Jackson model:
+
+    <plugin>
+       <artifactId>contractfirst-generator-maven-plugin</artifactId>
+       <groupId>io.github.ruedigerk.contractfirst.generator</groupId>
+       <version>2.0.0</version>
+       <executions>
+          <execution>
+             <id>generate-server</id>
+             <goals>
+                <goal>generate</goal>
+             </goals>
+             <configuration>
+                <generator>server</generator>
+                <generatorVariant>spring-web</generatorVariant>
+                <modelVariant>jackson</modelVariant>
+                <inputContractFile>${project.basedir}/src/main/contract/openapi.yaml</inputContractFile>
+                <outputJavaBasePackage>my.java.pkg</outputJavaBasePackage>
+             </configuration>
+          </execution>
+       </executions>
+    </plugin>
+
+The generated server code needs Spring dependencies for Web MVC and Jakarta Validation, e.g.:
+
+    <dependency>
+       <groupId>org.springframework.boot</groupId>
+       <artifactId>spring-boot-starter-webmvc</artifactId>
+       <scope>test</scope>
+    </dependency>
+    <dependency>
+       <groupId>org.springframework.boot</groupId>
+       <artifactId>spring-boot-starter-validation</artifactId>
+       <scope>test</scope>
+    </dependency>
+
+Additionally, if using the option `outputJavaModelUseJsr305NullabilityAnnotations` there needs to be a dependency for these annotations, like:
+
+    <dependency>
+        <groupId>com.google.code.findbugs</groupId>
+        <artifactId>jsr305</artifactId>
+        <version>3.0.2</version>
+    </dependency>
+
 
 Client Generator
 ----------------
 
-The client generator generates Java code that uses OkHttp, and a data model that can be serialized with Gson.
+The client generator generates Java code that uses OkHttp, and a data model that is serialized using Gson. No other variants are currently supported for the
+client generator.
+
+Configuration:
+- Use the configuration option `generator` with a value of `client`.
+- For other configuration options, refer to the help output of the Maven plugin, using
+  `mvn io.github.ruedigerk.contractfirst.generator:contractfirst-generator-maven-plugin:help -Dgoal=generate -Ddetail`
 
 Here is an example for using the Maven plugin to generate an API client:
 
     <plugin>
        <artifactId>contractfirst-generator-maven-plugin</artifactId>
        <groupId>io.github.ruedigerk.contractfirst.generator</groupId>
-       <version>1.9.0</version>
+       <version>2.0.0</version>
        <executions>
           <execution>
              <id>generate-client</id>
@@ -105,13 +170,13 @@ The generated client code needs the following dependencies:
         <!-- Support module for the generated client code -->
         <groupId>io.github.ruedigerk.contractfirst.generator</groupId>
         <artifactId>contractfirst-generator-client-support</artifactId>
-        <version>1.9.0</version>
+        <version>2.0.0</version>
     </dependency>
     <dependency>
-        <!-- BeanValidation API for the generated data model -->
-        <groupId>javax.validation</groupId>
-        <artifactId>validation-api</artifactId>
-        <version>2.0.1.Final</version>
+        <!-- Jakarta Validation API for the generated data model -->
+        <groupId>jakarta.validation</groupId>
+        <artifactId>jakarta.validation-api</artifactId>
+        <version>3.0.2</version>
     </dependency>
     <dependency>
         <!-- Gson for serializing and deserializing the generated data model to and from JSON -->
@@ -132,7 +197,15 @@ Additionally, if using the option `outputJavaModelUseJsr305NullabilityAnnotation
 Model-only Generator
 --------------------
 
-The model-only generator generates a data model that can be serialized with Gson.
+The model-only generator generates a data model for serialization with either Gson or Jackson.
+
+Configuration:
+- Use the configuration option `generator` with a value of `model-only`.
+- Use the configuration option `modelVariant` to select the JSON serializer, either `gson` or `jackson`.
+- For other configuration options, refer to the help output of the Maven plugin, using
+  `mvn io.github.ruedigerk.contractfirst.generator:contractfirst-generator-maven-plugin:help -Dgoal=generate -Ddetail`
+
+### Gson
 
 For the generated data model to be serialized to JSON properly, it is necessary to register Gson as a JAX-RS MessageBodyReader and MessageBodyWriter. This
 can be done by using the class `GsonMessageBodyHandler` from the contractfirst-generator-server-support artifact.
@@ -142,7 +215,7 @@ Here is an example for using the Maven plugin to generate only model files:
     <plugin>
        <artifactId>contractfirst-generator-maven-plugin</artifactId>
        <groupId>io.github.ruedigerk.contractfirst.generator</groupId>
-       <version>1.9.0</version>
+       <version>2.0.0</version>
        <executions>
           <execution>
              <id>generate-model-only</id>
@@ -159,13 +232,13 @@ Here is an example for using the Maven plugin to generate only model files:
        </executions>
     </plugin>
 
-The generated model code needs the following dependencies:
+The generated Gson model needs the following dependencies:
 
     <dependency>
-        <!-- BeanValidation API for the generated data model -->
-        <groupId>javax.validation</groupId>
-        <artifactId>validation-api</artifactId>
-        <version>2.0.1.Final</version>
+        <!-- Jakarta Validation API for the generated data model -->
+        <groupId>jakarta.validation</groupId>
+        <artifactId>jakarta.validation-api</artifactId>
+        <version>3.0.2</version>
     </dependency>
     <dependency>
         <!-- Gson for serializing and deserializing the generated data model to and from JSON -->
@@ -190,75 +263,102 @@ Goal for generating sources from an OpenAPI contract.
 
 Available parameters:
 
+    addAsSourceRoot (Default: true)
+      Whether to add the generated sources directory to the Maven source roots;
+      defaults to true.
+      User property: openapi.generator.maven.plugin.add-as-source-root
+
     addAsTestSource (Default: false)
-      whether to add the generated sources directory as a test source directory
-      instead of a main compile source directory; defaults to false
+      Whether to add the generated sources directory as a test source directory
+      instead of a main compile source directory; defaults to false.
       User property: openapi.generator.maven.plugin.add-as-test-source
 
     generator
-      the type of generator to use for code generation; allowed values are:
-      "server", "client", "model-only"
+      The type of generator to use for code generation; allowed values are:
+      "server", "client", "model-only".
       Required: Yes
       User property: openapi.generator.maven.plugin.generator
 
+    generatorVariant
+      The variant of the generator to use for code generation; allowed values
+      depend on the selected generator: - server generator: "jax-rs" (default),
+      "spring-web" - client generator: "okhttp" (default) - model-only
+      generator: "model-only" (default)
+      User property: openapi.generator.maven.plugin.generatorVariant
+
     inputContractFile
-      the path to the file containing the OpenAPI contract to use as input; in
+      The path to the file containing the OpenAPI contract to use as input; in
       case of the model-only generator, this should point to a single
       JSON-Schema file in YAML or JSON format, or to a directory which is
-      recursively searched for JSON-Schema files
+      recursively searched for JSON-Schema files.
       Required: Yes
       User property: openapi.generator.maven.plugin.inputContractFile
 
+    modelVariant (Default: gson)
+      The variant of the model to use for code generation; allowed values are:
+      "gson", "jackson".
+      User property: openapi.generator.maven.plugin.modelVariant
+
     outputContract (Default: false)
-      whether to output the parsed contract as an all-in-one contract
+      Whether to output the parsed contract as an all-in-one contract.
       User property: openapi.generator.maven.plugin.outputContract
 
     outputContractFile (Default: openapi.yaml)
-      the file name of the all-in-one contract file to output; only used when
-      outputContract is true
+      The file name of the all-in-one contract file to output; only used when
+      outputContract is true.
       User property: openapi.generator.maven.plugin.outputContractFile
 
-    outputDir (Default:
-    ${project.build.directory}/generated-sources/contractfirst-generator)
-      the target directory for writing the generated sources to
+    outputDir (Default: ${project.build.directory}/generated-sources/contractfirst-generator)
+      The target directory for writing the generated sources to.
       User property: openapi.generator.maven.plugin.outputDir
 
     outputJavaBasePackage
-      the Java package to put generated classes into
+      The Java package to put generated classes into.
       Required: Yes
       User property: openapi.generator.maven.plugin.outputJavaBasePackage
 
     outputJavaModelNamePrefix
-      the prefix for Java model class names; defaults to the empty String
+      The prefix for Java model class names; defaults to the empty String.
       User property: openapi.generator.maven.plugin.outputJavaModelNamePrefix
 
     outputJavaModelUseJsr305NullabilityAnnotations (Default: false)
-      whether to generate JSR-305 nullability annotations for the getter and
-      setter methods of the model classes
-      User property:
-      openapi.generator.maven.plugin.outputJavaModelUseJsr305NullabilityAnnotations
+      Whether to generate JSR-305 nullability annotations for the getter and
+      setter methods of the model classes.
+      User property: openapi.generator.maven.plugin.outputJavaModelUseJsr305NullabilityAnnotations
 
     outputJavaPackageMirrorsSchemaDirectory (Default: false)
-      whether the Java packages of the generated model files are mirroring the
-      directory structure of the schema files
-      User property:
-      openapi.generator.maven.plugin.outputJavaPackageMirrorsSchemaDirectory
+      Whether the Java packages of the generated model files are mirroring the
+      directory structure of the schema files.
+      User property: openapi.generator.maven.plugin.outputJavaPackageMirrorsSchemaDirectory
 
     outputJavaPackageSchemaDirectoryPrefix
-      the path prefix to cut from the schema file directories when determining
+      The path prefix to cut from the schema file directories when determining
       Java packages for model files; defaults to the directory of the
       inputContractFile; this is only used, when
-      outputJavaPackageMirrorsSchemaDirectory is true
-      User property:
-      openapi.generator.maven.plugin.outputJavaPackageSchemaDirectoryPrefix
+      outputJavaPackageMirrorsSchemaDirectory is true.
+      User property: openapi.generator.maven.plugin.outputJavaPackageSchemaDirectoryPrefix
 
     skip (Default: false)
-      skip execution of this plugin; defaults to false
+      Skip execution of this plugin; defaults to false.
       User property: openapi.generator.maven.plugin.skip
 
 
 Changelog
 ---------
+
+### 2.0.0
+
+**Added**
+- Added support for generating Spring Web server stubs. 
+- Added support for generating Jackson-based models. 
+- Added the following configurations options
+  - generatorVariant
+  - modelVariant
+  - addAsSourceRoot
+
+**Changed**
+- The generated model files now contain annotations requiring Jakarta Validation in version 3.0.0 or above.
+- The JAX-RS generator now targets Jakarta 10, i.e., Jakarta RESTful Web Services 3.1.
 
 ### 1.9.0
 
