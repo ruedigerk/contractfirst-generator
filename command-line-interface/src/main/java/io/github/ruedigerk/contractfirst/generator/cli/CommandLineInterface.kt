@@ -2,7 +2,14 @@ package io.github.ruedigerk.contractfirst.generator.cli
 
 import com.xenomachina.argparser.ArgParser
 import com.xenomachina.argparser.default
-import io.github.ruedigerk.contractfirst.generator.*
+import com.xenomachina.argparser.mainBody
+import io.github.ruedigerk.contractfirst.generator.ContractfirstGenerator
+import io.github.ruedigerk.contractfirst.generator.NotSupportedException
+import io.github.ruedigerk.contractfirst.generator.ParserException
+import io.github.ruedigerk.contractfirst.generator.configuration.Configuration
+import io.github.ruedigerk.contractfirst.generator.configuration.GeneratorType
+import io.github.ruedigerk.contractfirst.generator.configuration.GeneratorVariant
+import io.github.ruedigerk.contractfirst.generator.configuration.ModelVariant
 import io.github.ruedigerk.contractfirst.generator.logging.Log
 import io.github.ruedigerk.contractfirst.generator.logging.Slf4jLogAdapter
 import org.slf4j.LoggerFactory
@@ -18,7 +25,7 @@ object CommandLineInterface {
   private val log = Log(logAdapter)
 
   @JvmStatic
-  fun main(args: Array<String>) {
+  fun main(args: Array<String>) = mainBody {
     val cliConfig = readConfiguration(args)
 
     val verbosity = toLoggingVerbosity(cliConfig)
@@ -64,9 +71,15 @@ object CommandLineInterface {
       cliConfiguration.outputJavaPackageSchemaDirectoryPrefix,
     )
 
+    val generator = determineGenerator(cliConfiguration.generator)
+    val generatorVariant = determineGeneratorVariant(generator, cliConfiguration.generatorVariant)
+    val modelVariant = determineModelVariant(cliConfiguration.modelVariant)
+
     return Configuration(
       effectiveInputContractFile,
-      determineGenerator(cliConfiguration.generator),
+      generator,
+      generatorVariant,
+      modelVariant,
       cliConfiguration.outputDir,
       cliConfiguration.outputContract,
       cliConfiguration.outputContractFile,
@@ -88,7 +101,29 @@ object CommandLineInterface {
     "client" -> GeneratorType.CLIENT
     "server" -> GeneratorType.SERVER
     "model-only" -> GeneratorType.MODEL_ONLY
-    else -> throw InvalidConfigurationException("Option --generator has invalid value: '$generator', allowed values are 'client', 'server'")
+    else -> throw InvalidConfigurationException("Option --generator has invalid value: '$generator', allowed values are 'client', 'server', 'model-only'.")
+  }
+
+  private fun determineGeneratorVariant(generator: GeneratorType, variant: String?): GeneratorVariant = when (variant) {
+    null -> generator.defaultVariant
+
+    "okhttp" -> GeneratorVariant.CLIENT_OKHTTP
+
+    "jax-rs" -> GeneratorVariant.SERVER_JAX_RS
+
+    "spring-web" -> GeneratorVariant.SERVER_SPRING_WEB
+
+    "model-only" -> GeneratorVariant.MODEL_ONLY
+
+    else -> throw InvalidConfigurationException(
+      "Configuration 'generator-variant' has invalid value: '$variant', allowed values are 'okhttp', 'jax-rs', 'spring-web', 'model-only'.",
+    )
+  }
+
+  private fun determineModelVariant(variant: String?): ModelVariant = when (variant) {
+    null, "gson" -> ModelVariant.GSON
+    "jackson" -> ModelVariant.JACKSON
+    else -> throw InvalidConfigurationException("Configuration 'modelVariant' has invalid value: '$variant', allowed values are 'gson', 'jackson'.")
   }
 
   private fun toLoggingVerbosity(config: CliConfiguration): LoggingVerbosity = when {
@@ -102,12 +137,24 @@ private class CliConfiguration(parser: ArgParser) {
 
   val inputContractFile: String by parser.storing(
     "--input-contract-file",
-    help = "the path to the file containing the OpenAPI contract to use as input; in case of the model-only generator, this should point to a single JSON-Schema file in YAML or JSON format or to a directory, which is recursively searched for JSON-Schema files",
+    help = "the path to the file containing the OpenAPI contract to use as input; in case of the model-only generator, this should point to a single " +
+      "JSON-Schema file in YAML or JSON format or to a directory, which is recursively searched for JSON-Schema files",
   )
 
   val generator: String by parser.storing(
     "--generator",
     help = "the type of generator to use for code generation; allowed values are: \"server\", \"client\", \"model-only\"",
+  )
+
+  val generatorVariant: String? by parser.storing(
+    "--generator-variant",
+    help = "the variant of the generator to use for code generation; allowed values depend on the selected generator; " +
+      "server generator: \"jax-rs\" (default) or \"spring-web\"; client generator: \"okhttp\" (default); model-only generator: \"model-only\" (default)",
+  )
+
+  val modelVariant: String? by parser.storing(
+    "--model-variant",
+    help = "the variant of the model to use for code generation; allowed values are: \"gson\", \"jackson\"",
   )
 
   val outputDir: String by parser.storing("--output-dir", help = "the path to the directory where the generated code is written to")
@@ -129,7 +176,8 @@ private class CliConfiguration(parser: ArgParser) {
 
   val outputJavaPackageSchemaDirectoryPrefix: String? by parser.storing(
     "--output-java-package-schema-directory-prefix",
-    help = "the path prefix to cut from the schema file directories when determining Java packages for model files; defaults to the directory of the inputContractFile; this is only used, when outputJavaPackageMirrorsSchemaDirectory is true",
+    help = "the path prefix to cut from the schema file directories when determining Java packages for model files; defaults to the directory of the " +
+      "inputContractFile; this is only used, when outputJavaPackageMirrorsSchemaDirectory is true",
   )
 
   val outputJavaModelNamePrefix: String by parser.storing("--output-java-model-name-prefix", help = "the prefix for Java model class names").default("")

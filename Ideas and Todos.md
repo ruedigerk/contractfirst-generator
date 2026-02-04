@@ -10,6 +10,7 @@ Ideas and Todos
 - Research text/plain request/response bodies.
 - Support inner Enums (and classes?) for model.
 - Implement all-in-one contract functionality without swagger-parser. 
+- Consider switching to clikt for command line parsing: https://github.com/ajalt/clikt
 
 ## General / in the parser
 
