@@ -1,9 +1,9 @@
 <settings xmlns="http://maven.apache.org/SETTINGS/1.0.0"
    xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
    xsi:schemaLocation="http://maven.apache.org/SETTINGS/1.0.0 https://maven.apache.org/xsd/settings-1.0.0.xsd">
-   
+
    <!-- settings.xml file used during the release process -->
-   
+
    <servers>
       <server>
          <id>github</id>
@@ -14,6 +14,11 @@
          <id>central</id>
          <username>${env.CENTRAL_USER_TOKEN_USERNAME}</username>
          <password>${env.CENTRAL_USER_TOKEN_PASSWORD}</password>
+      </server>
+      <server>
+         <!-- For signing with GPG, see: https://github.com/actions/setup-java/blob/main/docs/advanced-usage.md#publishing-using-apache-maven -->
+         <id>gpg.passphrase</id>
+         <passphrase>${env.GPG_PRIVATE_KEY_PASSPHRASE}</passphrase>
       </server>
    </servers>
 </settings>
