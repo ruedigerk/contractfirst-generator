@@ -16,12 +16,12 @@
    </parent>
 
    <properties>
-      <!-- Skip install and deploy as this module does not have a main artifact. -->
-      <maven.install.skip>true</maven.install.skip>
-      <maven.deploy.skip>true</maven.deploy.skip>
-
       <!-- Latest Jersey version for Java EE and not yet Jakarta EE -->
       <jersey2.version>2.47</jersey2.version>
+
+      <!-- Skip install, deploy and signing as this module does not have a main artifact. -->
+      <maven.install.skip>true</maven.install.skip>
+      <maven.deploy.skip>true</maven.deploy.skip>
    </properties>
 
    <build>

@@ -20,7 +20,7 @@
       <!-- Spring requires at least Java 17 -->
       <target-jdk.version>17</target-jdk.version>
 
-      <!-- Skip install and deploy as this module does not have a main artifact. -->
+      <!-- Skip install, deploy and signing as this module does not have a main artifact. -->
       <maven.install.skip>true</maven.install.skip>
       <maven.deploy.skip>true</maven.deploy.skip>
    </properties>

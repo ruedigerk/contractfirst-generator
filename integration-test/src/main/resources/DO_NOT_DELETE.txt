@@ -1,0 +1,1 @@
+This file ensures that a main artifact is created in the build to prevent the Sonatype central publishing plugin from failing.
