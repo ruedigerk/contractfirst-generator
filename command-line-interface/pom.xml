@@ -12,6 +12,8 @@
    </parent>
 
    <build>
+      <sourceDirectory>${project.basedir}/src/main/kotlin</sourceDirectory>
+
       <plugins>
          <plugin>
             <!-- Kotlin compiler plugin needs to run before Java compiler plugin -->
